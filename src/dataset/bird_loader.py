@@ -1,4 +1,4 @@
-"""BIRD dataset loader using a normalized JSONL contract."""
+"""Лоадер BIRD в нормализованный JSONL-контракт."""
 
 from __future__ import annotations
 
@@ -10,20 +10,20 @@ REQUIRED_KEYS = ("question", "schema", "gold_sql")
 
 
 class BirdLoader:
-    """Load BIRD samples from a JSONL file."""
+    """Загрузка примеров BIRD из JSONL-файла."""
 
     def __init__(self, path: str | Path) -> None:
         self.path = Path(path)
 
     def load(self) -> list[dict[str, Any]]:
-        """Load and validate BIRD records.
+        """Загрузить и провалидировать записи BIRD.
 
-        Returns:
-            List of records with required keys question, schema, gold_sql
-            and optional db_path.
+        Возвращает:
+            Список записей с обязательными полями question, schema, gold_sql
+            и опциональным db_path.
         """
         if not self.path.exists():
-            raise FileNotFoundError(f"BIRD dataset file not found: {self.path}")
+            raise FileNotFoundError(f"Файл датасета BIRD не найден: {self.path}")
 
         records: list[dict[str, Any]] = []
         with self.path.open("r", encoding="utf-8") as handle:
@@ -47,4 +47,4 @@ class BirdLoader:
     def _validate_row(row: dict[str, Any], idx: int) -> None:
         missing = [key for key in REQUIRED_KEYS if key not in row]
         if missing:
-            raise ValueError(f"BIRD record {idx} is missing keys: {missing}")
+            raise ValueError(f"В записи BIRD #{idx} отсутствуют поля: {missing}")

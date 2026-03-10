@@ -1,4 +1,4 @@
-"""Single experiment runner for NL2SQL benchmarking."""
+"""Раннер одного эксперимента для NL2SQL-бенчмарка."""
 
 from __future__ import annotations
 
@@ -22,9 +22,9 @@ from src.utils.env_loader import load_dotenv_file
 
 
 def run_experiment(config: dict[str, Any]) -> dict[str, Any]:
-    """Run one NL2SQL experiment and persist results.
+    """Запустить один NL2SQL-эксперимент и сохранить результаты.
 
-    Env-first overrides are supported for all key runtime parameters.
+    Поддерживаются env-first переопределения ключевых параметров запуска.
     """
     root = Path(__file__).resolve().parents[2]
     load_dotenv_file(root / ".env")
@@ -125,7 +125,7 @@ def _load_dataset(name: str, dataset_path: Path) -> list[dict[str, Any]]:
         "bird": BirdLoader,
     }
     if name not in loaders:
-        raise ValueError(f"Unsupported dataset: {name}")
+        raise ValueError(f"Неподдерживаемый датасет: {name}")
 
     loader = loaders[name](dataset_path)
     return loader.load()
@@ -133,7 +133,7 @@ def _load_dataset(name: str, dataset_path: Path) -> list[dict[str, Any]]:
 
 def _build_model(model_key: str, models_config: dict[str, Any]) -> tuple[BaseModel, dict[str, str]]:
     if model_key not in models_config:
-        raise KeyError(f"Model key not found in models config: {model_key}")
+        raise KeyError(f"Ключ модели не найден в конфиге моделей: {model_key}")
 
     cfg = models_config[model_key]
     backend = str(cfg.get("backend", "")).lower()
@@ -165,7 +165,7 @@ def _build_model(model_key: str, models_config: dict[str, Any]) -> tuple[BaseMod
         )
         return model, {"backend": backend, "model_name": model_name}
 
-    raise ValueError(f"Unsupported model backend: {backend}")
+    raise ValueError(f"Неподдерживаемый backend модели: {backend}")
 
 
 def _resolve_db_path(record_db_path: str, default_db_path: str, dataset_path: Path) -> str:
@@ -187,7 +187,7 @@ def _env_or_cfg(env_key: str, cfg: dict[str, Any], cfg_key: str, default: str | 
         return str(cfg[cfg_key])
     if default is not None:
         return default
-    raise ValueError(f"Missing required config `{cfg_key}` and env `{env_key}`")
+    raise ValueError(f"Отсутствует обязательный параметр `{cfg_key}` и env `{env_key}`")
 
 
 def _required(cfg: dict[str, Any], key: str, env_key: str) -> str:
@@ -197,7 +197,7 @@ def _required(cfg: dict[str, Any], key: str, env_key: str) -> str:
     env_value = os.getenv(env_key)
     if env_value is not None and env_value != "":
         return env_value
-    raise ValueError(f"Missing required parameter `{key}` and env `{env_key}`")
+    raise ValueError(f"Отсутствует обязательный параметр `{key}` и env `{env_key}`")
 
 
 def _apply_env_overrides(config: dict[str, Any]) -> dict[str, Any]:

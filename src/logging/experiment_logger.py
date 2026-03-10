@@ -1,4 +1,4 @@
-"""Utilities for persisting experiment results."""
+"""Утилиты сохранения результатов экспериментов."""
 
 from __future__ import annotations
 
@@ -9,12 +9,12 @@ from typing import Any
 
 
 def utc_timestamp() -> str:
-    """Return filesystem-safe UTC timestamp."""
+    """Вернуть UTC-таймстамп в формате, безопасном для имени файла."""
     return datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
 
 
 def save_run_result(result: dict[str, Any], output_dir: str | Path) -> Path:
-    """Save experiment result JSON in output directory."""
+    """Сохранить результат эксперимента в JSON в указанную директорию."""
     output = Path(output_dir)
     output.mkdir(parents=True, exist_ok=True)
 

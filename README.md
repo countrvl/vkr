@@ -1,4 +1,4 @@
-# LLM SQL Benchmark
+# Бенчмарк LLM для NL2SQL
 
 Минималистичный и воспроизводимый фреймворк для бенчмаркинга LLM на задаче NL2SQL (датасеты формата Spider и BIRD).
 
@@ -174,7 +174,7 @@ python experiments/run_experiment.py --config configs/experiments.yaml
 
 ## Метрики оценки
 
-### Execution Accuracy
+### Точность выполнения (Execution Accuracy)
 
 Для каждого примера:
 1. выполняется `gold_sql` в SQLite
@@ -184,7 +184,7 @@ python experiments/run_experiment.py --config configs/experiments.yaml
 Итоговая метрика по датасету:
 - доля примеров, где результат выполнения предсказания совпадает с gold
 
-### Pass@K
+### Pass@K (доля успеха в top-k)
 
 Для каждого примера:
 - генерируются `k` SQL-кандидатов
@@ -193,7 +193,7 @@ python experiments/run_experiment.py --config configs/experiments.yaml
 Итоговая метрика по датасету:
 - доля примеров, где найден корректный кандидат в top-k
 
-### Average Latency
+### Средняя задержка (Average Latency)
 
 - измеряется для каждого вызова генерации (в секундах)
 - в отчете используется среднее арифметическое по всем вызовам в прогоне
@@ -219,7 +219,7 @@ class BaseModel:
 3. Добавьте JSONL и SQLite файлы в `datasets/<name>/`.
 4. Добавьте эксперимент в `configs/experiments.yaml` и нужные env-переменные.
 
-## Notebook-first процесс
+## Работа через Notebook
 
 Используйте `notebooks/analysis.ipynb`, чтобы:
 - загрузить `.env`

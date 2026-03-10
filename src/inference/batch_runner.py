@@ -1,4 +1,4 @@
-"""Batch experiment runner from YAML configs."""
+"""Пакетный раннер экспериментов из YAML-конфига."""
 
 from __future__ import annotations
 
@@ -10,7 +10,7 @@ try:
     from tqdm import tqdm
 except ImportError:  # pragma: no cover
     def tqdm(iterable: list[str], **_: Any) -> list[str]:
-        """Fallback when tqdm is unavailable."""
+        """Резервный вариант, если tqdm недоступен."""
         return iterable
 
 from src.inference.runner import run_experiment
@@ -23,7 +23,7 @@ def run_batch(
     experiment_names: list[str] | None = None,
     k_override: int | None = None,
 ) -> list[dict[str, Any]]:
-    """Run a set of experiments from config and return all results."""
+    """Запустить набор экспериментов из конфига и вернуть результаты."""
     root = Path(__file__).resolve().parents[2]
     load_dotenv_file(root / ".env")
 
@@ -32,7 +32,7 @@ def run_batch(
 
     experiments = config.get("experiments", {})
     if not isinstance(experiments, dict):
-        raise ValueError("`experiments` must be a mapping in experiments config")
+        raise ValueError("Секция `experiments` должна быть отображением в конфиге")
 
     env_names = os.getenv("L2SB_EXPERIMENT_NAMES", "").strip()
     names_from_env = [name.strip() for name in env_names.split(",") if name.strip()] if env_names else None
@@ -44,9 +44,9 @@ def run_batch(
     )
 
     results: list[dict[str, Any]] = []
-    for name in tqdm(selected_names, desc="Running experiments"):
+    for name in tqdm(selected_names, desc="Запуск экспериментов"):
         if name not in experiments:
-            raise KeyError(f"Experiment not found in config: {name}")
+            raise KeyError(f"Эксперимент не найден в конфиге: {name}")
 
         exp_cfg = dict(experiments[name])
         exp_cfg["name"] = name

@@ -1,4 +1,4 @@
-"""CLI wrapper around the Python experiment runners."""
+"""Консольная обертка над раннерами экспериментов."""
 
 from __future__ import annotations
 
@@ -21,22 +21,22 @@ load_dotenv_file(PROJECT_ROOT / ".env")
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Run NL2SQL benchmark experiments")
+    parser = argparse.ArgumentParser(description="Запуск NL2SQL-бенчмарка")
     parser.add_argument(
         "--config",
         default=os.getenv("L2SB_EXPERIMENTS_CONFIG", str(PROJECT_ROOT / "configs" / "experiments.yaml")),
-        help="Path to experiments YAML",
+        help="Путь к YAML-файлу экспериментов",
     )
     parser.add_argument(
         "--experiment",
         default=os.getenv("L2SB_EXPERIMENT"),
-        help="Experiment name to run. If omitted, run all experiments from config.",
+        help="Имя эксперимента. Если не указано, запускаются все эксперименты из конфига.",
     )
     parser.add_argument(
         "--k",
         type=int,
         default=int(os.getenv("L2SB_K", "0")) or None,
-        help="Override k generations for selected experiment(s)",
+        help="Переопределить k генераций для выбранного(ых) эксперимента(ов)",
     )
     return parser.parse_args()
 
@@ -48,7 +48,7 @@ def main() -> None:
     if args.experiment:
         experiments = config.get("experiments", {})
         if args.experiment not in experiments:
-            raise KeyError(f"Experiment not found: {args.experiment}")
+            raise KeyError(f"Эксперимент не найден: {args.experiment}")
 
         exp_cfg = dict(experiments[args.experiment])
         exp_cfg["models_config_path"] = config.get(

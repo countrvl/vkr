@@ -1,4 +1,4 @@
-"""Minimal .env loader without external dependencies."""
+"""Минимальный загрузчик .env без внешних зависимостей."""
 
 from __future__ import annotations
 
@@ -7,11 +7,11 @@ from pathlib import Path
 
 
 def load_dotenv_file(path: str | Path, override: bool = False) -> None:
-    """Load environment variables from a .env file.
+    """Загрузить переменные окружения из .env-файла.
 
     Args:
-        path: Path to .env file.
-        override: If True, overwrite already set environment variables.
+        path: Путь к .env-файлу.
+        override: Если True, перезаписывать уже установленные переменные.
     """
     env_path = Path(path)
     if not env_path.exists() or not env_path.is_file():

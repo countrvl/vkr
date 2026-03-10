@@ -1,23 +1,23 @@
-"""Prompt templates for NL2SQL generation."""
+"""Шаблоны промптов для генерации NL2SQL."""
 
 from __future__ import annotations
 
 
 def build_nl2sql_prompt(question: str, schema: str) -> str:
-    """Build a deterministic NL2SQL prompt.
+    """Собрать детерминированный промпт для NL2SQL.
 
     Args:
-        question: Natural language question.
-        schema: Database schema description.
+        question: Вопрос на естественном языке.
+        schema: Описание схемы базы данных.
 
     Returns:
-        Prompt string instructing the model to generate SQL only.
+        Строка промпта с инструкцией вернуть только SQL.
     """
     return (
-        "You are an expert SQL assistant.\\n"
-        "Generate a syntactically correct SQLite SQL query for the question.\\n"
-        "Return only SQL, no explanation.\\n\\n"
-        f"Schema:\\n{schema}\\n\\n"
-        f"Question: {question}\\n"
+        "You are an expert SQL assistant.\n"
+        "Generate a syntactically correct SQLite SQL query for the question.\n"
+        "Return only SQL, no explanation.\n\n"
+        f"Schema:\n{schema}\n\n"
+        f"Question: {question}\n"
         "SQL:"
     )

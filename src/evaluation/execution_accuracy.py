@@ -1,4 +1,4 @@
-"""Execution Accuracy evaluation for NL2SQL outputs."""
+"""Оценка метрики Execution Accuracy для NL2SQL."""
 
 from __future__ import annotations
 
@@ -10,7 +10,7 @@ from src.evaluation.sql_executor import execute_sql
 
 
 def execution_match(db_path: str | Path, gold_sql: str, predicted_sql: str) -> bool:
-    """Compare execution results of gold and predicted SQL on SQLite."""
+    """Сравнить результаты выполнения gold и предсказанного SQL в SQLite."""
     try:
         gold_rows = execute_sql(db_path, gold_sql)
         pred_rows = execute_sql(db_path, predicted_sql)
@@ -20,9 +20,9 @@ def execution_match(db_path: str | Path, gold_sql: str, predicted_sql: str) -> b
 
 
 def compute_execution_accuracy(records: list[dict[str, Any]]) -> float:
-    """Compute execution accuracy over evaluated records.
+    """Посчитать execution accuracy по уже оцененным записям.
 
-    Each record is expected to contain `is_correct: bool`.
+    Каждая запись должна содержать поле `is_correct: bool`.
     """
     if not records:
         return 0.0

@@ -1,4 +1,4 @@
-"""Helpers for loading YAML experiment and model configuration files."""
+"""Утилиты загрузки YAML-конфигов экспериментов и моделей."""
 
 from __future__ import annotations
 
@@ -13,31 +13,31 @@ _ENV_PATTERN = re.compile(r"\$\{([A-Za-z_][A-Za-z0-9_]*)(?::-(.*?))?\}")
 
 
 def load_yaml(path: str | Path) -> dict[str, Any]:
-    """Load a YAML file and return a dictionary.
+    """Загрузить YAML-файл и вернуть словарь.
 
-    Supports environment interpolation in scalar strings:
-    - `${VAR}`: requires environment variable to be set
-    - `${VAR:-default}`: uses default when variable is missing or empty
+    Поддерживается интерполяция env-переменных в строковых полях:
+    - `${VAR}`: обязательная переменная окружения
+    - `${VAR:-default}`: значение по умолчанию при отсутствии переменной
 
     Args:
-        path: Path to a YAML file.
+        path: Путь к YAML-файлу.
 
     Returns:
-        Parsed YAML content as a dictionary.
+        Содержимое YAML в виде словаря.
 
     Raises:
-        FileNotFoundError: If the file does not exist.
-        ValueError: If YAML root is not a dictionary.
+        FileNotFoundError: Если файл не найден.
+        ValueError: Если корень YAML не является отображением.
     """
     path_obj = Path(path)
     if not path_obj.exists():
-        raise FileNotFoundError(f"Config file not found: {path_obj}")
+        raise FileNotFoundError(f"Файл конфига не найден: {path_obj}")
 
     with path_obj.open("r", encoding="utf-8") as handle:
         data = yaml.safe_load(handle) or {}
 
     if not isinstance(data, dict):
-        raise ValueError(f"YAML root must be a mapping: {path_obj}")
+        raise ValueError(f"Корень YAML должен быть отображением: {path_obj}")
 
     return _expand_env(data)
 
@@ -61,6 +61,6 @@ def _expand_env_string(raw: str) -> str:
             return resolved
         if default is not None:
             return default
-        raise ValueError(f"Environment variable `{var}` is not set")
+        raise ValueError(f"Переменная окружения `{var}` не установлена")
 
     return _ENV_PATTERN.sub(repl, raw)

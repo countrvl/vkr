@@ -1,4 +1,4 @@
-"""Base interface for all model adapters."""
+"""Базовый интерфейс для всех адаптеров моделей."""
 
 from __future__ import annotations
 
@@ -7,15 +7,15 @@ from typing import Any
 
 
 class BaseModel(ABC):
-    """Abstract model API for text generation."""
+    """Абстрактный API модели для генерации текста."""
 
     @abstractmethod
     def generate(self, prompt: str) -> str:
-        """Generate a text completion for the prompt."""
+        """Сгенерировать текстовый ответ на промпт."""
 
     def generate_with_metadata(self, prompt: str) -> tuple[str, dict[str, Any]]:
-        """Generate text and optional metadata.
+        """Сгенерировать текст и опциональные метаданные.
 
-        Default implementation wraps `generate` and returns empty metadata.
+        По умолчанию оборачивает `generate` и возвращает пустые метаданные.
         """
         return self.generate(prompt), {}

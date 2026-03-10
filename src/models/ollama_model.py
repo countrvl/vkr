@@ -1,4 +1,4 @@
-"""Ollama model adapter."""
+"""Адаптер модели Ollama."""
 
 from __future__ import annotations
 
@@ -10,7 +10,7 @@ from src.models.base_model import BaseModel
 
 
 class OllamaModel(BaseModel):
-    """Adapter for local Ollama models using /api/generate."""
+    """Адаптер локальных моделей Ollama через /api/generate."""
 
     def __init__(
         self,

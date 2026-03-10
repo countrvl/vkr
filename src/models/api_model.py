@@ -1,4 +1,4 @@
-"""OpenAI-compatible API model adapter."""
+"""Адаптер OpenAI-совместимого API."""
 
 from __future__ import annotations
 
@@ -11,7 +11,7 @@ from src.models.base_model import BaseModel
 
 
 class APIModel(BaseModel):
-    """Adapter for OpenAI-style /v1/chat/completions endpoints."""
+    """Адаптер для OpenAI-совместимого /v1/chat/completions."""
 
     def __init__(
         self,
@@ -23,7 +23,7 @@ class APIModel(BaseModel):
     ) -> None:
         api_key = os.getenv("OPENAI_API_KEY", "").strip()
         if not api_key:
-            raise EnvironmentError("OPENAI_API_KEY is not set")
+            raise EnvironmentError("Переменная OPENAI_API_KEY не установлена")
 
         self.model_name = model_name
         self.base_url = base_url.rstrip("/")

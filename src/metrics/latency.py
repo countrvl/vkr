@@ -1,4 +1,4 @@
-"""Latency helpers for model inference."""
+"""Утилиты измерения задержки (latency) инференса."""
 
 from __future__ import annotations
 
@@ -8,7 +8,7 @@ from typing import Any
 
 
 def timed_call(func: Callable[..., tuple[str, dict[str, Any]]], *args: Any, **kwargs: Any) -> tuple[str, dict[str, Any], float]:
-    """Measure call latency in seconds."""
+    """Измерить время выполнения вызова в секундах."""
     start = time.perf_counter()
     text, metadata = func(*args, **kwargs)
     elapsed = time.perf_counter() - start
@@ -16,7 +16,7 @@ def timed_call(func: Callable[..., tuple[str, dict[str, Any]]], *args: Any, **kw
 
 
 def average_latency(latencies: list[float]) -> float:
-    """Compute average latency in seconds."""
+    """Посчитать среднюю задержку в секундах."""
     if not latencies:
         return 0.0
     return sum(latencies) / len(latencies)

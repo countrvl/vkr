@@ -1,4 +1,4 @@
-"""SQL execution utilities built on sqlite3."""
+"""Утилиты выполнения SQL на базе sqlite3."""
 
 from __future__ import annotations
 
@@ -8,22 +8,22 @@ from typing import Any
 
 
 def execute_sql(db_path: str | Path, sql: str) -> list[tuple[Any, ...]]:
-    """Execute SQL on SQLite and return normalized row tuples.
+    """Выполнить SQL в SQLite и вернуть нормализованные строки результата.
 
     Args:
-        db_path: Path to SQLite database file.
-        sql: SQL query to execute.
+        db_path: Путь к SQLite-файлу базы данных.
+        sql: SQL-запрос для выполнения.
 
     Returns:
-        Query results sorted for stable comparison.
+        Отсортированные строки результата для стабильного сравнения.
 
     Raises:
-        FileNotFoundError: If DB does not exist.
-        sqlite3.Error: For invalid SQL or execution failures.
+        FileNotFoundError: Если файл базы не существует.
+        sqlite3.Error: Если SQL некорректен или выполнение завершилось ошибкой.
     """
     db = Path(db_path)
     if not db.exists():
-        raise FileNotFoundError(f"SQLite database not found: {db}")
+        raise FileNotFoundError(f"SQLite база не найдена: {db}")
 
     with sqlite3.connect(str(db)) as connection:
         cursor = connection.cursor()

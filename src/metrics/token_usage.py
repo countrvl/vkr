@@ -1,4 +1,4 @@
-"""Token usage extraction utilities."""
+"""Утилиты извлечения статистики по токенам."""
 
 from __future__ import annotations
 
@@ -6,9 +6,9 @@ from typing import Any
 
 
 def extract_usage(metadata: dict[str, Any]) -> dict[str, int | None]:
-    """Extract normalized token counts from model metadata.
+    """Извлечь нормализованные значения токенов из метаданных модели.
 
-    Supports OpenAI-style `usage` and Ollama counters when present.
+    Поддерживаются OpenAI-стиль `usage` и счетчики Ollama.
     """
     usage = metadata.get("usage")
     if isinstance(usage, dict):
@@ -34,7 +34,7 @@ def extract_usage(metadata: dict[str, Any]) -> dict[str, int | None]:
 
 
 def aggregate_usage(usages: list[dict[str, int | None]]) -> dict[str, int]:
-    """Aggregate token usage values, treating None as 0."""
+    """Агрегировать usage, считая `None` как 0."""
     total_prompt = sum((u.get("prompt_tokens") or 0) for u in usages)
     total_completion = sum((u.get("completion_tokens") or 0) for u in usages)
     total_all = sum((u.get("total_tokens") or 0) for u in usages)
