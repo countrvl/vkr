@@ -1,0 +1,16 @@
+models:
+  ollama_default:
+    backend: ollama
+    model_name: ${L2SB_OLLAMA_MODEL_NAME:-qwen2.5-coder:7b}
+    base_url: ${L2SB_OLLAMA_BASE_URL:-http://localhost:11434}
+    timeout: ${L2SB_MODEL_TIMEOUT:-120}
+    options:
+      temperature: ${L2SB_OLLAMA_TEMPERATURE:-0.0}
+
+  api_default:
+    backend: api
+    model_name: ${L2SB_API_MODEL_NAME:-gpt-4o-mini}
+    base_url: ${L2SB_API_BASE_URL:-https://api.openai.com}
+    temperature: ${L2SB_API_TEMPERATURE:-0.0}
+    max_tokens: ${L2SB_API_MAX_TOKENS:-256}
+    timeout: ${L2SB_MODEL_TIMEOUT:-120}

@@ -1,0 +1,2 @@
+{"question":"What is the highest score?","schema":"Table scores(player TEXT, points INTEGER).","gold_sql":"SELECT MAX(points) FROM scores;","db_path":"demo.sqlite"}
+{"question":"Show players with points above 50.","schema":"Table scores(player TEXT, points INTEGER).","gold_sql":"SELECT player FROM scores WHERE points > 50 ORDER BY player;","db_path":"demo.sqlite"}

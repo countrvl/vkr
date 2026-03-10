@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "llm-sql-benchmark"
+version = "0.1.0"
+description = "Minimal reproducible NL2SQL benchmarking framework for LLM experiments"
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [
+  { name = "Research Team" }
+]
+dependencies = [
+  "requests",
+  "pandas",
+  "pyyaml",
+  "tqdm"
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["src*"]

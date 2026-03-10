@@ -1,0 +1,40 @@
+{
+  "model": "ollama_default",
+  "model_name": "dummy-model",
+  "model_backend": "dummy",
+  "dataset": "spider",
+  "execution_accuracy": 1.0,
+  "pass_at_k": 1.0,
+  "avg_latency": 1.128999429056421e-06,
+  "k": 1,
+  "num_samples": 2,
+  "token_usage": {
+    "prompt_tokens": 20,
+    "completion_tokens": 10,
+    "total_tokens": 30
+  },
+  "rows": [
+    {
+      "question": "How many users are there?",
+      "gold_sql": "SELECT COUNT(*) FROM users;",
+      "prediction": "SELECT COUNT(*) FROM users;",
+      "predictions": [
+        "SELECT COUNT(*) FROM users;"
+      ],
+      "db_path": "/home/count/code/vkr/llm_sql_benchmark/datasets/spider/demo.sqlite",
+      "is_correct": true,
+      "pass_at_1": true
+    },
+    {
+      "question": "List user names in alphabetical order.",
+      "gold_sql": "SELECT name FROM users ORDER BY name ASC;",
+      "prediction": "SELECT name FROM users ORDER BY name ASC;",
+      "predictions": [
+        "SELECT name FROM users ORDER BY name ASC;"
+      ],
+      "db_path": "/home/count/code/vkr/llm_sql_benchmark/datasets/spider/demo.sqlite",
+      "is_correct": true,
+      "pass_at_1": true
+    }
+  ]
+}
