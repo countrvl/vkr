@@ -19,6 +19,13 @@ class ExecutionResult:
 
 
 def _normalize_value(value: Any) -> str:
+    """Normalize a single cell value to a canonical string.
+
+    Floats are rendered with 10 significant digits (``.10g``) to tolerate
+    floating-point representation differences while preserving enough precision
+    to detect genuine numeric mismatches.  NULL is mapped to the literal string
+    ``"NULL"``; all other types use ``str()``.
+    """
     if value is None:
         return "NULL"
     if isinstance(value, float):
@@ -27,6 +34,14 @@ def _normalize_value(value: Any) -> str:
 
 
 def _normalize_rows(rows: list[tuple[Any, ...]]) -> list[tuple[str, ...]]:
+    """Normalize and sort result rows for order-independent comparison.
+
+    Row order is intentionally discarded: Spider and BIRD evaluate Execution
+    Accuracy by result-*set* equality, not sequence equality.  This is the
+    standard treatment in the benchmark literature — queries with ``ORDER BY``
+    are still considered correct as long as their result set matches the gold
+    result set.
+    """
     normalized = [tuple(_normalize_value(value) for value in row) for row in rows]
     return sorted(normalized)
 
@@ -42,6 +57,9 @@ def execute_sql(sql: str, db_path: Path, timeout: int = 30) -> ExecutionResult:
     Returns:
         Normalized execution result.
     """
+    if not sql or not sql.strip():
+        return ExecutionResult(success=False, rows=None, error="empty query")
+
     started_at = time.monotonic()
     with sqlite3.connect(db_path) as connection:
         connection.row_factory = sqlite3.Row

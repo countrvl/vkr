@@ -17,6 +17,10 @@ from src.prompt.template import PromptBuilder
 
 LOGGER = logging.getLogger(__name__)
 
+# Flush and fsync to disk every N completed samples.  Writing fsync after
+# every single record serializes I/O significantly on large benchmark runs.
+_FSYNC_EVERY_N = 50
+
 
 class ExperimentRunner:
     """Run inference over a benchmark split and persist raw generations."""
@@ -41,6 +45,8 @@ class ExperimentRunner:
         n: int = 1,
         temperature: float = 0.0,
         max_tokens: int = 512,
+        seed: int | None = None,
+        top_p: float | None = None,
     ) -> Path:
         """Run inference over all samples and append to a JSONL file."""
         output_path = self._resolve_output_path(model_name=model_name, benchmark=benchmark)
@@ -57,6 +63,8 @@ class ExperimentRunner:
                         n=n,
                         temperature=temperature,
                         max_tokens=max_tokens,
+                        seed=seed,
+                        top_p=top_p,
                     )
                     record = {
                         "sample_id": sample.id,
@@ -83,11 +91,14 @@ class ExperimentRunner:
                         ],
                     }
                     handle.write(json.dumps(record, ensure_ascii=False) + "\n")
-                    handle.flush()
-                    os.fsync(handle.fileno())
                     completed_ids.add(sample.id)
+                    handle.flush()
+                    if len(completed_ids) % _FSYNC_EVERY_N == 0:
+                        os.fsync(handle.fileno())
                 except Exception as exc:
                     LOGGER.warning("Skipping sample %s after inference failure: %s", sample.id, exc)
+            handle.flush()
+            os.fsync(handle.fileno())
         return output_path
 
     def _resolve_output_path(self, *, model_name: str, benchmark: str) -> Path:

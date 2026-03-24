@@ -30,6 +30,14 @@ def test_execute_sql_reports_errors(tmp_path: Path) -> None:
     assert result.error is not None
 
 
+def test_execute_empty_sql(tmp_path: Path) -> None:
+    db_path = tmp_path / "demo.sqlite"
+    _build_db(db_path)
+    result = execute_sql("", db_path)
+    assert result.success is False
+    assert result.error == "empty query"
+
+
 def test_execute_sql_timeout_path(tmp_path: Path) -> None:
     db_path = tmp_path / "demo.sqlite"
     with sqlite3.connect(db_path) as connection:

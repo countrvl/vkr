@@ -62,6 +62,8 @@ async def _run(
     benchmark_names = exp_cfg["benchmarks"] if args.benchmark == "all" else [args.benchmark]
     model_keys = list(models_cfg) if args.model == "all" else [args.model]
     max_tokens = int(exp_cfg.get("max_tokens", 512))
+    seed: int | None = exp_cfg.get("seed")
+    top_p: float | None = exp_cfg.get("top_p")
 
     for model_key in model_keys:
         model_cfg = models_cfg[model_key]
@@ -73,6 +75,9 @@ async def _run(
         )
         for benchmark in benchmark_names:
             samples = load_benchmark(benchmark, args.data_dir)
+            if args.limit is not None:
+                samples = samples[: args.limit]
+                LOGGER.info("Limiting to %d samples for %s/%s.", args.limit, model_key, benchmark)
             output_path = await runner.run(
                 samples,
                 model_name=model_cfg["name"],
@@ -80,6 +85,8 @@ async def _run(
                 n=n,
                 temperature=temperature,
                 max_tokens=max_tokens,
+                seed=seed,
+                top_p=top_p,
             )
             LOGGER.info("Saved raw generations to %s", output_path)
 
@@ -101,6 +108,13 @@ def main() -> None:
     parser.add_argument("--config-dir", type=Path, default=Path("configs"))
     parser.add_argument("--data-dir", type=Path, default=Path("data"))
     parser.add_argument("--results-dir", type=Path, default=Path("results/raw"))
+    parser.add_argument(
+        "--limit",
+        type=int,
+        default=None,
+        metavar="N",
+        help="Limit the number of samples per benchmark (useful for quick smoke tests).",
+    )
     args = parser.parse_args()
 
     with (args.config_dir / "experiment.yaml").open("r", encoding="utf-8") as handle:

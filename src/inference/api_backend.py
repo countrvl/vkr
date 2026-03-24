@@ -47,6 +47,8 @@ class APIBackend(InferenceBackend):
         n: int = 1,
         temperature: float = 0.0,
         max_tokens: int = 512,
+        seed: int | None = None,
+        top_p: float | None = None,
     ) -> list[GenerationResult]:
         """Generate one or more SQL candidates."""
         try:
@@ -55,6 +57,8 @@ class APIBackend(InferenceBackend):
                 n=n,
                 temperature=temperature,
                 max_tokens=max_tokens,
+                seed=seed,
+                top_p=top_p,
             )
         except BadRequestError:
             if n <= 1:
@@ -73,6 +77,8 @@ class APIBackend(InferenceBackend):
                         n=1,
                         temperature=temperature,
                         max_tokens=max_tokens,
+                        seed=seed,
+                        top_p=top_p,
                     )
                 )
             return results
@@ -84,6 +90,8 @@ class APIBackend(InferenceBackend):
         n: int,
         temperature: float,
         max_tokens: int,
+        seed: int | None,
+        top_p: float | None,
     ) -> list[GenerationResult]:
         """Retry transient API errors with exponential backoff."""
         for attempt in range(1, len(RETRY_DELAYS_SECONDS) + 2):
@@ -93,6 +101,8 @@ class APIBackend(InferenceBackend):
                     n=n,
                     temperature=temperature,
                     max_tokens=max_tokens,
+                    seed=seed,
+                    top_p=top_p,
                 )
             except (APIConnectionError, APITimeoutError, RateLimitError) as exc:
                 if attempt > len(RETRY_DELAYS_SECONDS):
@@ -116,10 +126,16 @@ class APIBackend(InferenceBackend):
         n: int,
         temperature: float,
         max_tokens: int,
+        seed: int | None,
+        top_p: float | None,
     ) -> list[GenerationResult]:
         """Perform a single API request without retry logic."""
         request_params = dict(self.parameters)
         request_params.pop("max_tokens", None)
+        if top_p is not None:
+            request_params["top_p"] = top_p
+        if seed is not None:
+            request_params["seed"] = seed
 
         started_at = time.perf_counter()
         response = await self.client.chat.completions.create(
@@ -138,16 +154,21 @@ class APIBackend(InferenceBackend):
 
         results: list[GenerationResult] = []
         choices = getattr(response, "choices", []) or []
-        per_choice_prompt = prompt_tokens // max(len(choices), 1)
-        per_choice_completion = completion_tokens // max(len(choices), 1)
-        for choice in choices:
+        n_choices = max(len(choices), 1)
+        # Prompt tokens are shared across all choices (same input processed once).
+        # Completion tokens are distributed per-choice; the remainder is added
+        # to the last choice so the total is always preserved exactly.
+        per_choice_out = [completion_tokens // n_choices] * n_choices
+        if per_choice_out:
+            per_choice_out[-1] += completion_tokens - sum(per_choice_out)
+        for idx, choice in enumerate(choices):
             content = choice.message.content if choice.message else ""
             results.append(
                 GenerationResult(
                     sql=self.extract_sql(content or ""),
                     raw_response=content or "",
-                    tokens_input=per_choice_prompt,
-                    tokens_output=per_choice_completion,
+                    tokens_input=prompt_tokens,
+                    tokens_output=per_choice_out[idx],
                     latency_ms=latency_ms,
                     model_name=self.model_name,
                     metadata={"backend": "api"},

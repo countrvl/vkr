@@ -41,8 +41,19 @@ class InferenceBackend(ABC):
         n: int = 1,
         temperature: float = 0.0,
         max_tokens: int = 512,
+        seed: int | None = None,
+        top_p: float | None = None,
     ) -> list[GenerationResult]:
-        """Generate SQL candidates."""
+        """Generate SQL candidates.
+
+        Args:
+            prompt: Rendered prompt text.
+            n: Number of independent completions to generate.
+            temperature: Sampling temperature (0 = greedy).
+            max_tokens: Maximum output tokens.
+            seed: Optional random seed for reproducibility.
+            top_p: Optional nucleus sampling threshold.
+        """
 
     @staticmethod
     def extract_sql(raw: str) -> str:

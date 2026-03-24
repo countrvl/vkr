@@ -48,8 +48,14 @@ class OllamaBackend(InferenceBackend):
         n: int = 1,
         temperature: float = 0.0,
         max_tokens: int = 512,
+        seed: int | None = None,
+        top_p: float | None = None,
     ) -> list[GenerationResult]:
-        """Generate SQL candidates sequentially through Ollama."""
+        """Generate SQL candidates sequentially through Ollama.
+
+        ``top_p`` is forwarded to Ollama's ``options`` dict when provided.
+        ``seed`` overrides the default reproducibility seed (42).
+        """
         results: list[GenerationResult] = []
         async with httpx.AsyncClient(timeout=120.0) as client:
             for _ in range(n):
@@ -58,6 +64,8 @@ class OllamaBackend(InferenceBackend):
                     prompt=prompt,
                     temperature=temperature,
                     max_tokens=max_tokens,
+                    seed=seed,
+                    top_p=top_p,
                 )
                 raw_response = str(payload.get("response", ""))
                 results.append(
@@ -80,6 +88,8 @@ class OllamaBackend(InferenceBackend):
         prompt: str,
         temperature: float,
         max_tokens: int,
+        seed: int | None,
+        top_p: float | None,
     ) -> tuple[dict[str, Any], float]:
         """Retry transient Ollama failures with exponential backoff."""
         for attempt in range(1, len(RETRY_DELAYS_SECONDS) + 2):
@@ -89,6 +99,8 @@ class OllamaBackend(InferenceBackend):
                     prompt=prompt,
                     temperature=temperature,
                     max_tokens=max_tokens,
+                    seed=seed,
+                    top_p=top_p,
                 )
             except httpx.ConnectError as exc:
                 if attempt > len(RETRY_DELAYS_SECONDS):
@@ -124,6 +136,8 @@ class OllamaBackend(InferenceBackend):
         prompt: str,
         temperature: float,
         max_tokens: int,
+        seed: int | None,
+        top_p: float | None,
     ) -> tuple[dict[str, Any], float]:
         """Perform a single Ollama request without retry logic."""
         options = dict(self.parameters)
@@ -134,9 +148,11 @@ class OllamaBackend(InferenceBackend):
                 "temperature": temperature,
                 "num_predict": max_tokens,
                 "num_ctx": self.num_ctx,
-                "seed": 42,
+                "seed": seed if seed is not None else 42,
             }
         )
+        if top_p is not None:
+            options["top_p"] = top_p
 
         started_at = time.perf_counter()
         response = await client.post(

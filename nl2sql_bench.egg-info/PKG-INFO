@@ -7,6 +7,7 @@ Requires-Python: >=3.11
 Description-Content-Type: text/markdown
 Requires-Dist: openai>=1.0.0
 Requires-Dist: httpx>=0.27.0
+Requires-Dist: gdown>=5.2.0
 Requires-Dist: jinja2>=3.1.0
 Requires-Dist: pyyaml>=6.0.0
 Requires-Dist: python-dotenv>=1.0.0
@@ -20,6 +21,7 @@ Requires-Dist: pandas>=2.0.0; extra == "notebooks"
 Requires-Dist: matplotlib>=3.8.0; extra == "notebooks"
 Requires-Dist: seaborn>=0.13.0; extra == "notebooks"
 Requires-Dist: scipy>=1.11.0; extra == "notebooks"
+Requires-Dist: scikit-learn>=1.4.0; extra == "notebooks"
 
 # nl2sql-bench
 
@@ -65,3 +67,4 @@ jupyter notebook notebooks/
 - `results/raw/` is append-only JSONL output and must not be overwritten.
 - `src/` is intended for import from both scripts and notebooks without side effects.
 - Dataset URLs and real Spider/BIRD JSON parsing remain explicit TODOs until the final benchmark assets are fixed.
+- The local virtualenv sets `MPLCONFIGDIR` automatically for this workspace, so `matplotlib` uses a writable local cache under `.cache/matplotlib`.
