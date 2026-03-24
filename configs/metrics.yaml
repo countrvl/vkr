@@ -1,0 +1,11 @@
+efficiency_weights:
+  alpha: 0.3
+  beta: 0.2
+  gamma: 0.2
+  delta: 0.3
+
+expert_score:
+  criteria: ["completeness", "efficiency", "readability"]
+  scale_min: 1
+  scale_max: 5
+  kappa_threshold: 0.6

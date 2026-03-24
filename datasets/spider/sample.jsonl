@@ -1,2 +1,0 @@
-{"question":"How many users are there?","schema":"Table users(id INTEGER, name TEXT).","gold_sql":"SELECT COUNT(*) FROM users;","db_path":"demo.sqlite"}
-{"question":"List user names in alphabetical order.","schema":"Table users(id INTEGER, name TEXT).","gold_sql":"SELECT name FROM users ORDER BY name ASC;","db_path":"demo.sqlite"}
