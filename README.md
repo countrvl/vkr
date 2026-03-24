@@ -1,223 +1,172 @@
-# Бенчмарк LLM для NL2SQL
+# nl2sql-bench
 
+Стенд сравнительного эксперимента NL2SQL для магистерской ВКР.
+Сравниваются две модели на бенчмарках **Spider 1.0** и **BIRD**:
 
-## Обзор архитектуры
+| Модель | Тип | Бэкенд |
+| --- | --- | --- |
+| **M1** DeepSeek-V3.2 | Frontier API | OpenAI-compatible API (`api.deepseek.com`) |
+| **M2** SQLCoder-7B | Compact local | Ollama (`localhost:11434`) |
 
-Конвейер:
+Метрики: Execution Accuracy (EA), Pass@K (K=1,5,10), Expert Score (ES), Efficiency (Eff).
 
-`dataset -> prompt -> model -> SQL -> evaluator -> metrics -> results/runs/<timestamp>.json`
+---
 
-Основные принципы:
-- минимальные зависимости
-- без тяжелых orchestration-фреймворков
-- явные интерфейсы и типизированные модули
-- воспроизводимый формат артефактов
+## Быстрый старт
+
+```bash
+# 1. Установить зависимости
+uv sync
+
+# 2. Настроить переменные окружения
+cp .env.example .env
+# Вставить DEEPSEEK_API_KEY в .env
+
+# 3. Поднять Ollama и загрузить модель (для M2)
+ollama serve
+ollama pull sqlcoder:7b
+
+# 4. Скачать данные
+uv run python scripts/01_download_data.py --benchmark all
+
+# 5. Тестовый прогон (--limit для быстрой проверки)
+uv run python scripts/02_run_inference.py --model m2_compact --benchmark spider --mode ea --limit 10
+
+# 6. Полный прогон
+uv run python scripts/02_run_inference.py --model all --benchmark all --mode ea
+uv run python scripts/02_run_inference.py --model all --benchmark all --mode pass_k
+
+# 7. Вычислить метрики
+uv run python scripts/03_evaluate.py
+
+# 8. Анализ в ноутбуках
+jupyter lab notebooks/
+```
+
+---
 
 ## Структура проекта
 
 ```text
-.
-├── README.md
-├── requirements.txt
-├── pyproject.toml
-├── .env.example
+nl2sql-bench/
 ├── configs/
-│   ├── models.yaml
-│   └── experiments.yaml
-├── datasets/
-│   ├── spider/
-│   └── bird/
+│   ├── experiment.yaml   # seed, temperature, k_values, max_tokens, top_p
+│   ├── models.yaml       # M1 (DeepSeek) и M2 (SQLCoder) конфигурации
+│   └── metrics.yaml      # веса Eff, pricing DeepSeek, параметры ES
+│
+├── scripts/
+│   ├── 01_download_data.py   # скачать Spider/BIRD через gdown
+│   ├── 02_run_inference.py   # запустить инференс → results/raw/*.jsonl
+│   └── 03_evaluate.py        # EA + Pass@K + Eff → results/metrics/summary_metrics.csv
+│
 ├── src/
-│   ├── dataset/
-│   │   ├── spider_loader.py
-│   │   └── bird_loader.py
-│   ├── prompts/
-│   │   └── prompt_templates.py
-│   ├── models/
-│   │   ├── base_model.py
-│   │   ├── ollama_model.py
-│   │   └── api_model.py
+│   ├── data/
+│   │   ├── loader.py     # DataSample, load_spider(), load_bird()
+│   │   ├── schema.py     # serialize_schema() — CREATE TABLE statements
+│   │   └── download.py   # gdown-обёртки для Spider и BIRD
+│   ├── prompt/
+│   │   ├── template.py   # PromptBuilder с кешированным Jinja2 шаблоном
+│   │   └── templates/nl2sql.j2
 │   ├── inference/
-│   │   ├── runner.py
-│   │   └── batch_runner.py
-│   ├── evaluation/
-│   │   ├── execution_accuracy.py
-│   │   ├── passk.py
-│   │   └── sql_executor.py
-│   ├── metrics/
-│   │   ├── latency.py
-│   │   └── token_usage.py
-│   ├── logging/
-│   │   └── experiment_logger.py
-│   └── utils/
-│       ├── config_loader.py
-│       └── env_loader.py
-├── experiments/
-│   └── run_experiment.py
+│   │   ├── base.py           # GenerationResult, InferenceBackend, extract_sql()
+│   │   ├── api_backend.py    # APIBackend (DeepSeek, retry + exponential backoff)
+│   │   ├── ollama_backend.py # OllamaBackend (SQLCoder, /api/generate)
+│   │   └── runner.py         # ExperimentRunner — batch + resume по sample_id
+│   └── evaluation/
+│       ├── executor.py    # execute_sql() — SQLite + timeout + нормализация строк
+│       ├── ea.py          # execution_accuracy()
+│       ├── pass_at_k.py   # pass_at_k(), compute_all_pass_at_k()
+│       ├── expert_score.py # expert_score(), ExpertEvaluation, cohens_kappa()
+│       └── efficiency.py  # compute_efficiency(), normalize_efficiency_rows()
+│
+├── notebooks/
+│   ├── 01_eda.ipynb           # распределение запросов Spider/BIRD
+│   ├── 02_results.ipynb       # EA и Pass@K: основные результаты
+│   ├── 03_expert_score.ipynb  # ES, Cohen's κ
+│   ├── 04_efficiency.ipynb    # Tinf, Mem, Tok, Cost, Eff
+│   ├── 05_hypothesis.ipynb    # McNemar test, bootstrap CI, H0/H1
+│   └── 06_error_analysis.ipynb # категоризация ошибок, Venn-диаграмма
+│
 ├── results/
-│   └── runs/
-└── notebooks/
-    └── analysis.ipynb
+│   ├── raw/      # append-only JSONL (не перезаписывать!)
+│   ├── metrics/  # summary_metrics.csv
+│   └── figures/  # графики для ВКР (DPI=300)
+│
+└── tests/        # 37 тестов, pytest
 ```
 
-## Установка
+---
+
+## Скрипты
+
+### `02_run_inference.py`
+
+```text
+--model     m1_frontier | m2_compact | all   (обязательный)
+--benchmark spider | bird | all               (default: all)
+--mode      ea | pass_k                       (ea: temp=0, n=1 / pass_k: temp из конфига, n=max(k_values))
+--limit N   ограничить количество samples     (для smoke-test)
+```
+
+### `03_evaluate.py`
+
+```text
+--raw-dir    путь к директории с JSONL        (default: results/raw)
+--output-dir путь для CSV                     (default: results/metrics)
+--config-dir путь к конфигам                  (default: configs)
+```
+
+---
+
+## Конфигурация
+
+Все параметры эксперимента — в YAML-файлах, magic numbers в коде отсутствуют.
+
+**`configs/experiment.yaml`** — seed, temperature, top_p, k_values, max_tokens
+**`configs/models.yaml`** — модели, бэкенды, API-ключи (через env vars), параметры
+**`configs/metrics.yaml`** — веса Eff (α+β+γ+δ = 1.0), pricing DeepSeek, параметры ES
+
+---
+
+## Метрики
+
+| Метрика | Формула | Реализация |
+| --- | --- | --- |
+| **EA** | `(1/N)·Σ I(exec(ŝ) = exec(s*))` | `src/evaluation/ea.py` |
+| **Pass@K** | `1 − C(n−c,k) / C(n,k)` (unbiased, Chen et al. 2021) | `src/evaluation/pass_at_k.py` |
+| **ES** | `(C + E + R) / 3`, каждый критерий 1–5 | `src/evaluation/expert_score.py` |
+| **Eff** | `α·Tinf + β·Mem + γ·Tok + δ·Cost` (min-max нормализация) | `src/evaluation/efficiency.py` |
+
+Сравнение EA: результаты нормализуются (ORDER BY игнорируется — set equality, стандарт Spider/BIRD).
+
+---
+
+## Ключевые детали реализации
+
+- **Resume**: `ExperimentRunner` при старте читает уже записанные `sample_id` из JSONL и пропускает их. Безопасно прерывать и перезапускать.
+- **fsync**: сброс на диск каждые 50 записей + финальный fsync (не после каждой записи).
+- **Retry**: 3 попытки с exponential backoff (1 s, 2 s, 4 s) для обоих бэкендов.
+- **Токены при n > 1**: prompt-токены не делятся (один вход для всех choices); completion-токены распределяются без потери остатка.
+- **seed/top_p**: читаются из `experiment.yaml` и передаются в оба бэкенда.
+- **Шаблон**: Jinja2 загружается один раз при создании `PromptBuilder` (`auto_reload=False`).
+
+---
+
+## Тесты
 
 ```bash
-# запуск из корня проекта
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
+uv run pytest tests/ -v
+# 37 тестов: loader, executor, base (extract_sql), prompt, metrics
 ```
 
-Опционально editable-установка:
+---
+
+## Зависимости
 
 ```bash
-pip install -e .
+uv sync              # основные зависимости
+uv sync --extra dev  # + pytest, ruff
 ```
 
-## Конфигурация через env (env-first)
-
-Все пути и имена моделей можно задать через переменные окружения.
-
-1. Скопируйте шаблон:
-
-```bash
-cp .env.example .env
-```
-
-2. Отредактируйте значения в `.env`.
-
-3. `.env` загружается автоматически в:
-- `experiments/run_experiment.py`
-- `src.inference.run_experiment(...)`
-- `src.inference.run_batch(...)`
-
-4. `configs/*.yaml` поддерживают интерполяцию:
-- `${VAR}` — обязательная переменная окружения
-- `${VAR:-default}` — значение по умолчанию
-
-## Формат датасета
-
-Лоадеры ожидают JSONL-записи следующего вида:
-
-```json
-{
-  "question": "How many users are there?",
-  "schema": "Table users(id INTEGER, name TEXT).",
-  "gold_sql": "SELECT COUNT(*) FROM users;",
-  "db_path": "demo.sqlite"
-}
-```
-
-Обязательные поля: `question`, `schema`, `gold_sql`.
-`db_path` — опционально для каждой записи; также можно задать путь к БД через env/конфиг.
-
-## Конфигурация моделей
-
-`configs/models.yaml` содержит реестр моделей с env-плейсхолдерами:
-- `backend: ollama` для локального инференса через `POST /api/generate` (`stream: false`)
-- `backend: api` для OpenAI-совместимого `POST /v1/chat/completions`
-
-Для API-бэкендов:
-
-```bash
-export OPENAI_API_KEY="your_api_key"
-```
-
-## Запуск экспериментов
-
-### Из Python (рекомендуется для Jupyter)
-
-```python
-from src.inference.runner import run_experiment
-from src.inference.batch_runner import run_batch
-
-result = run_experiment({})
-results = run_batch("configs/experiments.yaml")
-```
-
-### Из CLI
-
-```bash
-python experiments/run_experiment.py --experiment spider_env_demo
-python experiments/run_experiment.py --config configs/experiments.yaml
-```
-
-Значения по умолчанию для CLI также берутся из env (`L2SB_EXPERIMENTS_CONFIG`, `L2SB_EXPERIMENT`, `L2SB_K`).
-
-## Артефакты результатов
-
-Каждый прогон сохраняется в:
-
-`results/runs/<timestamp>.json`
-
-Минимально обязательные поля:
-- `model`
-- `dataset`
-- `execution_accuracy`
-- `pass_at_k`
-- `avg_latency`
-
-Также сохраняются:
-- `model_name`
-- `model_backend`
-- `k`, `num_samples`
-- агрегированная статистика токенов
-- предсказания и флаги оценки по каждой записи
-
-## Метрики оценки
-
-### Точность выполнения (Execution Accuracy)
-
-Для каждого примера:
-1. выполняется `gold_sql` в SQLite
-2. выполняется предсказанный SQL в той же SQLite БД
-3. сравниваются нормализованные результирующие наборы
-
-Итоговая метрика по датасету:
-- доля примеров, где результат выполнения предсказания совпадает с gold
-
-### Pass@K (доля успеха в top-k)
-
-Для каждого примера:
-- генерируются `k` SQL-кандидатов
-- успех фиксируется, если хотя бы один кандидат совпадает с gold по результату выполнения
-
-Итоговая метрика по датасету:
-- доля примеров, где найден корректный кандидат в top-k
-
-### Средняя задержка (Average Latency)
-
-- измеряется для каждого вызова генерации (в секундах)
-- в отчете используется среднее арифметическое по всем вызовам в прогоне
-
-## Как добавить новую модель
-
-1. Добавьте запись модели в `configs/models.yaml`.
-2. При необходимости добавьте адаптер в `src/models/`, реализующий:
-
-```python
-class BaseModel:
-    def generate(self, prompt: str) -> str:
-        ...
-```
-
-3. Расширьте фабрику моделей в `src/inference/runner.py`.
-4. Добавьте env-переменные для имени модели/URL при необходимости.
-
-## Как добавить новый датасет
-
-1. Реализуйте лоадер в `src/dataset/`, возвращающий нормализованные записи.
-2. Зарегистрируйте лоадер в `src/inference/runner.py`.
-3. Добавьте JSONL и SQLite файлы в `datasets/<name>/`.
-4. Добавьте эксперимент в `configs/experiments.yaml` и нужные env-переменные.
-
-## Работа через Notebook
-
-Используйте `notebooks/analysis.ipynb`, чтобы:
-- загрузить `.env`
-- запустить `run_experiment`/`run_batch`
-- прочитать JSON-результаты через pandas
-- построить сводные таблицы и графики для отчета
-
-Автоэкспорт CSV/PNG не включен: единственный источник истины — `results/runs/*.json`.
+Основные: `openai`, `httpx`, `jinja2`, `pyyaml`, `python-dotenv`, `tqdm`, `gdown`
+Notebooks: `pandas`, `matplotlib`, `seaborn`, `scipy`, `scikit-learn`, `jupyter`
