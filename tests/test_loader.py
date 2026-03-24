@@ -25,7 +25,7 @@ def test_load_benchmark_rejects_unknown_name(tmp_path: Path) -> None:
         load_benchmark("unknown", tmp_path)
 
 
-def test_load_benchmark_scaffold_raises_not_implemented(tmp_path: Path) -> None:
+def test_load_benchmark_missing_dev_file_raises_file_not_found(tmp_path: Path) -> None:
     (tmp_path / "spider").mkdir()
-    with pytest.raises(NotImplementedError):
+    with pytest.raises(FileNotFoundError):
         load_benchmark("spider", tmp_path)

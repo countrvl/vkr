@@ -3,87 +3,163 @@
 from __future__ import annotations
 
 import asyncio
-import subprocess
+import logging
 import time
 from typing import Any
 
 import httpx
 
-from src.inference.base import GenerationResult, InferenceBackend, extract_sql
+from src.inference.base import GenerationResult, InferenceBackend
 
 
-class OllamaInferenceBackend(InferenceBackend):
+LOGGER = logging.getLogger(__name__)
+RETRY_DELAYS_SECONDS = (1.0, 2.0, 4.0)
+
+
+class OllamaBackend(InferenceBackend):
     """Inference backend for Ollama's `/api/generate` endpoint."""
 
     def __init__(
         self,
-        *,
-        base_url: str,
         model_id: str,
-        model_name: str,
+        base_url: str = "http://localhost:11434",
+        num_ctx: int = 4096,
+        model_name: str | None = None,
         parameters: dict[str, Any] | None = None,
-        timeout: float = 120.0,
     ) -> None:
-        self._base_url = base_url.rstrip("/")
-        self._model_id = model_id
-        self._model_name = model_name
-        self._parameters = parameters or {}
-        self._timeout = timeout
+        """Initialize the Ollama backend.
+
+        Args:
+            model_id: Ollama model tag.
+            base_url: Ollama REST API base URL.
+            num_ctx: Context window size.
+            model_name: Human-readable model name.
+            parameters: Additional Ollama options.
+        """
+        self.model_id = model_id
+        self.base_url = base_url.rstrip("/")
+        self.num_ctx = num_ctx
+        self.model_name = model_name or model_id
+        self.parameters = parameters or {}
 
     async def generate(
         self,
         prompt: str,
         n: int = 1,
         temperature: float = 0.0,
+        max_tokens: int = 512,
     ) -> list[GenerationResult]:
+        """Generate SQL candidates sequentially through Ollama."""
         results: list[GenerationResult] = []
-        async with httpx.AsyncClient(timeout=self._timeout) as client:
+        async with httpx.AsyncClient(timeout=120.0) as client:
             for _ in range(n):
-                started_at = time.perf_counter()
-                response = await client.post(
-                    f"{self._base_url}/api/generate",
-                    json={
-                        "model": self._model_id,
-                        "prompt": prompt,
-                        "stream": False,
-                        "options": {**self._parameters, "temperature": temperature},
-                    },
+                payload, latency_ms = await self._generate_with_retry(
+                    client=client,
+                    prompt=prompt,
+                    temperature=temperature,
+                    max_tokens=max_tokens,
                 )
-                response.raise_for_status()
-                payload = response.json()
-                latency_ms = (time.perf_counter() - started_at) * 1000.0
                 raw_response = str(payload.get("response", ""))
                 results.append(
                     GenerationResult(
-                        sql=extract_sql(raw_response),
+                        sql=self.extract_sql(raw_response),
                         raw_response=raw_response,
                         tokens_input=int(payload.get("prompt_eval_count", 0) or 0),
                         tokens_output=int(payload.get("eval_count", 0) or 0),
                         latency_ms=latency_ms,
-                        model_name=self._model_name,
-                        metadata={
-                            "backend": "ollama",
-                            "memory_mb": await _probe_gpu_memory_mb(),
-                        },
+                        model_name=self.model_name,
+                        metadata={"backend": "ollama"},
                     )
                 )
         return results
 
+    async def _generate_with_retry(
+        self,
+        *,
+        client: httpx.AsyncClient,
+        prompt: str,
+        temperature: float,
+        max_tokens: int,
+    ) -> tuple[dict[str, Any], float]:
+        """Retry transient Ollama failures with exponential backoff."""
+        for attempt in range(1, len(RETRY_DELAYS_SECONDS) + 2):
+            try:
+                return await self._generate_once(
+                    client=client,
+                    prompt=prompt,
+                    temperature=temperature,
+                    max_tokens=max_tokens,
+                )
+            except httpx.ConnectError as exc:
+                if attempt > len(RETRY_DELAYS_SECONDS):
+                    raise RuntimeError("Ollama not running. Start with: ollama serve") from exc
+                delay = RETRY_DELAYS_SECONDS[attempt - 1]
+                LOGGER.warning(
+                    "Ollama connection failed (attempt %s/%s): %s. Retrying in %.1fs.",
+                    attempt,
+                    len(RETRY_DELAYS_SECONDS) + 1,
+                    exc,
+                    delay,
+                )
+                await asyncio.sleep(delay)
+            except (httpx.ReadTimeout, httpx.RemoteProtocolError, httpx.NetworkError, httpx.HTTPStatusError) as exc:
+                if attempt > len(RETRY_DELAYS_SECONDS):
+                    raise
+                delay = RETRY_DELAYS_SECONDS[attempt - 1]
+                LOGGER.warning(
+                    "Ollama request failed for %s (attempt %s/%s): %s. Retrying in %.1fs.",
+                    self.model_id,
+                    attempt,
+                    len(RETRY_DELAYS_SECONDS) + 1,
+                    exc,
+                    delay,
+                )
+                await asyncio.sleep(delay)
+        raise RuntimeError("Ollama generation failed without a captured error.")
 
-async def _probe_gpu_memory_mb() -> float | None:
-    """Return current used GPU memory in MB if `nvidia-smi` is available."""
-    try:
-        process = await asyncio.create_subprocess_exec(
-            "nvidia-smi",
-            "--query-gpu=memory.used",
-            "--format=csv,noheader,nounits",
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.DEVNULL,
+    async def _generate_once(
+        self,
+        *,
+        client: httpx.AsyncClient,
+        prompt: str,
+        temperature: float,
+        max_tokens: int,
+    ) -> tuple[dict[str, Any], float]:
+        """Perform a single Ollama request without retry logic."""
+        options = dict(self.parameters)
+        options.pop("max_tokens", None)
+        options.pop("num_ctx", None)
+        options.update(
+            {
+                "temperature": temperature,
+                "num_predict": max_tokens,
+                "num_ctx": self.num_ctx,
+                "seed": 42,
+            }
         )
-        stdout, _ = await process.communicate()
-        if process.returncode != 0:
-            return None
-        line = stdout.decode("utf-8").strip().splitlines()[0]
-        return float(line)
-    except (FileNotFoundError, IndexError, ValueError, subprocess.SubprocessError):
-        return None
+
+        started_at = time.perf_counter()
+        response = await client.post(
+            f"{self.base_url}/api/generate",
+            json={
+                "model": self.model_id,
+                "prompt": prompt,
+                "stream": False,
+                "options": options,
+            },
+        )
+        response.raise_for_status()
+        payload = response.json()
+        if not isinstance(payload, dict):
+            raise ValueError(f"Unexpected Ollama response type: {type(payload).__name__}")
+
+        wall_clock_ms = (time.perf_counter() - started_at) * 1000.0
+        total_duration = payload.get("total_duration")
+        if isinstance(total_duration, (int, float)):
+            latency_ms = float(total_duration) / 1_000_000.0
+        else:
+            latency_ms = wall_clock_ms
+        return payload, latency_ms
+
+
+OllamaInferenceBackend = OllamaBackend

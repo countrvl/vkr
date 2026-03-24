@@ -1,31 +1,27 @@
-"""Download benchmark data scaffold."""
+"""Download Spider and BIRD datasets."""
 
 from __future__ import annotations
 
 import argparse
+import logging
 from pathlib import Path
 
-from src.data.download import download_all, download_bird, download_spider
-
-
-def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Prepare Spider/BIRD data directories.")
-    parser.add_argument("--benchmark", choices=["spider", "bird", "all"], default="all")
-    parser.add_argument("--data-dir", type=Path, default=Path("data"))
-    return parser.parse_args()
+from src.data.download import download_bird, download_spider
 
 
 def main() -> None:
-    args = parse_args()
-    if args.benchmark == "spider":
-        path = download_spider(args.data_dir)
-        print(f"Prepared Spider directory: {path}")
-    elif args.benchmark == "bird":
-        path = download_bird(args.data_dir)
-        print(f"Prepared BIRD directory: {path}")
-    else:
-        paths = download_all(args.data_dir)
-        print(f"Prepared datasets: {paths}")
+    """Download the requested benchmark datasets."""
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--data-dir", type=Path, default=Path("data"))
+    parser.add_argument("--benchmark", choices=["spider", "bird", "all"], default="all")
+    args = parser.parse_args()
+
+    if args.benchmark in ("spider", "all"):
+        download_spider(args.data_dir)
+    if args.benchmark in ("bird", "all"):
+        download_bird(args.data_dir)
 
 
 if __name__ == "__main__":
