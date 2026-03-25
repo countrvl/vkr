@@ -1,7 +1,7 @@
 # nl2sql-bench
 
 NL2SQL.
-Сравниваются две модели на бенчмарках **Spider 1.0** и **BIRD**:
+Сравниваются модели на бенчмарках **Spider 1.0** и **BIRD**:
 
 | Модель | Тип | Бэкенд |
 | --- | --- | --- |
@@ -9,6 +9,20 @@ NL2SQL.
 | **M2** Defog-Llama3-SQLCoder-8B | Compact local | Ollama (`localhost:11434`) |
 
 Метрики: Execution Accuracy (EA), Pass@K (K=1,5,10), Expert Score (ES), Efficiency (Eff).
+
+---
+
+## Бенчмарки
+
+- **Spider 1.0** — классический кросс-доменный benchmark для text-to-SQL. Содержит вопросы и SQL-запросы по множеству разных баз данных и используется как базовый стандарт для оценки обобщающей способности моделей.
+- **BIRD** — более сложный и более современный benchmark для text-to-SQL с большим числом реалистичных баз данных и запросов. Обычно он заметно тяжелее для моделей, чем Spider, особенно по качеству генерации на сложных схемах.
+
+Ключевые метрики в проекте:
+
+- **EA (Execution Accuracy)** — доля примеров, где предсказанный SQL после исполнения дает тот же результат, что и эталонный запрос.
+- **Pass@K** — вероятность того, что среди `K` сгенерированных кандидатов есть хотя бы один корректный запрос. Эта метрика особенно полезна для оценки качества модели в режиме множественной генерации.
+- **Expert Score** — экспертная оценка качества SQL по ручной разметке. Используется как дополнительная качественная метрика там, где одной execution-based оценки недостаточно.
+- **Efficiency** — агрегированная метрика эффективности, которая учитывает время инференса, память, число токенов и стоимость генерации.
 
 ---
 
@@ -28,17 +42,17 @@ ollama pull mannix/defog-llama3-sqlcoder-8b:q4_0
 # 4. Скачать данные
 uv run python scripts/01_download_data.py --benchmark all
 
-# 5. Тестовый прогон (--limit для быстрой проверки)
+# 5. Тестовый запуск (--limit для быстрой проверки)
 uv run python scripts/02_run_inference.py --model m2_compact --benchmark spider --mode ea --limit 10
 
-# 6. Полный прогон
+# 6. Полный запуск
 uv run python scripts/02_run_inference.py --model all --benchmark all --mode ea
 uv run python scripts/02_run_inference.py --model all --benchmark all --mode pass_k
 
 # 7. Вычислить метрики
 uv run python scripts/03_evaluate.py
 
-# 8. Открыть единый отчетный ноутбук
+# 8. Открыть ноутбук с отчетом
 jupyter lab notebooks/01_report.ipynb
 ```
 
@@ -54,15 +68,15 @@ nl2sql-bench/
 │   └── metrics.yaml      # веса Eff, pricing, statistical_tests, параметры ES
 │
 ├── scripts/
-│   ├── 01_download_data.py   # скачать и подготовить Spider/BIRD
-│   ├── 02_run_inference.py   # запустить инференс → results/raw/*.jsonl
+│   ├── 01_download_data.py   # загрузка и подготовка Spider/BIRD
+│   ├── 02_run_inference.py   # запуск инференса → results/raw/*.jsonl
 │   └── 03_evaluate.py        # EA + Pass@K + Eff → results/metrics/summary_metrics.csv
 │
 ├── src/
 │   ├── data/
 │   │   ├── loader.py     # DataSample, load_spider(), load_bird()
 │   │   ├── schema.py     # serialize_schema() — CREATE TABLE statements
-│   │   └── download.py   # httpx-загрузка Spider и BIRD (прямые URL)
+│   │   └── download.py   # httpx-загрузка Spider и BIRD
 │   ├── prompt/
 │   │   ├── template.py   # PromptBuilder с кешированным Jinja2 шаблоном
 │   │   └── templates/nl2sql.j2
@@ -119,7 +133,7 @@ nl2sql-bench/
 
 ## Конфигурация
 
-Все параметры эксперимента — в YAML-файлах, magic numbers в коде отсутствуют.
+Все параметры в YAML-файлах, magic numbers в коде отсутствуют.
 
 **`configs/experiment.yaml`** — seed, temperature, top_p, k_values, max_tokens, `data_dir`, `results_dir`
 **`configs/models.yaml`** — модели, бэкенды, API-ключи (через env vars), параметры, pricing
@@ -128,8 +142,6 @@ nl2sql-bench/
 ---
 
 ## Проверка статуса
-
-Для длинных прогонов полезно смотреть не только на progress bar в терминале, но и на фактически записанные raw-файлы.
 
 ### Проверить, какие raw-файлы уже создаются
 
@@ -154,13 +166,13 @@ wc -l results/raw/DeepSeek-V3.2_*_pass_k_*.jsonl
 wc -l results/raw/Defog-Llama3-SQLCoder-8B_*_pass_k_*.jsonl
 ```
 
-### Как понять, что происходит во время прогона
+### Как понять, что происходит во время выполнения
 
-- если растет число строк в `results/raw/*.jsonl`, прогон идет;
+- если растет число строк в `results/raw/*.jsonl`, выполнение идет;
 - если для `ea` файл дошел до `1034` строк на `Spider` или `1534` строк на `BIRD`, соответствующий benchmark завершен;
-- если файл уже существует, повторный запуск той же команды продолжит прогон через `resume`, а не начнет его заново.
+- если файл уже существует, повторный запуск той же команды продолжит выполнение через `resume`, а не начнет его заново.
 
-### Если прогон был остановлен
+### Если выполнение было остановлено
 
 Можно просто повторно запустить ту же команду:
 
@@ -176,15 +188,15 @@ uv run python scripts/02_run_inference.py --model m2_compact --benchmark all --m
 uv run python scripts/03_evaluate.py
 ```
 
-Итоговый CSV появится в `results/metrics/summary_metrics.csv`.
+Итоговый CSV записывается в `results/metrics/summary_metrics.csv`.
 
 ---
 
-## Отчетный ноутбук
+## Отчеты
 
 Основной ноутбук проекта — **`notebooks/01_report.ipynb`**.
 
-Он объединяет в одном месте:
+Содержит:
 - обзор данных
 - основные метрики `EA` и `Pass@K`
 - эффективность (`Tinf`, `Tok`, `Cost`, `Eff`)
@@ -192,7 +204,7 @@ uv run python scripts/03_evaluate.py
 - error analysis
 - блок под expert score
 
-Ноутбук использует `notebooks/analysis_utils.py`, автоматически находит доступный каталог результатов и сохраняет фигуры в `results/figures/`.
+Ноутбук использует `notebooks/analysis_utils.py`, автоматически находит доступный каталог результатов и сохраняет графики в `results/figures/`.
 
 ---
 
