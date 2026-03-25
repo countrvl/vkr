@@ -5,14 +5,21 @@ models:
     model_id: "deepseek-chat"
     base_url: "https://api.deepseek.com"
     env_key: "DEEPSEEK_API_KEY"
+    pricing:
+      input_per_1m: 0.28
+      output_per_1m: 0.42
+      cache_hit_per_1m: 0.028
     parameters:
       max_tokens: 512
 
   m2_compact:
-    name: "SQLCoder-7B"
+    name: "Defog-Llama3-SQLCoder-8B"
     backend: "ollama"
-    model_id: "sqlcoder:7b"
+    model_id: "mannix/defog-llama3-sqlcoder-8b:q4_0"
     base_url: "http://localhost:11434"
+    pricing:
+      input_per_1m: 0.0
+      output_per_1m: 0.0
     parameters:
       max_tokens: 512
       num_ctx: 4096

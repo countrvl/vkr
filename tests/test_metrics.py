@@ -1,11 +1,27 @@
-import pytest
+import asyncio
+import importlib.util
 from pathlib import Path
+from types import SimpleNamespace
 
-from src.evaluation.ea import execution_accuracy
+import pytest
+
+from src.evaluation import ea as ea_module
+from src.evaluation.ea import candidate_execution_matches, execution_accuracy
+from src.evaluation.executor import ExecutionResult
 from src.evaluation.efficiency import compute_efficiency, normalize_efficiency_rows
 from src.evaluation.expert_score import ExpertEvaluation, expert_score
 from src.evaluation.pass_at_k import compute_all_pass_at_k, pass_at_k
+from src.inference.api_backend import APIBackend
 from src.inference.base import GenerationResult
+
+
+_EVALUATE_SPEC = importlib.util.spec_from_file_location(
+    "script_03_evaluate",
+    Path(__file__).resolve().parents[1] / "scripts" / "03_evaluate.py",
+)
+assert _EVALUATE_SPEC is not None and _EVALUATE_SPEC.loader is not None
+_EVALUATE_MODULE = importlib.util.module_from_spec(_EVALUATE_SPEC)
+_EVALUATE_SPEC.loader.exec_module(_EVALUATE_MODULE)
 
 
 def test_execution_accuracy_on_matching_queries(tmp_path: Path) -> None:
@@ -23,6 +39,31 @@ def test_execution_accuracy_on_matching_queries(tmp_path: Path) -> None:
         [db_path],
     )
     assert score == 1.0
+
+
+def test_candidate_execution_matches_executes_gold_once(monkeypatch: pytest.MonkeyPatch) -> None:
+    calls: list[str] = []
+
+    def fake_execute_sql(sql: str, db_path: Path, timeout: int = 30) -> ExecutionResult:
+        calls.append(sql)
+        if sql == "SELECT gold":
+            return ExecutionResult(success=True, rows=[("1",)])
+        if sql == "SELECT hit":
+            return ExecutionResult(success=True, rows=[("1",)])
+        return ExecutionResult(success=True, rows=[("2",)])
+
+    monkeypatch.setattr(ea_module, "execute_sql", fake_execute_sql)
+
+    result = candidate_execution_matches(
+        ["SELECT hit", "SELECT miss", "SELECT hit"],
+        "SELECT gold",
+        Path("demo.sqlite"),
+    )
+
+    assert result == [True, False, True]
+    assert calls.count("SELECT gold") == 1
+    assert calls.count("SELECT hit") == 2
+    assert calls.count("SELECT miss") == 1
 
 
 def test_pass_at_k_formula() -> None:
@@ -55,6 +96,153 @@ def test_compute_efficiency_with_pricing() -> None:
     assert metrics["Tok"] == 120
     assert metrics["Cost"] is not None
     assert metrics["Eff"] is not None
+
+
+def test_compute_efficiency_ollama_cost_is_zero() -> None:
+    metrics = compute_efficiency([_RESULT], _VALID_WEIGHTS)
+    assert metrics["Cost"] == 0.0
+
+
+def test_resolve_db_path_supports_relative_and_absolute(tmp_path: Path) -> None:
+    relative = _EVALUATE_MODULE._resolve_db_path("spider/database/db/db.sqlite", tmp_path)
+    absolute = _EVALUATE_MODULE._resolve_db_path("/tmp/demo.sqlite", tmp_path)
+
+    assert relative == tmp_path / "spider/database/db/db.sqlite"
+    assert absolute == Path("/tmp/demo.sqlite")
+
+
+def test_resolve_db_path_supports_legacy_data_prefixed_paths(tmp_path: Path) -> None:
+    legacy = tmp_path / "data" / "spider" / "database" / "db" / "db.sqlite"
+    legacy.parent.mkdir(parents=True)
+    legacy.write_bytes(b"")
+
+    resolved = _EVALUATE_MODULE._resolve_db_path("data/spider/database/db/db.sqlite", tmp_path / "data")
+
+    assert resolved == legacy
+
+
+def test_validate_records_rejects_missing_db_path(tmp_path: Path) -> None:
+    grouped = {
+        ("Demo", "spider", "pass_k"): [
+            {
+                "sample_id": "s1",
+                "model_name": "Demo",
+                "benchmark": "spider",
+                "run_label": "pass_k",
+                "db_path": "spider/database/missing/missing.sqlite",
+                "generations": [{"sql": "SELECT 1"} for _ in range(10)],
+                "_source_path": "demo.jsonl",
+            }
+        ]
+    }
+
+    with pytest.raises(ValueError, match="db_path does not exist"):
+        _EVALUATE_MODULE._validate_records(
+            grouped,
+            experiment_cfg={"k_values": [1, 5, 10]},
+            data_dir=tmp_path / "data",
+        )
+
+
+def test_validate_records_rejects_mixed_legacy_and_labeled_runs(tmp_path: Path) -> None:
+    db_path = tmp_path / "data" / "spider" / "database" / "db" / "db.sqlite"
+    db_path.parent.mkdir(parents=True)
+    db_path.write_bytes(b"")
+
+    grouped = {
+        ("Demo", "spider", "legacy"): [
+            {
+                "sample_id": "s1",
+                "model_name": "Demo",
+                "benchmark": "spider",
+                "db_path": "spider/database/db/db.sqlite",
+                "generations": [{"sql": "SELECT 1"}],
+                "_source_path": "legacy.jsonl",
+            }
+        ],
+        ("Demo", "spider", "pass_k"): [
+            {
+                "sample_id": "s1",
+                "model_name": "Demo",
+                "benchmark": "spider",
+                "run_label": "pass_k",
+                "db_path": "spider/database/db/db.sqlite",
+                "generations": [{"sql": "SELECT 1"} for _ in range(10)],
+                "_source_path": "pass_k.jsonl",
+            }
+        ],
+    }
+
+    with pytest.raises(ValueError, match="Mixed legacy and labeled raw files"):
+        _EVALUATE_MODULE._validate_records(
+            grouped,
+            experiment_cfg={"k_values": [1, 5, 10]},
+            data_dir=tmp_path / "data",
+        )
+
+
+def test_validate_records_rejects_wrong_generation_count(tmp_path: Path) -> None:
+    db_path = tmp_path / "data" / "spider" / "database" / "db" / "db.sqlite"
+    db_path.parent.mkdir(parents=True)
+    db_path.write_bytes(b"")
+
+    grouped = {
+        ("Demo", "spider", "pass_k"): [
+            {
+                "sample_id": "s1",
+                "model_name": "Demo",
+                "benchmark": "spider",
+                "run_label": "pass_k",
+                "db_path": "spider/database/db/db.sqlite",
+                "generations": [{"sql": "SELECT 1"}],
+                "_source_path": "pass_k.jsonl",
+            }
+        ]
+    }
+
+    with pytest.raises(ValueError, match="expected 10"):
+        _EVALUATE_MODULE._validate_records(
+            grouped,
+            experiment_cfg={"k_values": [1, 5, 10]},
+            data_dir=tmp_path / "data",
+        )
+
+
+def test_api_backend_includes_normalized_pricing_metadata() -> None:
+    class DummyCompletions:
+        async def create(self, **kwargs):
+            return SimpleNamespace(
+                usage=SimpleNamespace(prompt_tokens=12, completion_tokens=5),
+                choices=[SimpleNamespace(message=SimpleNamespace(content="SELECT 1"))],
+            )
+
+    backend = APIBackend(
+        model_id="demo-model",
+        base_url="https://example.com",
+        api_key="test-key",
+        model_name="Demo",
+        pricing={"input_per_1m": 0.28, "output_per_1m": 0.42, "cache_hit_per_1m": 0.028},
+    )
+    backend.client = SimpleNamespace(chat=SimpleNamespace(completions=DummyCompletions()))
+
+    results = asyncio.run(
+        backend._generate_native(
+            prompt="question",
+            n=1,
+            temperature=0.0,
+            max_tokens=32,
+            seed=None,
+            top_p=None,
+        )
+    )
+
+    assert len(results) == 1
+    assert results[0].metadata["backend"] == "api"
+    assert results[0].metadata["pricing"] == {
+        "input_per_mtok": pytest.approx(0.28),
+        "output_per_mtok": pytest.approx(0.42),
+        "cache_hit_per_mtok": pytest.approx(0.028),
+    }
 
 
 # ---------------------------------------------------------------------------

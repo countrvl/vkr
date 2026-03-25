@@ -30,11 +30,13 @@ class ExperimentRunner:
         backend: InferenceBackend,
         prompt_builder: PromptBuilder,
         output_dir: Path,
+        data_root: Path | None = None,
     ) -> None:
         """Initialize a batch experiment runner."""
         self._backend = backend
         self._prompt_builder = prompt_builder
         self._output_dir = output_dir
+        self._data_root = data_root.resolve(strict=False) if data_root is not None else None
         self._output_dir.mkdir(parents=True, exist_ok=True)
 
     async def run(
@@ -42,6 +44,7 @@ class ExperimentRunner:
         samples: list[DataSample],
         model_name: str,
         benchmark: str,
+        run_label: str | None = None,
         n: int = 1,
         temperature: float = 0.0,
         max_tokens: int = 512,
@@ -49,7 +52,11 @@ class ExperimentRunner:
         top_p: float | None = None,
     ) -> Path:
         """Run inference over all samples and append to a JSONL file."""
-        output_path = self._resolve_output_path(model_name=model_name, benchmark=benchmark)
+        output_path = self._resolve_output_path(
+            model_name=model_name,
+            benchmark=benchmark,
+            run_label=run_label,
+        )
         completed_ids = self._load_completed_sample_ids(output_path)
 
         with output_path.open("a", encoding="utf-8") as handle:
@@ -69,8 +76,9 @@ class ExperimentRunner:
                     record = {
                         "sample_id": sample.id,
                         "benchmark": sample.benchmark,
+                        "run_label": run_label,
                         "db_id": sample.db_id,
-                        "db_path": str(sample.db_path),
+                        "db_path": self._serialize_db_path(sample.db_path),
                         "question": sample.question,
                         "gold_sql": sample.gold_sql,
                         "difficulty": sample.difficulty,
@@ -101,16 +109,36 @@ class ExperimentRunner:
             os.fsync(handle.fileno())
         return output_path
 
-    def _resolve_output_path(self, *, model_name: str, benchmark: str) -> Path:
+    def _serialize_db_path(self, db_path: Path) -> str:
+        """Prefer a data-root-relative DB path for portable result files."""
+        if self._data_root is None:
+            return str(db_path)
+
+        try:
+            return db_path.resolve(strict=False).relative_to(self._data_root).as_posix()
+        except ValueError:
+            return str(db_path)
+
+    def _resolve_output_path(
+        self,
+        *,
+        model_name: str,
+        benchmark: str,
+        run_label: str | None = None,
+    ) -> Path:
         """Reuse the latest JSONL for a model+benchmark pair or create a new one."""
-        pattern = f"{model_name}_{benchmark}_*.jsonl"
+        parts = [model_name, benchmark]
+        if run_label:
+            parts.append(run_label)
+        stem = "_".join(parts)
+        pattern = f"{stem}_*.jsonl"
         existing = list(self._output_dir.glob(pattern))
         if existing:
             latest = max(existing, key=lambda path: path.stat().st_mtime)
             LOGGER.info("Resuming into existing result file %s", latest)
             return latest
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        return self._output_dir / f"{model_name}_{benchmark}_{timestamp}.jsonl"
+        return self._output_dir / f"{stem}_{timestamp}.jsonl"
 
     @staticmethod
     def _load_completed_sample_ids(path: Path) -> set[str]:

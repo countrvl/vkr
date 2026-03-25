@@ -6,7 +6,7 @@ NL2SQL.
 | Модель | Тип | Бэкенд |
 | --- | --- | --- |
 | **M1** DeepSeek-V3.2 | Frontier API | OpenAI-compatible API (`api.deepseek.com`) |
-| **M2** SQLCoder-7B | Compact local | Ollama (`localhost:11434`) |
+| **M2** Defog-Llama3-SQLCoder-8B | Compact local | Ollama (`localhost:11434`) |
 
 Метрики: Execution Accuracy (EA), Pass@K (K=1,5,10), Expert Score (ES), Efficiency (Eff).
 
@@ -23,7 +23,7 @@ echo "DEEPSEEK_API_KEY=sk-..." > .env
 
 # 3. Поднять Ollama и загрузить модель (для M2)
 ollama serve
-ollama pull sqlcoder:7b
+ollama pull mannix/defog-llama3-sqlcoder-8b:q4_0
 
 # 4. Скачать данные
 uv run python scripts/01_download_data.py --benchmark all
@@ -38,8 +38,8 @@ uv run python scripts/02_run_inference.py --model all --benchmark all --mode pas
 # 7. Вычислить метрики
 uv run python scripts/03_evaluate.py
 
-# 8. Анализ в ноутбуках
-jupyter lab notebooks/
+# 8. Открыть единый отчетный ноутбук
+jupyter lab notebooks/01_report.ipynb
 ```
 
 ---
@@ -49,12 +49,12 @@ jupyter lab notebooks/
 ```text
 nl2sql-bench/
 ├── configs/
-│   ├── experiment.yaml   # seed, temperature, k_values, max_tokens, top_p
+│   ├── experiment.yaml   # seed, temperature, top_p, k_values, data_dir, results_dir
 │   ├── models.yaml       # M1 (DeepSeek) и M2 (SQLCoder) конфигурации
-│   └── metrics.yaml      # веса Eff, pricing DeepSeek, параметры ES
+│   └── metrics.yaml      # веса Eff, pricing, statistical_tests, параметры ES
 │
 ├── scripts/
-│   ├── 01_download_data.py   # скачать Spider/BIRD через gdown
+│   ├── 01_download_data.py   # скачать и подготовить Spider/BIRD
 │   ├── 02_run_inference.py   # запустить инференс → results/raw/*.jsonl
 │   └── 03_evaluate.py        # EA + Pass@K + Eff → results/metrics/summary_metrics.csv
 │
@@ -69,7 +69,7 @@ nl2sql-bench/
 │   ├── inference/
 │   │   ├── base.py           # GenerationResult, InferenceBackend, extract_sql()
 │   │   ├── api_backend.py    # APIBackend (DeepSeek, retry + exponential backoff)
-│   │   ├── ollama_backend.py # OllamaBackend (SQLCoder, /api/generate)
+│   │   ├── ollama_backend.py # OllamaBackend (local M2 via /api/generate)
 │   │   └── runner.py         # ExperimentRunner — batch + resume по sample_id
 │   └── evaluation/
 │       ├── executor.py    # execute_sql() — SQLite + timeout + нормализация строк
@@ -79,19 +79,15 @@ nl2sql-bench/
 │       └── efficiency.py  # compute_efficiency(), normalize_efficiency_rows()
 │
 ├── notebooks/
-│   ├── 01_eda.ipynb           # распределение запросов Spider/BIRD
-│   ├── 02_results.ipynb       # EA и Pass@K: основные результаты
-│   ├── 03_expert_score.ipynb  # ES, Cohen's κ
-│   ├── 04_efficiency.ipynb    # Tinf, Mem, Tok, Cost, Eff
-│   ├── 05_hypothesis.ipynb    # McNemar test, bootstrap CI, H0/H1
-│   └── 06_error_analysis.ipynb # категоризация ошибок, Venn-диаграмма
+│   ├── 01_report.ipynb        # единый отчет по экспериментам
+│   └── analysis_utils.py      # helper-функции для ноутбука
 │
 ├── results/
-│   ├── raw/      # append-only JSONL (не перезаписывать!)
+│   ├── raw/      # JSONL по benchmark и mode (ea / pass_k)
 │   ├── metrics/  # summary_metrics.csv
 │   └── figures/  # графики (DPI=300)
 │
-└── tests/        # 37 тестов, pytest
+└── tests/        # pytest suite
 ```
 
 ---
@@ -104,15 +100,19 @@ nl2sql-bench/
 --model     m1_frontier | m2_compact | all   (обязательный)
 --benchmark spider | bird | all               (default: all)
 --mode      ea | pass_k                       (ea: temp=0, n=1 / pass_k: temp из конфига, n=max(k_values))
+--config-dir путь к конфигам                  (default: configs)
+--data-dir   корень данных                    (default: из experiment.yaml)
+--results-dir директория raw JSONL            (default: из experiment.yaml)
 --limit N   ограничить количество samples     (для smoke-test)
 ```
 
 ### `03_evaluate.py`
 
 ```text
---raw-dir    путь к директории с JSONL        (default: results/raw)
---output-dir путь для CSV                     (default: results/metrics)
 --config-dir путь к конфигам                  (default: configs)
+--raw-dir    путь к директории с JSONL        (default: из experiment.yaml -> results/raw)
+--data-dir   корень данных для db_path        (default: из experiment.yaml -> data)
+--output-dir путь для CSV                     (default: results/metrics)
 ```
 
 ---
@@ -121,9 +121,78 @@ nl2sql-bench/
 
 Все параметры эксперимента — в YAML-файлах, magic numbers в коде отсутствуют.
 
-**`configs/experiment.yaml`** — seed, temperature, top_p, k_values, max_tokens
-**`configs/models.yaml`** — модели, бэкенды, API-ключи (через env vars), параметры
-**`configs/metrics.yaml`** — веса Eff (α+β+γ+δ = 1.0), pricing DeepSeek, параметры ES
+**`configs/experiment.yaml`** — seed, temperature, top_p, k_values, max_tokens, `data_dir`, `results_dir`
+**`configs/models.yaml`** — модели, бэкенды, API-ключи (через env vars), параметры, pricing
+**`configs/metrics.yaml`** — веса Eff (α+β+γ+δ = 1.0), pricing reference values, statistical tests, параметры ES
+
+---
+
+## Проверка статуса
+
+Для длинных прогонов полезно смотреть не только на progress bar в терминале, но и на фактически записанные raw-файлы.
+
+### Проверить, какие raw-файлы уже создаются
+
+```bash
+ls -lh results/raw
+```
+
+### Посмотреть, сколько sample уже записано
+
+```bash
+wc -l results/raw/*.jsonl
+```
+
+Для `ea` число строк в JSONL соответствует числу уже обработанных sample.
+
+### Проверить прогресс по конкретной модели и режиму
+
+```bash
+wc -l results/raw/DeepSeek-V3.2_*_ea_*.jsonl
+wc -l results/raw/Defog-Llama3-SQLCoder-8B_*_ea_*.jsonl
+wc -l results/raw/DeepSeek-V3.2_*_pass_k_*.jsonl
+wc -l results/raw/Defog-Llama3-SQLCoder-8B_*_pass_k_*.jsonl
+```
+
+### Как понять, что происходит во время прогона
+
+- если растет число строк в `results/raw/*.jsonl`, прогон идет;
+- если для `ea` файл дошел до `1034` строк на `Spider` или `1534` строк на `BIRD`, соответствующий benchmark завершен;
+- если файл уже существует, повторный запуск той же команды продолжит прогон через `resume`, а не начнет его заново.
+
+### Если прогон был остановлен
+
+Можно просто повторно запустить ту же команду:
+
+```bash
+uv run python scripts/02_run_inference.py --model m2_compact --benchmark all --mode ea
+```
+
+`ExperimentRunner` автоматически подхватит последний JSONL для того же `model + benchmark + mode` и продолжит запись.
+
+### Быстрая проверка метрик после завершения
+
+```bash
+uv run python scripts/03_evaluate.py
+```
+
+Итоговый CSV появится в `results/metrics/summary_metrics.csv`.
+
+---
+
+## Отчетный ноутбук
+
+Основной ноутбук проекта — **`notebooks/01_report.ipynb`**.
+
+Он объединяет в одном месте:
+- обзор данных
+- основные метрики `EA` и `Pass@K`
+- эффективность (`Tinf`, `Tok`, `Cost`, `Eff`)
+- сравнение моделей на уровне sample
+- error analysis
+- блок под expert score
+
+Ноутбук использует `notebooks/analysis_utils.py`, автоматически находит доступный каталог результатов и сохраняет фигуры в `results/figures/`.
 
 ---
 
@@ -142,11 +211,14 @@ nl2sql-bench/
 
 ## Ключевые детали реализации
 
-- **Resume**: `ExperimentRunner` при старте читает уже записанные `sample_id` из JSONL и пропускает их. Безопасно прерывать и перезапускать.
+- **Resume**: `ExperimentRunner` продолжает запись в последний JSONL для конкретного `model + benchmark + mode`.
+- **Raw results**: для `ea` и `pass_k` создаются отдельные JSONL-файлы. Внутри записи сохраняется `run_label`.
+- **db_path**: в raw JSONL путь к БД сохраняется относительно `data_dir`, когда это возможно.
 - **fsync**: сброс на диск каждые 50 записей + финальный fsync (не после каждой записи).
 - **Retry**: 3 попытки с exponential backoff (1 s, 2 s, 4 s) для обоих бэкендов.
 - **Токены при n > 1**: prompt-токены не делятся (один вход для всех choices); completion-токены распределяются без потери остатка.
 - **seed/top_p**: читаются из `experiment.yaml` и передаются в оба бэкенда.
+- **Pricing**: для API-моделей pricing из `models.yaml` сохраняется в metadata generation results и используется в `Efficiency`.
 - **Шаблон**: Jinja2 загружается один раз при создании `PromptBuilder` (`auto_reload=False`).
 
 ---
@@ -155,7 +227,7 @@ nl2sql-bench/
 
 ```bash
 uv run pytest tests/ -v
-# 37 тестов: loader, executor, base (extract_sql), prompt, metrics
+# текущий набор тестов: loader, download, runner, executor, base, prompt, metrics
 ```
 
 ---

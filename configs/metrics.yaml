@@ -4,6 +4,18 @@ efficiency_weights:
   gamma: 0.2
   delta: 0.3
 
+deepseek_pricing:
+  input_per_1m: 0.28
+  output_per_1m: 0.42
+  cache_hit_per_1m: 0.028
+
+ollama_pricing:
+  input_per_1m: 0.0
+  output_per_1m: 0.0
+
+statistical_tests:
+  alpha: 0.05
+
 expert_score:
   criteria: ["completeness", "efficiency", "readability"]
   scale_min: 1
