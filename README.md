@@ -19,8 +19,7 @@ NL2SQL.
 uv sync
 
 # 2. Настроить переменные окружения
-cp .env.example .env
-# Вставить DEEPSEEK_API_KEY в .env
+echo "DEEPSEEK_API_KEY=sk-..." > .env
 
 # 3. Поднять Ollama и загрузить модель (для M2)
 ollama serve
@@ -63,7 +62,7 @@ nl2sql-bench/
 │   ├── data/
 │   │   ├── loader.py     # DataSample, load_spider(), load_bird()
 │   │   ├── schema.py     # serialize_schema() — CREATE TABLE statements
-│   │   └── download.py   # gdown-обёртки для Spider и BIRD
+│   │   └── download.py   # httpx-загрузка Spider и BIRD (прямые URL)
 │   ├── prompt/
 │   │   ├── template.py   # PromptBuilder с кешированным Jinja2 шаблоном
 │   │   └── templates/nl2sql.j2
@@ -90,7 +89,7 @@ nl2sql-bench/
 ├── results/
 │   ├── raw/      # append-only JSONL (не перезаписывать!)
 │   ├── metrics/  # summary_metrics.csv
-│   └── figures/  # графики для ВКР (DPI=300)
+│   └── figures/  # графики (DPI=300)
 │
 └── tests/        # 37 тестов, pytest
 ```
@@ -168,5 +167,5 @@ uv sync              # основные зависимости
 uv sync --extra dev  # + pytest, ruff
 ```
 
-Основные: `openai`, `httpx`, `jinja2`, `pyyaml`, `python-dotenv`, `tqdm`, `gdown`
+Основные: `openai`, `httpx`, `jinja2`, `pyyaml`, `python-dotenv`, `tqdm`
 Notebooks: `pandas`, `matplotlib`, `seaborn`, `scipy`, `scikit-learn`, `jupyter`
