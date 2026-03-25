@@ -57,7 +57,7 @@ class OllamaBackend(InferenceBackend):
         ``seed`` overrides the default reproducibility seed (42).
         """
         results: list[GenerationResult] = []
-        async with httpx.AsyncClient(timeout=120.0) as client:
+        async with httpx.AsyncClient(timeout=120.0, trust_env=False) as client:
             for _ in range(n):
                 payload, latency_ms = await self._generate_with_retry(
                     client=client,
