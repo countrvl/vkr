@@ -6,7 +6,7 @@ NL2SQL.
 | Модель | Тип | Бэкенд |
 | --- | --- | --- |
 | **M1** DeepSeek-V3.2 | Frontier API | OpenAI-compatible API (`api.deepseek.com`) |
-| **M2** SQLCoder-7B | Compact local | Ollama (`localhost:11434`) |
+| **M2** Defog-Llama3-SQLCoder-8B | Compact local | Ollama (`localhost:11434`) |
 
 Метрики: Execution Accuracy (EA), Pass@K (K=1,5,10), Expert Score (ES), Efficiency (Eff).
 
@@ -23,7 +23,7 @@ echo "DEEPSEEK_API_KEY=sk-..." > .env
 
 # 3. Поднять Ollama и загрузить модель (для M2)
 ollama serve
-ollama pull sqlcoder:7b
+ollama pull mannix/defog-llama3-sqlcoder-8b:q4_0
 
 # 4. Скачать данные
 uv run python scripts/01_download_data.py --benchmark all
@@ -38,8 +38,8 @@ uv run python scripts/02_run_inference.py --model all --benchmark all --mode pas
 # 7. Вычислить метрики
 uv run python scripts/03_evaluate.py
 
-# 8. Анализ в ноутбуках
-jupyter lab notebooks/
+# 8. Открыть единый отчетный ноутбук
+jupyter lab notebooks/01_report.ipynb
 ```
 
 ---
@@ -69,7 +69,7 @@ nl2sql-bench/
 │   ├── inference/
 │   │   ├── base.py           # GenerationResult, InferenceBackend, extract_sql()
 │   │   ├── api_backend.py    # APIBackend (DeepSeek, retry + exponential backoff)
-│   │   ├── ollama_backend.py # OllamaBackend (SQLCoder, /api/generate)
+│   │   ├── ollama_backend.py # OllamaBackend (local M2 via /api/generate)
 │   │   └── runner.py         # ExperimentRunner — batch + resume по sample_id
 │   └── evaluation/
 │       ├── executor.py    # execute_sql() — SQLite + timeout + нормализация строк
@@ -79,12 +79,8 @@ nl2sql-bench/
 │       └── efficiency.py  # compute_efficiency(), normalize_efficiency_rows()
 │
 ├── notebooks/
-│   ├── 01_eda.ipynb           # распределение запросов Spider/BIRD
-│   ├── 02_results.ipynb       # EA и Pass@K: основные результаты
-│   ├── 03_expert_score.ipynb  # ES, Cohen's κ
-│   ├── 04_efficiency.ipynb    # Tinf, Mem, Tok, Cost, Eff
-│   ├── 05_hypothesis.ipynb    # McNemar test, bootstrap CI, H0/H1
-│   └── 06_error_analysis.ipynb # категоризация ошибок, Venn-диаграмма
+│   ├── 01_report.ipynb        # единый отчет по экспериментам
+│   └── analysis_utils.py      # helper-функции для ноутбука
 │
 ├── results/
 │   ├── raw/      # JSONL по benchmark и mode (ea / pass_k)
@@ -128,6 +124,75 @@ nl2sql-bench/
 **`configs/experiment.yaml`** — seed, temperature, top_p, k_values, max_tokens, `data_dir`, `results_dir`
 **`configs/models.yaml`** — модели, бэкенды, API-ключи (через env vars), параметры, pricing
 **`configs/metrics.yaml`** — веса Eff (α+β+γ+δ = 1.0), pricing reference values, statistical tests, параметры ES
+
+---
+
+## Проверка статуса
+
+Для длинных прогонов полезно смотреть не только на progress bar в терминале, но и на фактически записанные raw-файлы.
+
+### Проверить, какие raw-файлы уже создаются
+
+```bash
+ls -lh results/raw
+```
+
+### Посмотреть, сколько sample уже записано
+
+```bash
+wc -l results/raw/*.jsonl
+```
+
+Для `ea` число строк в JSONL соответствует числу уже обработанных sample.
+
+### Проверить прогресс по конкретной модели и режиму
+
+```bash
+wc -l results/raw/DeepSeek-V3.2_*_ea_*.jsonl
+wc -l results/raw/Defog-Llama3-SQLCoder-8B_*_ea_*.jsonl
+wc -l results/raw/DeepSeek-V3.2_*_pass_k_*.jsonl
+wc -l results/raw/Defog-Llama3-SQLCoder-8B_*_pass_k_*.jsonl
+```
+
+### Как понять, что происходит во время прогона
+
+- если растет число строк в `results/raw/*.jsonl`, прогон идет;
+- если для `ea` файл дошел до `1034` строк на `Spider` или `1534` строк на `BIRD`, соответствующий benchmark завершен;
+- если файл уже существует, повторный запуск той же команды продолжит прогон через `resume`, а не начнет его заново.
+
+### Если прогон был остановлен
+
+Можно просто повторно запустить ту же команду:
+
+```bash
+uv run python scripts/02_run_inference.py --model m2_compact --benchmark all --mode ea
+```
+
+`ExperimentRunner` автоматически подхватит последний JSONL для того же `model + benchmark + mode` и продолжит запись.
+
+### Быстрая проверка метрик после завершения
+
+```bash
+uv run python scripts/03_evaluate.py
+```
+
+Итоговый CSV появится в `results/metrics/summary_metrics.csv`.
+
+---
+
+## Отчетный ноутбук
+
+Основной ноутбук проекта — **`notebooks/01_report.ipynb`**.
+
+Он объединяет в одном месте:
+- обзор данных
+- основные метрики `EA` и `Pass@K`
+- эффективность (`Tinf`, `Tok`, `Cost`, `Eff`)
+- сравнение моделей на уровне sample
+- error analysis
+- блок под expert score
+
+Ноутбук использует `notebooks/analysis_utils.py`, автоматически находит доступный каталог результатов и сохраняет фигуры в `results/figures/`.
 
 ---
 
