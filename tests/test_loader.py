@@ -33,6 +33,39 @@ def test_load_benchmark_missing_dev_file_raises_file_not_found(tmp_path: Path) -
         load_benchmark("spider", tmp_path)
 
 
+def test_load_benchmark_bird_missing_sqlite_fails_fast(tmp_path: Path) -> None:
+    bird_dir = tmp_path / "bird"
+    bird_dir.mkdir()
+    (bird_dir / "dev_databases").mkdir()
+    (bird_dir / "dev.json").write_text(
+        '[{"question_id": 1, "question": "Q", "SQL": "SELECT 1", "db_id": "demo"}]',
+        encoding="utf-8",
+    )
+
+    with pytest.raises(FileNotFoundError, match="no SQLite databases found"):
+        load_benchmark("bird", tmp_path)
+
+
+def test_load_benchmark_bird_supports_nested_dev_databases_layout(tmp_path: Path) -> None:
+    bird_dir = tmp_path / "bird"
+    nested_db_dir = bird_dir / "dev_databases" / "dev_databases" / "demo"
+    nested_db_dir.mkdir(parents=True)
+    db_path = nested_db_dir / "demo.sqlite"
+    with sqlite3.connect(db_path) as connection:
+        connection.execute("CREATE TABLE users (id INTEGER)")
+        connection.commit()
+
+    (bird_dir / "dev.json").write_text(
+        '[{"question_id": 1, "question": "Q", "SQL": "SELECT 1", "db_id": "demo"}]',
+        encoding="utf-8",
+    )
+
+    samples = load_benchmark("bird", tmp_path)
+
+    assert len(samples) == 1
+    assert samples[0].db_path == db_path
+
+
 def test_serialize_schema(tmp_path: Path) -> None:
     db_path = tmp_path / "test.sqlite"
     with sqlite3.connect(db_path) as connection:

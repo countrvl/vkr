@@ -49,12 +49,12 @@ jupyter lab notebooks/
 ```text
 nl2sql-bench/
 ├── configs/
-│   ├── experiment.yaml   # seed, temperature, k_values, max_tokens, top_p
+│   ├── experiment.yaml   # seed, temperature, top_p, k_values, data_dir, results_dir
 │   ├── models.yaml       # M1 (DeepSeek) и M2 (SQLCoder) конфигурации
-│   └── metrics.yaml      # веса Eff, pricing DeepSeek, параметры ES
+│   └── metrics.yaml      # веса Eff, pricing, statistical_tests, параметры ES
 │
 ├── scripts/
-│   ├── 01_download_data.py   # скачать Spider/BIRD через gdown
+│   ├── 01_download_data.py   # скачать и подготовить Spider/BIRD
 │   ├── 02_run_inference.py   # запустить инференс → results/raw/*.jsonl
 │   └── 03_evaluate.py        # EA + Pass@K + Eff → results/metrics/summary_metrics.csv
 │
@@ -87,11 +87,11 @@ nl2sql-bench/
 │   └── 06_error_analysis.ipynb # категоризация ошибок, Venn-диаграмма
 │
 ├── results/
-│   ├── raw/      # append-only JSONL (не перезаписывать!)
+│   ├── raw/      # JSONL по benchmark и mode (ea / pass_k)
 │   ├── metrics/  # summary_metrics.csv
 │   └── figures/  # графики (DPI=300)
 │
-└── tests/        # 37 тестов, pytest
+└── tests/        # pytest suite
 ```
 
 ---
@@ -104,15 +104,19 @@ nl2sql-bench/
 --model     m1_frontier | m2_compact | all   (обязательный)
 --benchmark spider | bird | all               (default: all)
 --mode      ea | pass_k                       (ea: temp=0, n=1 / pass_k: temp из конфига, n=max(k_values))
+--config-dir путь к конфигам                  (default: configs)
+--data-dir   корень данных                    (default: из experiment.yaml)
+--results-dir директория raw JSONL            (default: из experiment.yaml)
 --limit N   ограничить количество samples     (для smoke-test)
 ```
 
 ### `03_evaluate.py`
 
 ```text
---raw-dir    путь к директории с JSONL        (default: results/raw)
---output-dir путь для CSV                     (default: results/metrics)
 --config-dir путь к конфигам                  (default: configs)
+--raw-dir    путь к директории с JSONL        (default: из experiment.yaml -> results/raw)
+--data-dir   корень данных для db_path        (default: из experiment.yaml -> data)
+--output-dir путь для CSV                     (default: results/metrics)
 ```
 
 ---
@@ -121,9 +125,9 @@ nl2sql-bench/
 
 Все параметры эксперимента — в YAML-файлах, magic numbers в коде отсутствуют.
 
-**`configs/experiment.yaml`** — seed, temperature, top_p, k_values, max_tokens
-**`configs/models.yaml`** — модели, бэкенды, API-ключи (через env vars), параметры
-**`configs/metrics.yaml`** — веса Eff (α+β+γ+δ = 1.0), pricing DeepSeek, параметры ES
+**`configs/experiment.yaml`** — seed, temperature, top_p, k_values, max_tokens, `data_dir`, `results_dir`
+**`configs/models.yaml`** — модели, бэкенды, API-ключи (через env vars), параметры, pricing
+**`configs/metrics.yaml`** — веса Eff (α+β+γ+δ = 1.0), pricing reference values, statistical tests, параметры ES
 
 ---
 
@@ -142,11 +146,14 @@ nl2sql-bench/
 
 ## Ключевые детали реализации
 
-- **Resume**: `ExperimentRunner` при старте читает уже записанные `sample_id` из JSONL и пропускает их. Безопасно прерывать и перезапускать.
+- **Resume**: `ExperimentRunner` продолжает запись в последний JSONL для конкретного `model + benchmark + mode`.
+- **Raw results**: для `ea` и `pass_k` создаются отдельные JSONL-файлы. Внутри записи сохраняется `run_label`.
+- **db_path**: в raw JSONL путь к БД сохраняется относительно `data_dir`, когда это возможно.
 - **fsync**: сброс на диск каждые 50 записей + финальный fsync (не после каждой записи).
 - **Retry**: 3 попытки с exponential backoff (1 s, 2 s, 4 s) для обоих бэкендов.
 - **Токены при n > 1**: prompt-токены не делятся (один вход для всех choices); completion-токены распределяются без потери остатка.
 - **seed/top_p**: читаются из `experiment.yaml` и передаются в оба бэкенда.
+- **Pricing**: для API-моделей pricing из `models.yaml` сохраняется в metadata generation results и используется в `Efficiency`.
 - **Шаблон**: Jinja2 загружается один раз при создании `PromptBuilder` (`auto_reload=False`).
 
 ---
@@ -155,7 +162,7 @@ nl2sql-bench/
 
 ```bash
 uv run pytest tests/ -v
-# 37 тестов: loader, executor, base (extract_sql), prompt, metrics
+# текущий набор тестов: loader, download, runner, executor, base, prompt, metrics
 ```
 
 ---

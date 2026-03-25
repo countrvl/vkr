@@ -22,6 +22,20 @@ from src.prompt.template import PromptBuilder
 LOGGER = logging.getLogger(__name__)
 
 
+def _config_defaults(config_dir: Path) -> dict[str, Path]:
+    """Load CLI defaults sourced from experiment.yaml."""
+    config_path = config_dir / "experiment.yaml"
+    if not config_path.exists():
+        return {"data_dir": Path("data"), "results_dir": Path("results/raw")}
+
+    with config_path.open("r", encoding="utf-8") as handle:
+        exp_cfg = yaml.safe_load(handle) or {}
+    return {
+        "data_dir": Path(exp_cfg.get("data_dir", "data")),
+        "results_dir": Path(exp_cfg.get("results_dir", "results/raw")),
+    }
+
+
 def _build_backend(model_key: str, model_cfg: dict[str, Any]):
     """Build an inference backend from model configuration."""
     backend = model_cfg["backend"]
@@ -36,6 +50,7 @@ def _build_backend(model_key: str, model_cfg: dict[str, Any]):
             api_key=api_key,
             model_name=model_cfg["name"],
             parameters=model_cfg.get("parameters", {}),
+            pricing=model_cfg.get("pricing"),
         )
     if backend == "ollama":
         parameters = dict(model_cfg.get("parameters", {}))
@@ -72,6 +87,7 @@ async def _run(
             backend=backend,
             prompt_builder=prompt_builder,
             output_dir=args.results_dir,
+            data_root=args.data_dir,
         )
         for benchmark in benchmark_names:
             samples = load_benchmark(benchmark, args.data_dir)
@@ -82,6 +98,7 @@ async def _run(
                 samples,
                 model_name=model_cfg["name"],
                 benchmark=benchmark,
+                run_label=args.mode,
                 n=n,
                 temperature=temperature,
                 max_tokens=max_tokens,
@@ -96,6 +113,11 @@ def main() -> None:
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
     load_dotenv()
 
+    config_parser = argparse.ArgumentParser(add_help=False)
+    config_parser.add_argument("--config-dir", type=Path, default=Path("configs"))
+    config_args, _ = config_parser.parse_known_args()
+    defaults = _config_defaults(config_args.config_dir)
+
     parser = argparse.ArgumentParser()
     parser.add_argument("--model", choices=["m1_frontier", "m2_compact", "all"], required=True)
     parser.add_argument("--benchmark", choices=["spider", "bird", "all"], default="all")
@@ -105,9 +127,9 @@ def main() -> None:
         default="ea",
         help="ea: temp=0, n=1. pass_k: temp from config, n=K",
     )
-    parser.add_argument("--config-dir", type=Path, default=Path("configs"))
-    parser.add_argument("--data-dir", type=Path, default=Path("data"))
-    parser.add_argument("--results-dir", type=Path, default=Path("results/raw"))
+    parser.add_argument("--config-dir", type=Path, default=config_args.config_dir)
+    parser.add_argument("--data-dir", type=Path, default=defaults["data_dir"])
+    parser.add_argument("--results-dir", type=Path, default=defaults["results_dir"])
     parser.add_argument(
         "--limit",
         type=int,

@@ -26,6 +26,7 @@ class APIBackend(InferenceBackend):
         api_key: str,
         model_name: str | None = None,
         parameters: dict[str, Any] | None = None,
+        pricing: dict[str, Any] | None = None,
     ) -> None:
         """Initialize the API backend.
 
@@ -35,11 +36,31 @@ class APIBackend(InferenceBackend):
             api_key: Provider API key.
             model_name: Human-readable model name.
             parameters: Extra request parameters.
+            pricing: Optional per-million token pricing from config.
         """
         self.client = AsyncOpenAI(base_url=base_url, api_key=api_key)
         self.model_id = model_id
         self.model_name = model_name or model_id
         self.parameters = parameters or {}
+        self.pricing = self._normalize_pricing(pricing)
+
+    @staticmethod
+    def _normalize_pricing(pricing: dict[str, Any] | None) -> dict[str, float] | None:
+        """Convert config pricing keys into evaluation metadata format."""
+        if not pricing:
+            return None
+
+        normalized: dict[str, float] = {}
+        key_map = {
+            "input_per_1m": "input_per_mtok",
+            "output_per_1m": "output_per_mtok",
+            "cache_hit_per_1m": "cache_hit_per_mtok",
+        }
+        for config_key, metadata_key in key_map.items():
+            value = pricing.get(config_key)
+            if value is not None:
+                normalized[metadata_key] = float(value)
+        return normalized or None
 
     async def generate(
         self,
@@ -171,7 +192,10 @@ class APIBackend(InferenceBackend):
                     tokens_output=per_choice_out[idx],
                     latency_ms=latency_ms,
                     model_name=self.model_name,
-                    metadata={"backend": "api"},
+                    metadata={
+                        "backend": "api",
+                        **({"pricing": dict(self.pricing)} if self.pricing else {}),
+                    },
                 )
             )
         return results
