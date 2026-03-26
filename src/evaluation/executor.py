@@ -8,6 +8,10 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+_CONNECTION_CACHE: dict[str, sqlite3.Connection] = {}
+_RESULT_CACHE: dict[tuple[str, str, int], "ExecutionResult"] = {}
+_MAX_RESULT_CACHE_SIZE = 10_000
+
 
 @dataclass(slots=True)
 class ExecutionResult:
@@ -46,6 +50,28 @@ def _normalize_rows(rows: list[tuple[Any, ...]]) -> list[tuple[str, ...]]:
     return sorted(normalized)
 
 
+def _cache_key(sql: str, db_path: Path, timeout: int) -> tuple[str, str, int]:
+    return (str(db_path.resolve()), sql, timeout)
+
+
+def _get_connection(db_path: Path) -> sqlite3.Connection:
+    cache_key = str(db_path.resolve())
+    connection = _CONNECTION_CACHE.get(cache_key)
+    if connection is None:
+        connection = sqlite3.connect(db_path)
+        connection.row_factory = sqlite3.Row
+        _CONNECTION_CACHE[cache_key] = connection
+    return connection
+
+
+def clear_executor_caches() -> None:
+    """Clear process-local SQL result and connection caches."""
+    for connection in _CONNECTION_CACHE.values():
+        connection.close()
+    _CONNECTION_CACHE.clear()
+    _RESULT_CACHE.clear()
+
+
 def execute_sql(sql: str, db_path: Path, timeout: int = 30) -> ExecutionResult:
     """Execute SQL against SQLite with a progress-handler timeout.
 
@@ -60,25 +86,34 @@ def execute_sql(sql: str, db_path: Path, timeout: int = 30) -> ExecutionResult:
     if not sql or not sql.strip():
         return ExecutionResult(success=False, rows=None, error="empty query")
 
+    key = _cache_key(sql, db_path, timeout)
+    cached = _RESULT_CACHE.get(key)
+    if cached is not None:
+        return cached
+
     started_at = time.monotonic()
-    with sqlite3.connect(db_path) as connection:
-        connection.row_factory = sqlite3.Row
+    connection = _get_connection(db_path)
 
-        def progress_handler() -> int:
-            return 1 if time.monotonic() - started_at > timeout else 0
+    def progress_handler() -> int:
+        return 1 if time.monotonic() - started_at > timeout else 0
 
-        connection.set_progress_handler(progress_handler, 1_000)
-        try:
-            cursor = connection.execute(sql)
-            rows = cursor.fetchall()
-            normalized_rows = _normalize_rows([tuple(row) for row in rows])
-            return ExecutionResult(success=True, rows=normalized_rows)
-        except sqlite3.OperationalError as exc:
-            message = str(exc)
-            if "interrupted" in message.lower():
-                return ExecutionResult(success=False, rows=None, error="timeout")
-            return ExecutionResult(success=False, rows=None, error=message)
-        except sqlite3.DatabaseError as exc:
-            return ExecutionResult(success=False, rows=None, error=str(exc))
-        finally:
-            connection.set_progress_handler(None, 0)
+    connection.set_progress_handler(progress_handler, 1_000)
+    try:
+        cursor = connection.execute(sql)
+        rows = cursor.fetchall()
+        result = ExecutionResult(success=True, rows=_normalize_rows([tuple(row) for row in rows]))
+    except sqlite3.OperationalError as exc:
+        message = str(exc)
+        if "interrupted" in message.lower():
+            result = ExecutionResult(success=False, rows=None, error="timeout")
+        else:
+            result = ExecutionResult(success=False, rows=None, error=message)
+    except sqlite3.DatabaseError as exc:
+        result = ExecutionResult(success=False, rows=None, error=str(exc))
+    finally:
+        connection.set_progress_handler(None, 0)
+
+    if len(_RESULT_CACHE) >= _MAX_RESULT_CACHE_SIZE:
+        _RESULT_CACHE.clear()
+    _RESULT_CACHE[key] = result
+    return result

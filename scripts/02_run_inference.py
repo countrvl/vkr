@@ -11,6 +11,7 @@ from typing import Any
 
 import yaml
 from dotenv import load_dotenv
+from tqdm import tqdm
 
 from src.data.loader import load_benchmark
 from src.inference.api_backend import APIBackend
@@ -79,33 +80,40 @@ async def _run(
     max_tokens = int(exp_cfg.get("max_tokens", 512))
     seed: int | None = exp_cfg.get("seed")
     top_p: float | None = exp_cfg.get("top_p")
+    total_groups = len(model_keys) * len(benchmark_names)
+    groups_progress = tqdm(total=total_groups, desc="Inference groups", unit="group")
 
-    for model_key in model_keys:
-        model_cfg = models_cfg[model_key]
-        backend = _build_backend(model_key, model_cfg)
-        runner = ExperimentRunner(
-            backend=backend,
-            prompt_builder=prompt_builder,
-            output_dir=args.results_dir,
-            data_root=args.data_dir,
-        )
-        for benchmark in benchmark_names:
-            samples = load_benchmark(benchmark, args.data_dir)
-            if args.limit is not None:
-                samples = samples[: args.limit]
-                LOGGER.info("Limiting to %d samples for %s/%s.", args.limit, model_key, benchmark)
-            output_path = await runner.run(
-                samples,
-                model_name=model_cfg["name"],
-                benchmark=benchmark,
-                run_label=args.mode,
-                n=n,
-                temperature=temperature,
-                max_tokens=max_tokens,
-                seed=seed,
-                top_p=top_p,
+    try:
+        for model_key in model_keys:
+            model_cfg = models_cfg[model_key]
+            backend = _build_backend(model_key, model_cfg)
+            runner = ExperimentRunner(
+                backend=backend,
+                prompt_builder=prompt_builder,
+                output_dir=args.results_dir,
+                data_root=args.data_dir,
             )
-            LOGGER.info("Saved raw generations to %s", output_path)
+            for benchmark in benchmark_names:
+                groups_progress.set_postfix(model=model_key, benchmark=benchmark, mode=args.mode)
+                samples = load_benchmark(benchmark, args.data_dir)
+                if args.limit is not None:
+                    samples = samples[: args.limit]
+                    LOGGER.info("Limiting to %d samples for %s/%s.", args.limit, model_key, benchmark)
+                output_path = await runner.run(
+                    samples,
+                    model_name=model_cfg["name"],
+                    benchmark=benchmark,
+                    run_label=args.mode,
+                    n=n,
+                    temperature=temperature,
+                    max_tokens=max_tokens,
+                    seed=seed,
+                    top_p=top_p,
+                )
+                LOGGER.info("Saved raw generations to %s", output_path)
+                groups_progress.update(1)
+    finally:
+        groups_progress.close()
 
 
 def main() -> None:

@@ -58,53 +58,82 @@ class ExperimentRunner:
             run_label=run_label,
         )
         completed_ids = self._load_completed_sample_ids(output_path)
+        pending_samples = [sample for sample in samples if sample.id not in completed_ids]
+        resumed_count = len(completed_ids)
+        written_count = 0
+        error_count = 0
+        total_latency_ms = 0.0
 
         with output_path.open("a", encoding="utf-8") as handle:
-            for sample in tqdm(samples, desc=f"{model_name}:{benchmark}", unit="sample"):
-                if sample.id in completed_ids:
-                    continue
-                try:
-                    prompt = self._prompt_builder.build(sample)
-                    generations = await self._backend.generate(
-                        prompt,
-                        n=n,
-                        temperature=temperature,
-                        max_tokens=max_tokens,
-                        seed=seed,
-                        top_p=top_p,
-                    )
-                    record = {
-                        "sample_id": sample.id,
-                        "benchmark": sample.benchmark,
-                        "run_label": run_label,
-                        "db_id": sample.db_id,
-                        "db_path": self._serialize_db_path(sample.db_path),
-                        "question": sample.question,
-                        "gold_sql": sample.gold_sql,
-                        "difficulty": sample.difficulty,
-                        "evidence": sample.evidence,
-                        "model_name": model_name,
-                        "generations": [
-                            {
-                                "sql": generation.sql,
-                                "raw_response": generation.raw_response,
-                                "tokens_input": generation.tokens_input,
-                                "tokens_output": generation.tokens_output,
-                                "latency_ms": generation.latency_ms,
-                                "model_name": generation.model_name,
-                                "metadata": generation.metadata,
-                                "timestamp": generation.timestamp,
-                            }
-                            for generation in generations
-                        ],
-                    }
-                    handle.write(json.dumps(record, ensure_ascii=False) + "\n")
-                    completed_ids.add(sample.id)
-                    handle.flush()
-                    if len(completed_ids) % _FSYNC_EVERY_N == 0:
-                        os.fsync(handle.fileno())
-                except Exception as exc:
-                    LOGGER.warning("Skipping sample %s after inference failure: %s", sample.id, exc)
+            with tqdm(
+                total=len(samples),
+                initial=resumed_count,
+                desc=f"{model_name}:{benchmark}",
+                unit="sample",
+            ) as progress:
+                progress.set_postfix(
+                    resumed=resumed_count,
+                    written=written_count,
+                    errors=error_count,
+                    avg_latency_ms="0.0",
+                )
+                for sample in pending_samples:
+                    try:
+                        prompt = self._prompt_builder.build(sample)
+                        generations = await self._backend.generate(
+                            prompt,
+                            n=n,
+                            temperature=temperature,
+                            max_tokens=max_tokens,
+                            seed=seed,
+                            top_p=top_p,
+                        )
+                        record = {
+                            "sample_id": sample.id,
+                            "benchmark": sample.benchmark,
+                            "run_label": run_label,
+                            "db_id": sample.db_id,
+                            "db_path": self._serialize_db_path(sample.db_path),
+                            "question": sample.question,
+                            "gold_sql": sample.gold_sql,
+                            "difficulty": sample.difficulty,
+                            "evidence": sample.evidence,
+                            "model_name": model_name,
+                            "generations": [
+                                {
+                                    "sql": generation.sql,
+                                    "raw_response": generation.raw_response,
+                                    "tokens_input": generation.tokens_input,
+                                    "tokens_output": generation.tokens_output,
+                                    "latency_ms": generation.latency_ms,
+                                    "model_name": generation.model_name,
+                                    "metadata": generation.metadata,
+                                    "timestamp": generation.timestamp,
+                                }
+                                for generation in generations
+                            ],
+                        }
+                        handle.write(json.dumps(record, ensure_ascii=False) + "\n")
+                        completed_ids.add(sample.id)
+                        written_count += 1
+                        total_latency_ms += sum(generation.latency_ms for generation in generations) / max(
+                            len(generations), 1
+                        )
+                        handle.flush()
+                        if len(completed_ids) % _FSYNC_EVERY_N == 0:
+                            os.fsync(handle.fileno())
+                    except Exception as exc:
+                        error_count += 1
+                        LOGGER.warning("Skipping sample %s after inference failure: %s", sample.id, exc)
+                    finally:
+                        avg_latency_ms = total_latency_ms / written_count if written_count else 0.0
+                        progress.update(1)
+                        progress.set_postfix(
+                            resumed=resumed_count,
+                            written=written_count,
+                            errors=error_count,
+                            avg_latency_ms=f"{avg_latency_ms:.1f}",
+                        )
             handle.flush()
             os.fsync(handle.fileno())
         return output_path

@@ -9,6 +9,7 @@ from types import SimpleNamespace
 import pytest
 
 from src.evaluation import ea as ea_module
+from src.evaluation import executor as executor_module
 from src.evaluation.ea import candidate_execution_matches, execution_accuracy
 from src.evaluation.executor import ExecutionResult
 from src.evaluation.efficiency import compute_efficiency, normalize_efficiency_rows
@@ -28,8 +29,6 @@ _EVALUATE_SPEC.loader.exec_module(_EVALUATE_MODULE)
 
 
 def test_execution_accuracy_on_matching_queries(tmp_path: Path) -> None:
-    import sqlite3
-
     db_path = tmp_path / "demo.sqlite"
     with sqlite3.connect(db_path) as connection:
         connection.execute("CREATE TABLE users (id INTEGER)")
@@ -42,6 +41,36 @@ def test_execution_accuracy_on_matching_queries(tmp_path: Path) -> None:
         [db_path],
     )
     assert score == 1.0
+
+
+def test_execute_sql_reuses_connection_and_result_cache(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    db_path = tmp_path / "cache.sqlite"
+    with sqlite3.connect(db_path) as connection:
+        connection.execute("CREATE TABLE demo (value INTEGER)")
+        connection.execute("INSERT INTO demo (value) VALUES (1)")
+        connection.commit()
+
+    connect_calls = 0
+    real_connect = executor_module.sqlite3.connect
+
+    def counted_connect(*args, **kwargs):
+        nonlocal connect_calls
+        connect_calls += 1
+        return real_connect(*args, **kwargs)
+
+    executor_module.clear_executor_caches()
+    monkeypatch.setattr(executor_module.sqlite3, "connect", counted_connect)
+
+    first = executor_module.execute_sql("SELECT value FROM demo", db_path)
+    second = executor_module.execute_sql("SELECT value FROM demo", db_path)
+
+    assert first == second
+    assert first.success is True
+    assert connect_calls == 1
+    executor_module.clear_executor_caches()
 
 
 def test_candidate_execution_matches_executes_gold_once(monkeypatch: pytest.MonkeyPatch) -> None:

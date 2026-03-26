@@ -6,9 +6,13 @@ import argparse
 import csv
 import json
 import logging
+import os
 from collections import defaultdict
+from concurrent.futures import ProcessPoolExecutor, as_completed
 from pathlib import Path
 from typing import Any
+
+from tqdm import tqdm
 
 from src.config import load_yaml_config
 from src.evaluation.ea import evaluate_candidate_predictions
@@ -162,6 +166,80 @@ def _validate_records(
         raise ValueError(f"Raw evaluation input validation failed:\n{preview}")
 
 
+def _evaluate_record(record: dict[str, Any], data_dir: Path) -> dict[str, Any]:
+    """Evaluate one raw record into sample-level outcomes."""
+    gold_sql = record.get("gold_sql", "")
+    db_path = _resolve_db_path(record["db_path"], data_dir)
+    generations = record.get("generations", [])
+    candidate_sql = [gen["sql"] for gen in generations]
+    evaluation = evaluate_candidate_predictions(candidate_sql, gold_sql, db_path)
+    candidate_hits = evaluation["candidate_hits"]
+
+    return {
+        "candidate_hits": candidate_hits,
+        "sample_row": {
+            "sample_id": record.get("sample_id"),
+            "model_name": record.get("model_name"),
+            "benchmark": record.get("benchmark"),
+            "run_label": _normalize_run_label(record),
+            "question": record.get("question", ""),
+            "gold_sql": gold_sql,
+            "db_id": record.get("db_id"),
+            "db_path": str(db_path),
+            "difficulty": record.get("difficulty"),
+            "evidence": record.get("evidence"),
+            "question_len": len(record.get("question", "")),
+            "gold_sql_len": len(gold_sql),
+            "n_generations": len(generations),
+            "source_path": record.get("_source_path", ""),
+            "gold_success": evaluation["gold_success"],
+            "gold_error": evaluation["gold_error"],
+            "candidate_hits": json.dumps(candidate_hits),
+            "first_hit": bool(candidate_hits[0]),
+            "any_hit": any(candidate_hits),
+            "n_candidates": len(candidate_hits),
+            "first_pred_sql": candidate_sql[0],
+            "first_pred_success": evaluation["first_pred_success"],
+            "first_pred_error": evaluation["first_pred_error"],
+            "empty_sql": not str(candidate_sql[0]).strip(),
+        },
+    }
+
+
+def _evaluate_records(
+    records: list[dict[str, Any]],
+    data_dir: Path,
+    *,
+    progress_label: str,
+) -> list[dict[str, Any]]:
+    """Evaluate raw records, using processes for larger groups."""
+    if len(records) < 2:
+        results: list[dict[str, Any]] = []
+        with tqdm(total=len(records), desc=progress_label, unit="sample") as progress:
+            for record in records:
+                results.append(_evaluate_record(record, data_dir))
+                progress.update(1)
+        return results
+
+    max_workers = min(os.cpu_count() or 1, len(records))
+    if max_workers <= 1:
+        results = []
+        with tqdm(total=len(records), desc=progress_label, unit="sample") as progress:
+            for record in records:
+                results.append(_evaluate_record(record, data_dir))
+                progress.update(1)
+        return results
+
+    results: list[dict[str, Any]] = []
+    with ProcessPoolExecutor(max_workers=max_workers) as executor:
+        futures = [executor.submit(_evaluate_record, record, data_dir) for record in records]
+        with tqdm(total=len(records), desc=progress_label, unit="sample") as progress:
+            for future in as_completed(futures):
+                results.append(future.result())
+                progress.update(1)
+    return results
+
+
 def main() -> None:
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
     args = parse_args()
@@ -176,51 +254,14 @@ def main() -> None:
     for (model_name, benchmark, run_label), records in grouped.items():
         pass_results: list[list[bool]] = []
         generation_results: list[GenerationResult] = []
+        evaluable_records = [record for record in records if record.get("generations")]
+        progress_label = f"{model_name} / {benchmark} / {run_label}"
 
         for record in records:
-            gold_sql = record.get("gold_sql", "")
-            db_path = _resolve_db_path(record["db_path"], args.data_dir)
-            generations = record.get("generations", [])
-
-            if not generations:
+            if not record.get("generations"):
                 LOGGER.warning("Sample %s has no generations, skipping.", record.get("sample_id"))
                 continue
-
-            candidate_sql = [gen["sql"] for gen in generations]
-            evaluation = evaluate_candidate_predictions(candidate_sql, gold_sql, db_path)
-            candidate_hits = evaluation["candidate_hits"]
-
-            pass_results.append(candidate_hits)
-            sample_rows.append(
-                {
-                    "sample_id": record.get("sample_id"),
-                    "model_name": model_name,
-                    "benchmark": benchmark,
-                    "run_label": run_label,
-                    "question": record.get("question", ""),
-                    "gold_sql": gold_sql,
-                    "db_id": record.get("db_id"),
-                    "db_path": str(db_path),
-                    "difficulty": record.get("difficulty"),
-                    "evidence": record.get("evidence"),
-                    "question_len": len(record.get("question", "")),
-                    "gold_sql_len": len(gold_sql),
-                    "n_generations": len(generations),
-                    "source_path": record.get("_source_path", ""),
-                    "gold_success": evaluation["gold_success"],
-                    "gold_error": evaluation["gold_error"],
-                    "candidate_hits": json.dumps(candidate_hits),
-                    "first_hit": bool(candidate_hits[0]),
-                    "any_hit": any(candidate_hits),
-                    "n_candidates": len(candidate_hits),
-                    "first_pred_sql": candidate_sql[0],
-                    "first_pred_success": evaluation["first_pred_success"],
-                    "first_pred_error": evaluation["first_pred_error"],
-                    "empty_sql": not str(candidate_sql[0]).strip(),
-                }
-            )
-
-            for gen in generations:
+            for gen in record["generations"]:
                 generation_results.append(
                     GenerationResult(
                         sql=gen["sql"],
@@ -232,6 +273,14 @@ def main() -> None:
                         metadata=gen.get("metadata", {}),
                     )
                 )
+
+        for evaluated in _evaluate_records(
+            evaluable_records,
+            args.data_dir,
+            progress_label=progress_label,
+        ):
+            pass_results.append(evaluated["candidate_hits"])
+            sample_rows.append(evaluated["sample_row"])
 
         if not pass_results:
             LOGGER.warning("No usable samples for %s / %s.", model_name, benchmark)

@@ -101,3 +101,26 @@ def test_runner_separates_output_files_by_run_label(tmp_path: Path) -> None:
     assert ea_path != pass_k_path
     assert "_ea_" in ea_path.name
     assert "_pass_k_" in pass_k_path.name
+
+
+def test_runner_resume_keeps_single_record_and_reuses_existing_progress(tmp_path: Path) -> None:
+    data_root = tmp_path / "data"
+    db_path = data_root / "spider" / "database" / "demo" / "demo.sqlite"
+    db_path.parent.mkdir(parents=True)
+    db_path.touch()
+
+    runner = ExperimentRunner(
+        backend=DummyBackend(),
+        prompt_builder=DummyPromptBuilder(),
+        output_dir=tmp_path / "out",
+        data_root=data_root,
+    )
+    samples = [_sample(db_path)]
+
+    output_path = asyncio.run(runner.run(samples, model_name="m", benchmark="spider", run_label="ea"))
+    second_output_path = asyncio.run(
+        runner.run(samples, model_name="m", benchmark="spider", run_label="ea")
+    )
+
+    assert output_path == second_output_path
+    assert len(output_path.read_text(encoding="utf-8").splitlines()) == 1
