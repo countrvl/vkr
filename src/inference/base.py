@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import re
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
@@ -15,6 +16,16 @@ REFUSAL_PATTERNS = (
     "cannot generate sql",
     "unable to generate sql",
 )
+
+_JSON_OBJECT_PATTERN = re.compile(r"\{.*\}", flags=re.DOTALL)
+SQL_RESPONSE_SCHEMA: dict[str, Any] = {
+    "type": "object",
+    "properties": {
+        "sql": {"type": "string"},
+    },
+    "required": ["sql"],
+    "additionalProperties": False,
+}
 
 
 @dataclass(slots=True)
@@ -73,6 +84,10 @@ class InferenceBackend(ABC):
         if any(pattern in lowered for pattern in REFUSAL_PATTERNS):
             return ""
 
+        extracted_from_json = InferenceBackend._extract_sql_from_json(cleaned)
+        if extracted_from_json:
+            return extracted_from_json
+
         sql_fence = re.search(r"```sql\s*(.*?)```", cleaned, flags=re.IGNORECASE | re.DOTALL)
         if sql_fence:
             cleaned = sql_fence.group(1)
@@ -87,6 +102,29 @@ class InferenceBackend(ABC):
 
         cleaned = cleaned.rstrip().rstrip(";").strip()
         return cleaned if cleaned else ""
+
+    @staticmethod
+    def _extract_sql_from_json(raw: str) -> str:
+        """Return SQL from a JSON response with a top-level ``sql`` field."""
+        candidates = [raw]
+        json_match = _JSON_OBJECT_PATTERN.search(raw)
+        if json_match is not None and json_match.group(0) != raw:
+            candidates.append(json_match.group(0))
+
+        for candidate in candidates:
+            try:
+                payload = json.loads(candidate)
+            except json.JSONDecodeError:
+                continue
+            if not isinstance(payload, dict):
+                continue
+            sql = payload.get("sql")
+            if not isinstance(sql, str):
+                continue
+            cleaned = sql.strip().rstrip(";").strip()
+            if cleaned:
+                return cleaned
+        return ""
 
 
 def extract_sql(raw: str) -> str:

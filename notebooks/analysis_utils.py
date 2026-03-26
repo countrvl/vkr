@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 import tempfile
 from collections import defaultdict
 from functools import lru_cache
@@ -30,8 +31,6 @@ CONFIG_DIR = PROJECT_ROOT / "configs"
 EXPERIMENT_CFG = load_yaml_config(CONFIG_DIR / "experiment.yaml")
 METRICS_CFG = load_yaml_config(CONFIG_DIR / "metrics.yaml")
 DATA_DIR = PROJECT_ROOT / EXPERIMENT_CFG.get("data_dir", "data")
-FIGURES_DIR = PROJECT_ROOT / "results" / "figures"
-FIGURES_DIR.mkdir(parents=True, exist_ok=True)
 
 
 def candidate_results_dirs() -> list[Path]:
@@ -64,6 +63,10 @@ def _results_dir_score(results_dir: Path) -> tuple[int, int]:
 
 def select_results_dir() -> Path:
     """Pick the most useful available results directory."""
+    explicit_results_dir = os.getenv("NL2SQL_RESULTS_DIR")
+    if explicit_results_dir:
+        return Path(explicit_results_dir).expanduser().resolve()
+
     candidates = [path for path in candidate_results_dirs() if path.exists()]
     if not candidates:
         return PROJECT_ROOT / "results"
@@ -71,7 +74,36 @@ def select_results_dir() -> Path:
 
 
 RESULTS_DIR = select_results_dir()
-SAMPLE_METRICS_PATH = RESULTS_DIR / "metrics" / "sample_metrics.csv"
+SAMPLE_METRICS_PATH: Path | None = None
+
+
+def get_results_dir() -> Path:
+    """Return the active results directory, honoring env overrides at call time."""
+    return select_results_dir()
+
+
+def get_figures_dir(run_label: str | None = None) -> Path:
+    """Return the figures directory for a run label."""
+    figures_dir = get_results_dir() / "figures"
+    if run_label:
+        figures_dir = figures_dir / run_label
+    figures_dir.mkdir(parents=True, exist_ok=True)
+    return figures_dir
+
+
+def get_metrics_dir(run_label: str | None = None) -> Path:
+    """Return the metrics directory for a run label."""
+    metrics_dir = get_results_dir() / "metrics"
+    if run_label:
+        metrics_dir = metrics_dir / run_label
+    return metrics_dir
+
+
+def get_sample_metrics_path(run_label: str | None = None) -> Path:
+    """Return the sample metrics path for the active results directory."""
+    if SAMPLE_METRICS_PATH is not None:
+        return SAMPLE_METRICS_PATH
+    return get_metrics_dir(run_label) / "sample_metrics.csv"
 
 
 def infer_run_label(record: dict[str, Any], source_path: str) -> str:
@@ -100,7 +132,7 @@ def resolve_db_path(raw_db_path: str) -> Path:
     return candidates[-1]
 
 
-def _iter_raw_records(results_dir: Path) -> list[dict[str, Any]]:
+def _iter_raw_records(results_dir: Path, run_label: str | None = None) -> list[dict[str, Any]]:
     raw_dir = results_dir / "raw"
     records: list[dict[str, Any]] = []
     if not raw_dir.exists():
@@ -113,17 +145,19 @@ def _iter_raw_records(results_dir: Path) -> list[dict[str, Any]]:
                 record = json.loads(line)
                 record["_source_path"] = str(path)
                 record["run_label"] = infer_run_label(record, str(path))
+                if run_label is not None and record["run_label"] != run_label:
+                    continue
                 records.append(record)
     return records
 
 
-@lru_cache(maxsize=2)
-def load_records() -> tuple[pd.DataFrame, pd.DataFrame]:
+@lru_cache(maxsize=8)
+def load_records(run_label: str | None = None) -> tuple[pd.DataFrame, pd.DataFrame]:
     """Return sample-level and generation-level DataFrames."""
     sample_rows: list[dict[str, Any]] = []
     generation_rows: list[dict[str, Any]] = []
 
-    for record in _iter_raw_records(RESULTS_DIR):
+    for record in _iter_raw_records(get_results_dir(), run_label):
         db_path = resolve_db_path(record["db_path"])
         sample_row = {
             "sample_id": record.get("sample_id"),
@@ -169,12 +203,21 @@ def load_records() -> tuple[pd.DataFrame, pd.DataFrame]:
     return samples_df, generations_df
 
 
-@lru_cache(maxsize=1)
-def load_summary_metrics() -> pd.DataFrame:
-    metrics_path = RESULTS_DIR / "metrics" / "summary_metrics.csv"
+def reset_analysis_caches() -> None:
+    """Clear cached notebook data after new inference/evaluation runs."""
+    load_records.cache_clear()
+    load_summary_metrics.cache_clear()
+    load_sample_metrics.cache_clear()
+    compute_summary_metrics.cache_clear()
+    compute_sample_outcomes.cache_clear()
+
+
+@lru_cache(maxsize=8)
+def load_summary_metrics(run_label: str | None = None) -> pd.DataFrame:
+    metrics_path = get_metrics_dir(run_label) / "summary_metrics.csv"
     if metrics_path.exists():
         return pd.read_csv(metrics_path)
-    return compute_summary_metrics()
+    return compute_summary_metrics(run_label)
 
 
 def _parse_bool(value: Any) -> bool:
@@ -194,12 +237,13 @@ def _parse_candidate_hits(value: Any) -> list[bool]:
     return [bool(item) for item in parsed]
 
 
-@lru_cache(maxsize=1)
-def load_sample_metrics() -> pd.DataFrame:
-    if not SAMPLE_METRICS_PATH.exists():
+@lru_cache(maxsize=8)
+def load_sample_metrics(run_label: str | None = None) -> pd.DataFrame:
+    sample_metrics_path = get_sample_metrics_path(run_label)
+    if not sample_metrics_path.exists():
         return pd.DataFrame()
 
-    outcomes_df = pd.read_csv(SAMPLE_METRICS_PATH)
+    outcomes_df = pd.read_csv(sample_metrics_path)
     if outcomes_df.empty:
         return outcomes_df
 
@@ -213,13 +257,13 @@ def load_sample_metrics() -> pd.DataFrame:
     return outcomes_df
 
 
-@lru_cache(maxsize=1)
-def compute_summary_metrics() -> pd.DataFrame:
-    samples_df, generations_df = load_records()
+@lru_cache(maxsize=8)
+def compute_summary_metrics(run_label: str | None = None) -> pd.DataFrame:
+    samples_df, generations_df = load_records(run_label)
     if samples_df.empty or generations_df.empty:
         return pd.DataFrame()
 
-    outcomes_df = compute_sample_outcomes()
+    outcomes_df = compute_sample_outcomes(run_label)
     rows: list[dict[str, Any]] = []
 
     for (model_name, benchmark, run_label), group in outcomes_df.groupby(
@@ -266,14 +310,14 @@ def compute_summary_metrics() -> pd.DataFrame:
     return pd.DataFrame(normalized)
 
 
-@lru_cache(maxsize=1)
-def compute_sample_outcomes() -> pd.DataFrame:
+@lru_cache(maxsize=8)
+def compute_sample_outcomes(run_label: str | None = None) -> pd.DataFrame:
     """Evaluate every sample and generation against the gold SQL."""
-    persisted_outcomes = load_sample_metrics()
+    persisted_outcomes = load_sample_metrics(run_label)
     if not persisted_outcomes.empty:
         return persisted_outcomes.copy()
 
-    samples_df, generations_df = load_records()
+    samples_df, generations_df = load_records(run_label)
     if samples_df.empty or generations_df.empty:
         return pd.DataFrame()
 
@@ -324,9 +368,9 @@ def compute_sample_outcomes() -> pd.DataFrame:
     return pd.DataFrame(outcome_rows)
 
 
-def ensure_expert_template() -> Path:
+def ensure_expert_template(run_label: str | None = None) -> Path:
     """Create an expert score template if a populated file is absent."""
-    metrics_dir = PROJECT_ROOT / "results" / "metrics"
+    metrics_dir = get_metrics_dir(run_label)
     metrics_dir.mkdir(parents=True, exist_ok=True)
     expert_scores_path = metrics_dir / "expert_scores.csv"
     template_path = metrics_dir / "expert_scores_template.csv"
@@ -334,7 +378,7 @@ def ensure_expert_template() -> Path:
     if expert_scores_path.exists():
         return expert_scores_path
 
-    outcomes_df = compute_sample_outcomes()
+    outcomes_df = compute_sample_outcomes(run_label)
     if outcomes_df.empty:
         return template_path
 

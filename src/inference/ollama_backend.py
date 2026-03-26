@@ -9,7 +9,7 @@ from typing import Any
 
 import httpx
 
-from src.inference.base import GenerationResult, InferenceBackend
+from src.inference.base import GenerationResult, InferenceBackend, SQL_RESPONSE_SCHEMA
 
 
 LOGGER = logging.getLogger(__name__)
@@ -41,6 +41,7 @@ class OllamaBackend(InferenceBackend):
         self.num_ctx = num_ctx
         self.model_name = model_name or model_id
         self.parameters = parameters or {}
+        self._structured_output_enabled = True
 
     async def generate(
         self,
@@ -155,16 +156,35 @@ class OllamaBackend(InferenceBackend):
             options["top_p"] = top_p
 
         started_at = time.perf_counter()
-        response = await client.post(
-            f"{self.base_url}/api/generate",
-            json={
-                "model": self.model_id,
-                "prompt": prompt,
-                "stream": False,
-                "options": options,
-            },
-        )
-        response.raise_for_status()
+        payload = {
+            "model": self.model_id,
+            "prompt": prompt,
+            "stream": False,
+            "options": options,
+        }
+        if self._structured_output_enabled:
+            payload["format"] = SQL_RESPONSE_SCHEMA
+
+        try:
+            response = await client.post(
+                f"{self.base_url}/api/generate",
+                json=payload,
+            )
+            response.raise_for_status()
+        except httpx.HTTPStatusError as exc:
+            if not payload.get("format") or not self._should_disable_structured_output(exc):
+                raise
+            LOGGER.warning(
+                "Structured output is not supported by %s; retrying without format schema.",
+                self.model_id,
+            )
+            self._structured_output_enabled = False
+            payload.pop("format", None)
+            response = await client.post(
+                f"{self.base_url}/api/generate",
+                json=payload,
+            )
+            response.raise_for_status()
         payload = response.json()
         if not isinstance(payload, dict):
             raise ValueError(f"Unexpected Ollama response type: {type(payload).__name__}")
@@ -176,6 +196,22 @@ class OllamaBackend(InferenceBackend):
         else:
             latency_ms = wall_clock_ms
         return payload, latency_ms
+
+    @staticmethod
+    def _should_disable_structured_output(exc: httpx.HTTPStatusError) -> bool:
+        """Return True when Ollama rejects the ``format`` schema parameter."""
+        message = f"{exc} {getattr(exc.response, 'text', '')}".lower()
+        return any(
+            token in message
+            for token in (
+                "format",
+                "schema",
+                "json",
+                "not supported",
+                "unsupported",
+                "invalid",
+            )
+        )
 
 
 OllamaInferenceBackend = OllamaBackend

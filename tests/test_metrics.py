@@ -9,6 +9,7 @@ from types import SimpleNamespace
 import pytest
 
 from src.evaluation import ea as ea_module
+from src.evaluation import executor as executor_module
 from src.evaluation.ea import candidate_execution_matches, execution_accuracy
 from src.evaluation.executor import ExecutionResult
 from src.evaluation.efficiency import compute_efficiency, normalize_efficiency_rows
@@ -16,6 +17,7 @@ from src.evaluation.expert_score import ExpertEvaluation, expert_score
 from src.evaluation.pass_at_k import compute_all_pass_at_k, pass_at_k
 from src.inference.api_backend import APIBackend
 from src.inference.base import GenerationResult
+from src.inference.ollama_backend import OllamaBackend
 
 
 _EVALUATE_SPEC = importlib.util.spec_from_file_location(
@@ -26,10 +28,16 @@ assert _EVALUATE_SPEC is not None and _EVALUATE_SPEC.loader is not None
 _EVALUATE_MODULE = importlib.util.module_from_spec(_EVALUATE_SPEC)
 _EVALUATE_SPEC.loader.exec_module(_EVALUATE_MODULE)
 
+_ARCHIVE_SPEC = importlib.util.spec_from_file_location(
+    "script_04_archive_results",
+    Path(__file__).resolve().parents[1] / "scripts" / "04_archive_results.py",
+)
+assert _ARCHIVE_SPEC is not None and _ARCHIVE_SPEC.loader is not None
+_ARCHIVE_MODULE = importlib.util.module_from_spec(_ARCHIVE_SPEC)
+_ARCHIVE_SPEC.loader.exec_module(_ARCHIVE_MODULE)
+
 
 def test_execution_accuracy_on_matching_queries(tmp_path: Path) -> None:
-    import sqlite3
-
     db_path = tmp_path / "demo.sqlite"
     with sqlite3.connect(db_path) as connection:
         connection.execute("CREATE TABLE users (id INTEGER)")
@@ -42,6 +50,36 @@ def test_execution_accuracy_on_matching_queries(tmp_path: Path) -> None:
         [db_path],
     )
     assert score == 1.0
+
+
+def test_execute_sql_reuses_connection_and_result_cache(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    db_path = tmp_path / "cache.sqlite"
+    with sqlite3.connect(db_path) as connection:
+        connection.execute("CREATE TABLE demo (value INTEGER)")
+        connection.execute("INSERT INTO demo (value) VALUES (1)")
+        connection.commit()
+
+    connect_calls = 0
+    real_connect = executor_module.sqlite3.connect
+
+    def counted_connect(*args, **kwargs):
+        nonlocal connect_calls
+        connect_calls += 1
+        return real_connect(*args, **kwargs)
+
+    executor_module.clear_executor_caches()
+    monkeypatch.setattr(executor_module.sqlite3, "connect", counted_connect)
+
+    first = executor_module.execute_sql("SELECT value FROM demo", db_path)
+    second = executor_module.execute_sql("SELECT value FROM demo", db_path)
+
+    assert first == second
+    assert first.success is True
+    assert connect_calls == 1
+    executor_module.clear_executor_caches()
 
 
 def test_candidate_execution_matches_executes_gold_once(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -290,12 +328,13 @@ def test_evaluate_writes_sample_metrics_csv(tmp_path: Path, monkeypatch: pytest.
             raw_dir=raw_dir,
             data_dir=data_dir,
             output_dir=output_dir,
+            run_label="all",
         ),
     )
 
     _EVALUATE_MODULE.main()
 
-    sample_metrics_path = output_dir / "sample_metrics.csv"
+    sample_metrics_path = output_dir / "ea" / "sample_metrics.csv"
     assert sample_metrics_path.exists()
     with sample_metrics_path.open("r", encoding="utf-8", newline="") as handle:
         rows = list(csv.DictReader(handle))
@@ -305,6 +344,41 @@ def test_evaluate_writes_sample_metrics_csv(tmp_path: Path, monkeypatch: pytest.
     assert rows[0]["candidate_hits"] == "[true]"
     assert rows[0]["first_hit"] == "True"
     assert rows[0]["first_pred_success"] == "True"
+
+
+def test_archive_results_scope_pass_k_moves_only_matching_artifacts(tmp_path: Path) -> None:
+    results_dir = tmp_path / "results"
+    raw_dir = results_dir / "raw"
+    metrics_ea_dir = results_dir / "metrics" / "ea"
+    metrics_pass_k_dir = results_dir / "metrics" / "pass_k"
+    figures_ea_dir = results_dir / "figures" / "ea"
+    figures_pass_k_dir = results_dir / "figures" / "pass_k"
+    for path in (raw_dir, metrics_ea_dir, metrics_pass_k_dir, figures_ea_dir, figures_pass_k_dir):
+        path.mkdir(parents=True, exist_ok=True)
+
+    (raw_dir / "Demo_spider_ea_1.jsonl").write_text("ea\n", encoding="utf-8")
+    (raw_dir / "Demo_spider_pass_k_1.jsonl").write_text("pass_k\n", encoding="utf-8")
+    (metrics_ea_dir / "summary_metrics.csv").write_text("ea\n", encoding="utf-8")
+    (metrics_pass_k_dir / "summary_metrics.csv").write_text("pass_k\n", encoding="utf-8")
+    (figures_ea_dir / "plot.png").write_text("ea\n", encoding="utf-8")
+    (figures_pass_k_dir / "plot.png").write_text("pass_k\n", encoding="utf-8")
+
+    archive_dir = results_dir / "archive" / "20260101_000000_test"
+    moved = _ARCHIVE_MODULE._archive_paths(results_dir, archive_dir, dry_run=False, scope="pass_k")
+    _ARCHIVE_MODULE._ensure_clean_workdirs(results_dir, dry_run=False, scope="pass_k")
+
+    assert raw_dir.joinpath("Demo_spider_ea_1.jsonl").exists()
+    assert not raw_dir.joinpath("Demo_spider_pass_k_1.jsonl").exists()
+    assert metrics_ea_dir.joinpath("summary_metrics.csv").exists()
+    assert metrics_pass_k_dir.exists()
+    assert not metrics_pass_k_dir.joinpath("summary_metrics.csv").exists()
+    assert figures_ea_dir.joinpath("plot.png").exists()
+    assert figures_pass_k_dir.exists()
+    assert not figures_pass_k_dir.joinpath("plot.png").exists()
+    assert (archive_dir / "raw" / "Demo_spider_pass_k_1.jsonl").exists()
+    assert (archive_dir / "metrics" / "pass_k" / "summary_metrics.csv").exists()
+    assert (archive_dir / "figures" / "pass_k" / "plot.png").exists()
+    assert moved
 
 
 def test_notebook_helper_loads_persisted_sample_metrics_without_sql_execution(
@@ -383,6 +457,146 @@ def test_api_backend_includes_normalized_pricing_metadata() -> None:
         "input_per_mtok": pytest.approx(0.28),
         "output_per_mtok": pytest.approx(0.42),
         "cache_hit_per_mtok": pytest.approx(0.028),
+    }
+
+
+def test_api_backend_requests_structured_output_by_default() -> None:
+    captured_kwargs: dict[str, object] = {}
+
+    class DummyCompletions:
+        async def create(self, **kwargs):
+            captured_kwargs.update(kwargs)
+            return SimpleNamespace(
+                usage=SimpleNamespace(prompt_tokens=12, completion_tokens=5),
+                choices=[SimpleNamespace(message=SimpleNamespace(content='{"sql":"SELECT 1"}'))],
+            )
+
+    backend = APIBackend(
+        model_id="demo-model",
+        base_url="https://example.com",
+        api_key="test-key",
+        model_name="Demo",
+    )
+    backend.client = SimpleNamespace(chat=SimpleNamespace(completions=DummyCompletions()))
+
+    results = asyncio.run(
+        backend._generate_native(
+            prompt="question",
+            n=1,
+            temperature=0.0,
+            max_tokens=32,
+            seed=None,
+            top_p=None,
+        )
+    )
+
+    assert len(results) == 1
+    assert captured_kwargs["response_format"] == {"type": "json_object"}
+
+
+def test_api_backend_tops_up_missing_choices_when_provider_ignores_n(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    backend = APIBackend(
+        model_id="demo-model",
+        base_url="https://example.com",
+        api_key="test-key",
+        model_name="Demo",
+    )
+
+    calls: list[int] = []
+
+    async def fake_generate_with_retry(**kwargs):
+        calls.append(kwargs["n"])
+        if kwargs["n"] == 3:
+            return [
+                GenerationResult(
+                    sql="SELECT 1",
+                    raw_response="SELECT 1",
+                    tokens_input=10,
+                    tokens_output=5,
+                    latency_ms=1.0,
+                    model_name="Demo",
+                )
+            ]
+        return [
+            GenerationResult(
+                sql=f"SELECT {len(calls)}",
+                raw_response=f"SELECT {len(calls)}",
+                tokens_input=10,
+                tokens_output=5,
+                latency_ms=1.0,
+                model_name="Demo",
+            )
+        ]
+
+    monkeypatch.setattr(backend, "_generate_with_retry", fake_generate_with_retry)
+
+    results = asyncio.run(
+        backend.generate(
+            prompt="question",
+            n=3,
+            temperature=0.8,
+            max_tokens=32,
+            seed=None,
+            top_p=0.95,
+        )
+    )
+
+    assert len(results) == 3
+    assert calls == [3, 1, 1]
+
+
+def test_ollama_backend_requests_structured_output_schema() -> None:
+    captured_payloads: list[dict[str, object]] = []
+
+    class DummyResponse:
+        def raise_for_status(self) -> None:
+            return None
+
+        def json(self) -> dict[str, object]:
+            return {
+                "response": '{"sql":"SELECT 1"}',
+                "prompt_eval_count": 10,
+                "eval_count": 5,
+                "total_duration": 1_000_000,
+            }
+
+    class DummyClient:
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, exc_type, exc, tb):
+            return False
+
+        async def post(self, url: str, json: dict[str, object]) -> DummyResponse:
+            captured_payloads.append(json)
+            return DummyResponse()
+
+    monkeypatch = pytest.MonkeyPatch()
+    monkeypatch.setattr("src.inference.ollama_backend.httpx.AsyncClient", lambda *args, **kwargs: DummyClient())
+    try:
+        backend = OllamaBackend(model_id="demo-model", model_name="Demo")
+        results = asyncio.run(
+            backend.generate(
+                prompt="question",
+                n=1,
+                temperature=0.0,
+                max_tokens=32,
+                seed=None,
+                top_p=None,
+            )
+        )
+    finally:
+        monkeypatch.undo()
+
+    assert len(results) == 1
+    assert "format" in captured_payloads[0]
+    assert captured_payloads[0]["format"] == {
+        "type": "object",
+        "properties": {"sql": {"type": "string"}},
+        "required": ["sql"],
+        "additionalProperties": False,
     }
 
 

@@ -7,11 +7,12 @@ import logging
 from pathlib import Path
 
 from src.data.download import download_bird, download_spider
+from src.logging_utils import configure_logging
 
 
 def main() -> None:
     """Download the requested benchmark datasets."""
-    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
+    configure_logging(logging.INFO)
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--data-dir", type=Path, default=Path("data"))
