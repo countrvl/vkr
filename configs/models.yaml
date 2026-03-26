@@ -23,3 +23,27 @@ models:
     parameters:
       max_tokens: 512
       num_ctx: 4096
+
+  m2_compact_hrida:
+    name: "Hrida-T2SQL"
+    backend: "ollama"
+    model_id: "HridaAI/hrida-t2sql:q8_0"
+    base_url: "http://localhost:11434"
+    pricing:
+      input_per_1m: 0.0
+      output_per_1m: 0.0
+    parameters:
+      max_tokens: 512
+      num_ctx: 4096
+
+  m2_compact_arctic:
+    name: "Arctic-Text2SQL-R1-7B"
+    backend: "ollama"
+    model_id: "a-kore/Arctic-Text2SQL-R1-7B:latest"
+    base_url: "http://localhost:11434"
+    pricing:
+      input_per_1m: 0.0
+      output_per_1m: 0.0
+    parameters:
+      max_tokens: 512
+      num_ctx: 4096

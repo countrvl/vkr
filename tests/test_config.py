@@ -8,6 +8,10 @@ def test_models_config_includes_pricing() -> None:
 
     assert config["models"]["m1_frontier"]["pricing"]["input_per_1m"] == 0.28
     assert config["models"]["m2_compact"]["pricing"]["output_per_1m"] == 0.0
+    assert config["models"]["m2_compact_hrida"]["model_id"] == "HridaAI/hrida-t2sql:q8_0"
+    assert config["models"]["m2_compact_hrida"]["pricing"]["output_per_1m"] == 0.0
+    assert config["models"]["m2_compact_arctic"]["model_id"] == "a-kore/Arctic-Text2SQL-R1-7B:latest"
+    assert config["models"]["m2_compact_arctic"]["pricing"]["output_per_1m"] == 0.0
 
 
 def test_metrics_config_includes_statistical_tests_and_pricing() -> None:

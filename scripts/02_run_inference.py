@@ -37,6 +37,11 @@ def _config_defaults(config_dir: Path) -> dict[str, Path]:
     }
 
 
+def _load_models_config(config_dir: Path) -> dict[str, Any]:
+    with (config_dir / "models.yaml").open("r", encoding="utf-8") as handle:
+        return (yaml.safe_load(handle) or {})["models"]
+
+
 def _build_backend(model_key: str, model_cfg: dict[str, Any]):
     """Build an inference backend from model configuration."""
     backend = model_cfg["backend"]
@@ -126,8 +131,11 @@ def main() -> None:
     config_args, _ = config_parser.parse_known_args()
     defaults = _config_defaults(config_args.config_dir)
 
+    models_cfg = _load_models_config(config_args.config_dir)
+    model_choices = sorted(models_cfg.keys()) + ["all"]
+
     parser = argparse.ArgumentParser()
-    parser.add_argument("--model", choices=["m1_frontier", "m2_compact", "all"], required=True)
+    parser.add_argument("--model", choices=model_choices, required=True)
     parser.add_argument("--benchmark", choices=["spider", "bird", "all"], default="all")
     parser.add_argument(
         "--mode",
@@ -149,8 +157,7 @@ def main() -> None:
 
     with (args.config_dir / "experiment.yaml").open("r", encoding="utf-8") as handle:
         exp_cfg = yaml.safe_load(handle) or {}
-    with (args.config_dir / "models.yaml").open("r", encoding="utf-8") as handle:
-        models_cfg = (yaml.safe_load(handle) or {})["models"]
+    models_cfg = _load_models_config(args.config_dir)
 
     if args.mode == "ea":
         temperature = 0.0
