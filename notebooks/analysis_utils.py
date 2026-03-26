@@ -71,6 +71,7 @@ def select_results_dir() -> Path:
 
 
 RESULTS_DIR = select_results_dir()
+SAMPLE_METRICS_PATH = RESULTS_DIR / "metrics" / "sample_metrics.csv"
 
 
 def infer_run_label(record: dict[str, Any], source_path: str) -> str:
@@ -176,6 +177,42 @@ def load_summary_metrics() -> pd.DataFrame:
     return compute_summary_metrics()
 
 
+def _parse_bool(value: Any) -> bool:
+    if isinstance(value, bool):
+        return value
+    if pd.isna(value):
+        return False
+    return str(value).strip().lower() == "true"
+
+
+def _parse_candidate_hits(value: Any) -> list[bool]:
+    if isinstance(value, list):
+        return [bool(item) for item in value]
+    if pd.isna(value):
+        return []
+    parsed = json.loads(value)
+    return [bool(item) for item in parsed]
+
+
+@lru_cache(maxsize=1)
+def load_sample_metrics() -> pd.DataFrame:
+    if not SAMPLE_METRICS_PATH.exists():
+        return pd.DataFrame()
+
+    outcomes_df = pd.read_csv(SAMPLE_METRICS_PATH)
+    if outcomes_df.empty:
+        return outcomes_df
+
+    if "candidate_hits" in outcomes_df.columns:
+        outcomes_df["candidate_hits"] = outcomes_df["candidate_hits"].map(_parse_candidate_hits)
+
+    for column in ["gold_success", "first_hit", "any_hit", "first_pred_success", "empty_sql"]:
+        if column in outcomes_df.columns:
+            outcomes_df[column] = outcomes_df[column].map(_parse_bool)
+
+    return outcomes_df
+
+
 @lru_cache(maxsize=1)
 def compute_summary_metrics() -> pd.DataFrame:
     samples_df, generations_df = load_records()
@@ -232,6 +269,10 @@ def compute_summary_metrics() -> pd.DataFrame:
 @lru_cache(maxsize=1)
 def compute_sample_outcomes() -> pd.DataFrame:
     """Evaluate every sample and generation against the gold SQL."""
+    persisted_outcomes = load_sample_metrics()
+    if not persisted_outcomes.empty:
+        return persisted_outcomes.copy()
+
     samples_df, generations_df = load_records()
     if samples_df.empty or generations_df.empty:
         return pd.DataFrame()
@@ -303,4 +344,3 @@ def ensure_expert_template() -> Path:
     template_df["readability"] = pd.NA
     template_df.to_csv(template_path, index=False)
     return template_path
-

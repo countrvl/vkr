@@ -1,5 +1,8 @@
 import asyncio
+import csv
 import importlib.util
+import json
+import sqlite3
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -64,6 +67,39 @@ def test_candidate_execution_matches_executes_gold_once(monkeypatch: pytest.Monk
     assert calls.count("SELECT gold") == 1
     assert calls.count("SELECT hit") == 2
     assert calls.count("SELECT miss") == 1
+
+
+def test_evaluate_candidate_predictions_returns_sample_level_details(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    calls: list[str] = []
+
+    def fake_execute_sql(sql: str, db_path: Path, timeout: int = 30) -> ExecutionResult:
+        calls.append(sql)
+        if sql == "SELECT gold":
+            return ExecutionResult(success=True, rows=[("1",)])
+        if sql == "SELECT hit":
+            return ExecutionResult(success=True, rows=[("1",)])
+        if sql == "SELECT broken":
+            return ExecutionResult(success=False, rows=None, error="syntax error")
+        return ExecutionResult(success=True, rows=[("2",)])
+
+    monkeypatch.setattr(ea_module, "execute_sql", fake_execute_sql)
+
+    result = ea_module.evaluate_candidate_predictions(
+        ["SELECT broken", "SELECT hit", "SELECT miss"],
+        "SELECT gold",
+        Path("demo.sqlite"),
+    )
+
+    assert result == {
+        "gold_success": True,
+        "gold_error": None,
+        "candidate_hits": [False, True, False],
+        "first_pred_success": False,
+        "first_pred_error": "syntax error",
+    }
+    assert calls.count("SELECT gold") == 1
 
 
 def test_pass_at_k_formula() -> None:
@@ -206,6 +242,111 @@ def test_validate_records_rejects_wrong_generation_count(tmp_path: Path) -> None
             experiment_cfg={"k_values": [1, 5, 10]},
             data_dir=tmp_path / "data",
         )
+
+
+def test_evaluate_writes_sample_metrics_csv(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    raw_dir = tmp_path / "raw"
+    raw_dir.mkdir()
+    output_dir = tmp_path / "metrics"
+    data_dir = tmp_path / "data"
+    db_path = data_dir / "spider" / "database" / "db" / "db.sqlite"
+    db_path.parent.mkdir(parents=True)
+
+    with sqlite3.connect(db_path) as connection:
+        connection.execute("CREATE TABLE demo (value INTEGER)")
+        connection.execute("INSERT INTO demo (value) VALUES (1)")
+        connection.commit()
+
+    record = {
+        "sample_id": "s1",
+        "model_name": "Demo",
+        "benchmark": "spider",
+        "run_label": "ea",
+        "question": "How many rows?",
+        "gold_sql": "SELECT COUNT(*) FROM demo",
+        "db_id": "db",
+        "db_path": "spider/database/db/db.sqlite",
+        "difficulty": "easy",
+        "evidence": "",
+        "generations": [
+            {
+                "sql": "SELECT COUNT(*) FROM demo",
+                "raw_response": "SELECT COUNT(*) FROM demo",
+                "tokens_input": 10,
+                "tokens_output": 5,
+                "latency_ms": 12.5,
+                "model_name": "Demo",
+                "metadata": {"backend": "ollama"},
+            }
+        ],
+    }
+    (raw_dir / "demo.jsonl").write_text(json.dumps(record) + "\n", encoding="utf-8")
+
+    monkeypatch.setattr(
+        _EVALUATE_MODULE,
+        "parse_args",
+        lambda: SimpleNamespace(
+            config_dir=Path("configs"),
+            raw_dir=raw_dir,
+            data_dir=data_dir,
+            output_dir=output_dir,
+        ),
+    )
+
+    _EVALUATE_MODULE.main()
+
+    sample_metrics_path = output_dir / "sample_metrics.csv"
+    assert sample_metrics_path.exists()
+    with sample_metrics_path.open("r", encoding="utf-8", newline="") as handle:
+        rows = list(csv.DictReader(handle))
+
+    assert len(rows) == 1
+    assert rows[0]["sample_id"] == "s1"
+    assert rows[0]["candidate_hits"] == "[true]"
+    assert rows[0]["first_hit"] == "True"
+    assert rows[0]["first_pred_success"] == "True"
+
+
+def test_notebook_helper_loads_persisted_sample_metrics_without_sql_execution(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    analysis_utils_spec = importlib.util.spec_from_file_location(
+        "analysis_utils_under_test",
+        Path(__file__).resolve().parents[1] / "notebooks" / "analysis_utils.py",
+    )
+    assert analysis_utils_spec is not None and analysis_utils_spec.loader is not None
+    analysis_utils = importlib.util.module_from_spec(analysis_utils_spec)
+    analysis_utils_spec.loader.exec_module(analysis_utils)
+
+    metrics_dir = tmp_path / "metrics"
+    metrics_dir.mkdir(parents=True)
+    sample_metrics_path = metrics_dir / "sample_metrics.csv"
+    sample_metrics_path.write_text(
+        "\n".join(
+            [
+                "sample_id,model_name,benchmark,run_label,candidate_hits,first_hit,any_hit,first_pred_success,empty_sql",
+                's1,Demo,spider,ea,"[true, false]",True,True,False,False',
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+    def fail_execute_sql(*args, **kwargs):
+        raise AssertionError("execute_sql should not be called when sample_metrics.csv exists")
+
+    monkeypatch.setattr(analysis_utils, "SAMPLE_METRICS_PATH", sample_metrics_path)
+    monkeypatch.setattr(analysis_utils, "execute_sql", fail_execute_sql)
+    analysis_utils.load_sample_metrics.cache_clear()
+    analysis_utils.compute_sample_outcomes.cache_clear()
+
+    outcomes_df = analysis_utils.compute_sample_outcomes()
+
+    assert len(outcomes_df) == 1
+    assert outcomes_df.iloc[0]["candidate_hits"] == [True, False]
+    assert bool(outcomes_df.iloc[0]["first_hit"]) is True
+    assert bool(outcomes_df.iloc[0]["first_pred_success"]) is False
 
 
 def test_api_backend_includes_normalized_pricing_metadata() -> None:

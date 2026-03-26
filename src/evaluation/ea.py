@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from typing import Any
 from pathlib import Path
 
 from src.evaluation.executor import ExecutionResult, execute_sql
@@ -18,6 +19,38 @@ def execution_match(pred_sql: str, gold_result: ExecutionResult, db_path: Path, 
     return _results_match(pred_result, gold_result)
 
 
+def evaluate_candidate_predictions(
+    predictions: list[str],
+    gold_sql: str,
+    db_path: Path,
+    timeout: int = 30,
+) -> dict[str, Any]:
+    """Evaluate candidate SQL predictions against one gold query.
+
+    Returns sample-level details that can be persisted and reused by later
+    analysis steps without re-executing SQL in notebooks.
+    """
+    gold_result = execute_sql(gold_sql, db_path, timeout=timeout)
+    candidate_hits: list[bool] = []
+    first_pred_error: str | None = None
+    first_pred_success = False
+
+    for idx, pred_sql in enumerate(predictions):
+        pred_result = execute_sql(pred_sql, db_path, timeout=timeout)
+        candidate_hits.append(_results_match(pred_result, gold_result))
+        if idx == 0:
+            first_pred_success = pred_result.success
+            first_pred_error = pred_result.error
+
+    return {
+        "gold_success": gold_result.success,
+        "gold_error": gold_result.error,
+        "candidate_hits": candidate_hits,
+        "first_pred_success": first_pred_success,
+        "first_pred_error": first_pred_error,
+    }
+
+
 def candidate_execution_matches(
     predictions: list[str],
     gold_sql: str,
@@ -25,8 +58,12 @@ def candidate_execution_matches(
     timeout: int = 30,
 ) -> list[bool]:
     """Evaluate multiple predictions while executing the gold SQL only once."""
-    gold_result = execute_sql(gold_sql, db_path, timeout=timeout)
-    return [execution_match(pred_sql, gold_result, db_path, timeout=timeout) for pred_sql in predictions]
+    return evaluate_candidate_predictions(
+        predictions,
+        gold_sql,
+        db_path,
+        timeout=timeout,
+    )["candidate_hits"]
 
 
 def execution_accuracy(
