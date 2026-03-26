@@ -12,13 +12,12 @@ from concurrent.futures import ProcessPoolExecutor, as_completed
 from pathlib import Path
 from typing import Any
 
-from tqdm import tqdm
-
 from src.config import load_yaml_config
 from src.evaluation.ea import evaluate_candidate_predictions
 from src.evaluation.efficiency import compute_efficiency, normalize_efficiency_rows
 from src.evaluation.pass_at_k import pass_at_k
 from src.inference.base import GenerationResult
+from src.logging_utils import ProgressType, configure_logging, create_progress
 
 
 LOGGER = logging.getLogger(__name__)
@@ -45,6 +44,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--raw-dir", type=Path, default=defaults["raw_dir"])
     parser.add_argument("--data-dir", type=Path, default=defaults["data_dir"])
     parser.add_argument("--output-dir", type=Path, default=Path("results/metrics"))
+    parser.add_argument(
+        "--run-label",
+        choices=["ea", "pass_k", "all"],
+        default="all",
+        help="Which run_label to evaluate. Results are written into output-dir/<run_label>/.",
+    )
     return parser.parse_args()
 
 
@@ -211,120 +216,135 @@ def _evaluate_records(
     data_dir: Path,
     *,
     progress_label: str,
+    progress: ProgressType,
 ) -> list[dict[str, Any]]:
     """Evaluate raw records, using processes for larger groups."""
+    task_id = progress.add_task(progress_label, total=len(records), status="")
     if len(records) < 2:
         results: list[dict[str, Any]] = []
-        with tqdm(total=len(records), desc=progress_label, unit="sample") as progress:
-            for record in records:
-                results.append(_evaluate_record(record, data_dir))
-                progress.update(1)
+        for record in records:
+            results.append(_evaluate_record(record, data_dir))
+            progress.update(task_id, advance=1)
+        progress.remove_task(task_id)
         return results
 
     max_workers = min(os.cpu_count() or 1, len(records))
     if max_workers <= 1:
         results = []
-        with tqdm(total=len(records), desc=progress_label, unit="sample") as progress:
-            for record in records:
-                results.append(_evaluate_record(record, data_dir))
-                progress.update(1)
+        for record in records:
+            results.append(_evaluate_record(record, data_dir))
+            progress.update(task_id, advance=1)
+        progress.remove_task(task_id)
         return results
 
     results: list[dict[str, Any]] = []
     with ProcessPoolExecutor(max_workers=max_workers) as executor:
         futures = [executor.submit(_evaluate_record, record, data_dir) for record in records]
-        with tqdm(total=len(records), desc=progress_label, unit="sample") as progress:
-            for future in as_completed(futures):
-                results.append(future.result())
-                progress.update(1)
+        for future in as_completed(futures):
+            results.append(future.result())
+            progress.update(task_id, advance=1)
+    progress.remove_task(task_id)
     return results
 
 
 def main() -> None:
-    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
+    configure_logging(logging.INFO)
     args = parse_args()
     metrics_cfg = load_yaml_config(args.config_dir / "metrics.yaml")
     experiment_cfg = load_yaml_config(args.config_dir / "experiment.yaml")
     args.output_dir.mkdir(parents=True, exist_ok=True)
 
-    rows = []
-    sample_rows: list[dict[str, Any]] = []
+    rows_by_label: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    sample_rows_by_label: dict[str, list[dict[str, Any]]] = defaultdict(list)
     grouped = _load_records(args.raw_dir)
     _validate_records(grouped, experiment_cfg=experiment_cfg, data_dir=args.data_dir)
-    for (model_name, benchmark, run_label), records in grouped.items():
-        pass_results: list[list[bool]] = []
-        generation_results: list[GenerationResult] = []
-        evaluable_records = [record for record in records if record.get("generations")]
-        progress_label = f"{model_name} / {benchmark} / {run_label}"
+    with create_progress() as progress:
+        selected_items = [
+            item for item in grouped.items() if args.run_label == "all" or item[0][2] == args.run_label
+        ]
+        groups_task = progress.add_task("Evaluation groups", total=len(selected_items), status="")
+        for (model_name, benchmark, run_label), records in selected_items:
+            pass_results: list[list[bool]] = []
+            generation_results: list[GenerationResult] = []
+            evaluable_records = [record for record in records if record.get("generations")]
+            progress_label = f"{model_name} / {benchmark} / {run_label}"
+            progress.update(groups_task, status=progress_label)
 
-        for record in records:
-            if not record.get("generations"):
-                LOGGER.warning("Sample %s has no generations, skipping.", record.get("sample_id"))
-                continue
-            for gen in record["generations"]:
-                generation_results.append(
-                    GenerationResult(
-                        sql=gen["sql"],
-                        raw_response=gen["raw_response"],
-                        tokens_input=gen["tokens_input"],
-                        tokens_output=gen["tokens_output"],
-                        latency_ms=gen["latency_ms"],
-                        model_name=gen.get("model_name", model_name),
-                        metadata=gen.get("metadata", {}),
+            for record in records:
+                if not record.get("generations"):
+                    LOGGER.warning("Sample %s has no generations, skipping.", record.get("sample_id"))
+                    continue
+                for gen in record["generations"]:
+                    generation_results.append(
+                        GenerationResult(
+                            sql=gen["sql"],
+                            raw_response=gen["raw_response"],
+                            tokens_input=gen["tokens_input"],
+                            tokens_output=gen["tokens_output"],
+                            latency_ms=gen["latency_ms"],
+                            model_name=gen.get("model_name", model_name),
+                            metadata=gen.get("metadata", {}),
+                        )
                     )
-                )
 
-        for evaluated in _evaluate_records(
-            evaluable_records,
-            args.data_dir,
-            progress_label=progress_label,
-        ):
-            pass_results.append(evaluated["candidate_hits"])
-            sample_rows.append(evaluated["sample_row"])
+            for evaluated in _evaluate_records(
+                evaluable_records,
+                args.data_dir,
+                progress_label=progress_label,
+                progress=progress,
+            ):
+                pass_results.append(evaluated["candidate_hits"])
+                sample_rows_by_label[run_label].append(evaluated["sample_row"])
 
-        if not pass_results:
-            LOGGER.warning("No usable samples for %s / %s.", model_name, benchmark)
-            continue
+            if not pass_results:
+                LOGGER.warning("No usable samples for %s / %s.", model_name, benchmark)
+                progress.update(groups_task, advance=1)
+                continue
 
-        row: dict[str, Any] = {
-            "model_name": model_name,
-            "benchmark": benchmark,
-            "run_label": run_label,
-            "n_samples": len(pass_results),
-            "execution_accuracy": sum(hits[0] for hits in pass_results) / len(pass_results),
-        }
-        for k in experiment_cfg["k_values"]:
-            row[f"pass@{k}"] = pass_at_k(pass_results, k)
-        eff_metrics = compute_efficiency(generation_results, metrics_cfg)
-        eff_metrics["_weights"] = metrics_cfg["efficiency_weights"]
-        row.update(eff_metrics)
-        rows.append(row)
+            row: dict[str, Any] = {
+                "model_name": model_name,
+                "benchmark": benchmark,
+                "run_label": run_label,
+                "n_samples": len(pass_results),
+                "execution_accuracy": sum(hits[0] for hits in pass_results) / len(pass_results),
+            }
+            for k in experiment_cfg["k_values"]:
+                row[f"pass@{k}"] = pass_at_k(pass_results, k)
+            eff_metrics = compute_efficiency(generation_results, metrics_cfg)
+            eff_metrics["_weights"] = metrics_cfg["efficiency_weights"]
+            row.update(eff_metrics)
+            rows_by_label[run_label].append(row)
+            progress.update(groups_task, advance=1)
 
-    if not rows:
+    if not rows_by_label:
         LOGGER.warning("No raw JSONL files found in %s", args.raw_dir)
         return
 
-    rows = normalize_efficiency_rows(rows)
-    # Remove internal helper key before writing CSV.
-    for row in rows:
-        row.pop("_weights", None)
+    for run_label, rows in rows_by_label.items():
+        label_output_dir = args.output_dir / run_label
+        label_output_dir.mkdir(parents=True, exist_ok=True)
 
-    output_path = args.output_dir / "summary_metrics.csv"
-    fieldnames = sorted({key for row in rows for key in row})
-    with output_path.open("w", encoding="utf-8", newline="") as handle:
-        writer = csv.DictWriter(handle, fieldnames=fieldnames)
-        writer.writeheader()
-        writer.writerows(rows)
-    LOGGER.info("Saved metrics to %s", output_path)
+        normalized_rows = normalize_efficiency_rows(rows)
+        for row in normalized_rows:
+            row.pop("_weights", None)
 
-    sample_output_path = args.output_dir / "sample_metrics.csv"
-    if sample_rows:
-        sample_fieldnames = sorted({key for row in sample_rows for key in row})
-        with sample_output_path.open("w", encoding="utf-8", newline="") as handle:
-            writer = csv.DictWriter(handle, fieldnames=sample_fieldnames)
+        output_path = label_output_dir / "summary_metrics.csv"
+        fieldnames = sorted({key for row in normalized_rows for key in row})
+        with output_path.open("w", encoding="utf-8", newline="") as handle:
+            writer = csv.DictWriter(handle, fieldnames=fieldnames)
             writer.writeheader()
-            writer.writerows(sample_rows)
-        LOGGER.info("Saved sample metrics to %s", sample_output_path)
+            writer.writerows(normalized_rows)
+        LOGGER.info("Saved %s metrics to %s", run_label, output_path)
+
+        sample_rows = sample_rows_by_label.get(run_label, [])
+        if sample_rows:
+            sample_output_path = label_output_dir / "sample_metrics.csv"
+            sample_fieldnames = sorted({key for row in sample_rows for key in row})
+            with sample_output_path.open("w", encoding="utf-8", newline="") as handle:
+                writer = csv.DictWriter(handle, fieldnames=sample_fieldnames)
+                writer.writeheader()
+                writer.writerows(sample_rows)
+            LOGGER.info("Saved %s sample metrics to %s", run_label, sample_output_path)
 
 
 if __name__ == "__main__":

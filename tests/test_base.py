@@ -9,6 +9,15 @@ def test_extract_sql_plain() -> None:
     assert extract_sql("SELECT * FROM users") == "SELECT * FROM users"
 
 
+def test_extract_sql_json_only_response() -> None:
+    assert extract_sql('{"sql":"SELECT * FROM users"}') == "SELECT * FROM users"
+
+
+def test_extract_sql_json_embedded_in_text() -> None:
+    raw = 'Here is the answer: {"sql":"SELECT COUNT(*) FROM users;"}'
+    assert extract_sql(raw) == "SELECT COUNT(*) FROM users"
+
+
 def test_extract_sql_sql_fence() -> None:
     raw = "```sql\nSELECT * FROM users\n```"
     assert extract_sql(raw) == "SELECT * FROM users"

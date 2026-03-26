@@ -43,6 +43,7 @@ class APIBackend(InferenceBackend):
         self.model_name = model_name or model_id
         self.parameters = parameters or {}
         self.pricing = self._normalize_pricing(pricing)
+        self._structured_output_enabled = True
 
     @staticmethod
     def _normalize_pricing(pricing: dict[str, Any] | None) -> dict[str, float] | None:
@@ -73,9 +74,18 @@ class APIBackend(InferenceBackend):
     ) -> list[GenerationResult]:
         """Generate one or more SQL candidates."""
         try:
-            return await self._generate_with_retry(
+            results = await self._generate_with_retry(
                 prompt=prompt,
                 n=n,
+                temperature=temperature,
+                max_tokens=max_tokens,
+                seed=seed,
+                top_p=top_p,
+            )
+            return await self._ensure_result_count(
+                results=results,
+                requested_n=n,
+                prompt=prompt,
                 temperature=temperature,
                 max_tokens=max_tokens,
                 seed=seed,
@@ -103,6 +113,43 @@ class APIBackend(InferenceBackend):
                     )
                 )
             return results
+
+    async def _ensure_result_count(
+        self,
+        *,
+        results: list[GenerationResult],
+        requested_n: int,
+        prompt: str,
+        temperature: float,
+        max_tokens: int,
+        seed: int | None,
+        top_p: float | None,
+    ) -> list[GenerationResult]:
+        """Top up missing candidates when a provider ignores or truncates ``n``."""
+        if requested_n <= 1 or len(results) >= requested_n:
+            return results[:requested_n]
+
+        missing = requested_n - len(results)
+        LOGGER.warning(
+            "Model %s returned only %s/%s choices; fetching %s additional single-choice requests.",
+            self.model_id,
+            len(results),
+            requested_n,
+            missing,
+        )
+        topped_up = list(results)
+        for _ in range(missing):
+            topped_up.extend(
+                await self._generate_with_retry(
+                    prompt=prompt,
+                    n=1,
+                    temperature=temperature,
+                    max_tokens=max_tokens,
+                    seed=seed,
+                    top_p=top_p,
+                )
+            )
+        return topped_up[:requested_n]
 
     async def _generate_with_retry(
         self,
@@ -157,16 +204,35 @@ class APIBackend(InferenceBackend):
             request_params["top_p"] = top_p
         if seed is not None:
             request_params["seed"] = seed
+        response_format = request_params.pop("response_format", None)
+        if response_format is None and self._structured_output_enabled:
+            response_format = {"type": "json_object"}
 
         started_at = time.perf_counter()
-        response = await self.client.chat.completions.create(
-            model=self.model_id,
-            messages=[{"role": "user", "content": prompt}],
-            n=n,
-            temperature=temperature,
-            max_tokens=max_tokens,
+        create_kwargs = {
+            "model": self.model_id,
+            "messages": [{"role": "user", "content": prompt}],
+            "n": n,
+            "temperature": temperature,
+            "max_tokens": max_tokens,
             **request_params,
-        )
+        }
+        if response_format is not None:
+            create_kwargs["response_format"] = response_format
+
+        try:
+            response = await self.client.chat.completions.create(**create_kwargs)
+        except BadRequestError as exc:
+            if response_format is None or not self._should_disable_structured_output(exc):
+                raise
+            LOGGER.warning(
+                "Structured output is not supported by %s; retrying without response_format.",
+                self.model_id,
+            )
+            self._structured_output_enabled = False
+            fallback_kwargs = dict(create_kwargs)
+            fallback_kwargs.pop("response_format", None)
+            response = await self.client.chat.completions.create(**fallback_kwargs)
         latency_ms = (time.perf_counter() - started_at) * 1000.0
 
         usage = getattr(response, "usage", None)
@@ -199,6 +265,22 @@ class APIBackend(InferenceBackend):
                 )
             )
         return results
+
+    @staticmethod
+    def _should_disable_structured_output(exc: BadRequestError) -> bool:
+        """Return True when the provider rejects structured output options."""
+        message = str(exc).lower()
+        return any(
+            token in message
+            for token in (
+                "response_format",
+                "json_object",
+                "json schema",
+                "structured output",
+                "not supported",
+                "unsupported",
+            )
+        )
 
 
 ApiInferenceBackend = APIBackend

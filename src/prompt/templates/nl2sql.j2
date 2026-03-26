@@ -1,5 +1,5 @@
 You are an expert SQL generator.
-Given a database schema and a natural language query, generate a correct SQL query.
+Given a database schema and a natural language query, produce exactly one SQL query.
 
 Database schema:
 {{ schema }}
@@ -8,6 +8,12 @@ Natural language query:
 "{{ question }}"
 
 Instructions:
+- Return a JSON object with exactly one field: "sql".
+- The value of "sql" must be exactly one SQL query.
 - Use only the provided tables and columns.
 - Do not hallucinate table or column names.
-- Return ONLY the SQL query, without any explanation or markdown formatting.
+- Do not wrap the JSON in markdown or code fences.
+- Do not include explanations, comments, or any extra text.
+
+Example output:
+{"sql": "SELECT ..."}

@@ -5,13 +5,13 @@ from __future__ import annotations
 import json
 import logging
 import os
+from contextlib import nullcontext
 from datetime import datetime
 from pathlib import Path
 
-from tqdm import tqdm
-
 from src.data.loader import DataSample
 from src.inference.base import InferenceBackend
+from src.logging_utils import ProgressType, create_progress
 from src.prompt.template import PromptBuilder
 
 
@@ -50,6 +50,7 @@ class ExperimentRunner:
         max_tokens: int = 512,
         seed: int | None = None,
         top_p: float | None = None,
+        progress: ProgressType | None = None,
     ) -> Path:
         """Run inference over all samples and append to a JSONL file."""
         output_path = self._resolve_output_path(
@@ -63,19 +64,22 @@ class ExperimentRunner:
         written_count = 0
         error_count = 0
         total_latency_ms = 0.0
+        owns_progress = progress is None
+        if progress is None:
+            progress = create_progress()
 
         with output_path.open("a", encoding="utf-8") as handle:
-            with tqdm(
-                total=len(samples),
-                initial=resumed_count,
-                desc=f"{model_name}:{benchmark}",
-                unit="sample",
-            ) as progress:
-                progress.set_postfix(
-                    resumed=resumed_count,
-                    written=written_count,
-                    errors=error_count,
-                    avg_latency_ms="0.0",
+            with progress if owns_progress else nullcontext(progress) as active_progress:
+                task_id = active_progress.add_task(
+                    f"{model_name}:{benchmark}",
+                    total=len(samples),
+                    completed=resumed_count,
+                    status=_format_status(
+                        resumed_count=resumed_count,
+                        written_count=written_count,
+                        error_count=error_count,
+                        avg_latency_ms=0.0,
+                    ),
                 )
                 for sample in pending_samples:
                     try:
@@ -127,13 +131,17 @@ class ExperimentRunner:
                         LOGGER.warning("Skipping sample %s after inference failure: %s", sample.id, exc)
                     finally:
                         avg_latency_ms = total_latency_ms / written_count if written_count else 0.0
-                        progress.update(1)
-                        progress.set_postfix(
-                            resumed=resumed_count,
-                            written=written_count,
-                            errors=error_count,
-                            avg_latency_ms=f"{avg_latency_ms:.1f}",
+                        active_progress.update(
+                            task_id,
+                            advance=1,
+                            status=_format_status(
+                                resumed_count=resumed_count,
+                                written_count=written_count,
+                                error_count=error_count,
+                                avg_latency_ms=avg_latency_ms,
+                            ),
                         )
+                active_progress.remove_task(task_id)
             handle.flush()
             os.fsync(handle.fileno())
         return output_path
@@ -189,3 +197,16 @@ class ExperimentRunner:
                 if isinstance(sample_id, str) and sample_id:
                     completed.add(sample_id)
         return completed
+
+
+def _format_status(
+    *,
+    resumed_count: int,
+    written_count: int,
+    error_count: int,
+    avg_latency_ms: float,
+) -> str:
+    return (
+        f"skip={resumed_count} ok={written_count} "
+        f"err={error_count} avg_ms={avg_latency_ms:.1f}"
+    )

@@ -1,12 +1,22 @@
 # nl2sql-bench
 
 NL2SQL.
-Сравниваются модели на бенчмарках **Spider 1.0** и **BIRD**:
+Сравниваются модели на бенчмарках **Spider 1.0** и **BIRD**.
+
+Проект поддерживает несколько моделей в двух классах:
+
+- `M1` — крупные general-purpose LLM через OpenAI-compatible API
+- `M2` — компактные специализированные text-to-SQL модели через Ollama
+
+Текущий набор моделей задается в [`configs/models.yaml`](/home/count/code/vkr/configs/models.yaml):
 
 | Модель | Тип | Бэкенд |
 | --- | --- | --- |
-| **M1** DeepSeek-V3.2 | Frontier API | OpenAI-compatible API (`api.deepseek.com`) |
-| **M2** Defog-Llama3-SQLCoder-8B | Compact local | Ollama (`localhost:11434`) |
+| `m1_deepseek` / **DeepSeek** | Frontier API | OpenAI-compatible API |
+| `m1_chatgpt` / **ChatGPT** | Frontier API | OpenAI-compatible API |
+| `m2_defog` / **Defog-Llama3-SQLCoder-8B** | Compact local | Ollama |
+| `m2_hrida` / **Hrida-T2SQL** | Compact local | Ollama |
+| `m2_arctic` / **Arctic-Text2SQL-R1-7B** | Compact local | Ollama |
 
 Метрики: Execution Accuracy (EA), Pass@K (K=1,5,10), Expert Score (ES), Efficiency (Eff).
 
@@ -33,7 +43,7 @@ NL2SQL.
 uv sync
 
 # 2. Настроить переменные окружения
-echo "DEEPSEEK_API_KEY=sk-..." > .env
+cp .env.example .env
 
 # 3. Поднять Ollama и загрузить модель (для M2)
 ollama serve
@@ -43,17 +53,22 @@ ollama pull mannix/defog-llama3-sqlcoder-8b:q4_0
 uv run python scripts/01_download_data.py --benchmark all
 
 # 5. Тестовый запуск (--limit для быстрой проверки)
-uv run python scripts/02_run_inference.py --model m2_compact --benchmark spider --mode ea --limit 10
+uv run python scripts/02_run_inference.py --model m2_defog --benchmark spider --mode ea --limit 10
 
-# 6. Полный запуск
+# 6. Запуск нескольких моделей
+uv run python scripts/02_run_inference.py --model m1_deepseek --benchmark all --mode ea
+uv run python scripts/02_run_inference.py --model m1_chatgpt --benchmark all --mode ea
+uv run python scripts/02_run_inference.py --model m2_defog --benchmark all --mode ea
+
+# 7. Полный запуск всех моделей
 uv run python scripts/02_run_inference.py --model all --benchmark all --mode ea
 uv run python scripts/02_run_inference.py --model all --benchmark all --mode pass_k
 
-# 7. Вычислить метрики
+# 8. Вычислить метрики
 uv run python scripts/03_evaluate.py
 
-# 8. Открыть ноутбук с отчетом
-jupyter lab notebooks/01_report.ipynb
+# 9. Открыть ноутбук с отчетом
+jupyter lab notebooks/01_report_ea.ipynb
 ```
 
 ---
@@ -64,13 +79,14 @@ jupyter lab notebooks/01_report.ipynb
 nl2sql-bench/
 ├── configs/
 │   ├── experiment.yaml   # seed, temperature, top_p, k_values, data_dir, results_dir
-│   ├── models.yaml       # M1 (DeepSeek) и M2 (SQLCoder) конфигурации
+│   ├── models.yaml       # конфигурации доступных M1 и M2
 │   └── metrics.yaml      # веса Eff, pricing, statistical_tests, параметры ES
 │
 ├── scripts/
 │   ├── 01_download_data.py   # загрузка и подготовка Spider/BIRD
 │   ├── 02_run_inference.py   # запуск инференса → results/raw/*.jsonl
-│   └── 03_evaluate.py        # EA + Pass@K + Eff → results/metrics/summary_metrics.csv
+│   ├── 03_evaluate.py        # EA + Pass@K + Eff → results/metrics/{ea,pass_k}/summary_metrics.csv
+│   └── 04_archive_results.py # архивировать текущие results/{raw,metrics,figures}
 │
 ├── src/
 │   ├── data/
@@ -82,8 +98,8 @@ nl2sql-bench/
 │   │   └── templates/nl2sql.j2
 │   ├── inference/
 │   │   ├── base.py           # GenerationResult, InferenceBackend, extract_sql()
-│   │   ├── api_backend.py    # APIBackend (DeepSeek, retry + exponential backoff)
-│   │   ├── ollama_backend.py # OllamaBackend (local M2 via /api/generate)
+│   │   ├── api_backend.py    # APIBackend для M1 через OpenAI-compatible API
+│   │   ├── ollama_backend.py # OllamaBackend для локальных M2 через /api/generate
 │   │   └── runner.py         # ExperimentRunner — batch + resume по sample_id
 │   └── evaluation/
 │       ├── executor.py    # execute_sql() — SQLite + timeout + нормализация строк
@@ -93,13 +109,15 @@ nl2sql-bench/
 │       └── efficiency.py  # compute_efficiency(), normalize_efficiency_rows()
 │
 ├── notebooks/
-│   ├── 01_report.ipynb        # единый отчет по экспериментам
-│   └── analysis_utils.py      # helper-функции для ноутбука
+│   ├── 01_report.ipynb        # совместимый alias для отчета по ea
+│   ├── 01_report_ea.ipynb     # отчет по single-shot режиму ea
+│   ├── 02_report_pass_k.ipynb # отчет по режиму pass_k
+│   └── analysis_utils.py      # helper-функции для ноутбуков
 │
 ├── results/
 │   ├── raw/      # JSONL по benchmark и mode (ea / pass_k)
-│   ├── metrics/  # summary_metrics.csv
-│   └── figures/  # графики (DPI=300)
+│   ├── metrics/  # ea/summary_metrics.csv и pass_k/summary_metrics.csv
+│   └── figures/  # ea/* и pass_k/* (DPI=300)
 │
 └── tests/        # pytest suite
 ```
@@ -111,13 +129,23 @@ nl2sql-bench/
 ### `02_run_inference.py`
 
 ```text
---model     m1_frontier | m2_compact | all   (обязательный)
+--model     ключ из configs/models.yaml | all | m1 | m2 | список через запятую   (обязательный)
 --benchmark spider | bird | all               (default: all)
 --mode      ea | pass_k                       (ea: temp=0, n=1 / pass_k: temp из конфига, n=max(k_values))
 --config-dir путь к конфигам                  (default: configs)
 --data-dir   корень данных                    (default: из experiment.yaml)
 --results-dir директория raw JSONL            (default: из experiment.yaml)
 --limit N   ограничить количество samples     (для smoke-test)
+```
+
+Примеры:
+
+```bash
+uv run python scripts/02_run_inference.py --model m1_deepseek --benchmark all --mode ea
+uv run python scripts/02_run_inference.py --model m1 --benchmark all --mode ea
+uv run python scripts/02_run_inference.py --model m2 --benchmark all --mode ea
+uv run python scripts/02_run_inference.py --model all --benchmark all --mode ea
+uv run python scripts/02_run_inference.py --model m1,m2_defog --benchmark all --mode ea
 ```
 
 ### `03_evaluate.py`
@@ -127,6 +155,32 @@ nl2sql-bench/
 --raw-dir    путь к директории с JSONL        (default: из experiment.yaml -> results/raw)
 --data-dir   корень данных для db_path        (default: из experiment.yaml -> data)
 --output-dir путь для CSV                     (default: results/metrics)
+--run-label  ea | pass_k | all               (default: all)
+```
+
+Примеры:
+
+```bash
+uv run python scripts/03_evaluate.py --run-label ea
+uv run python scripts/03_evaluate.py --run-label pass_k
+uv run python scripts/03_evaluate.py --run-label all
+```
+
+### `04_archive_results.py`
+
+```text
+--results-dir корень каталога results         (default: results)
+--label      суффикс имени архива             (default: artifacts)
+--scope      all | ea | pass_k                (default: all)
+--dry-run    только показать, что будет сделано
+```
+
+Примеры:
+
+```bash
+.venv/bin/python scripts/04_archive_results.py --dry-run
+.venv/bin/python scripts/04_archive_results.py --label limit_50_run
+.venv/bin/python scripts/04_archive_results.py --scope ea --label before_pass_k
 ```
 
 ---
@@ -136,8 +190,22 @@ nl2sql-bench/
 Все параметры в YAML-файлах, magic numbers в коде отсутствуют.
 
 **`configs/experiment.yaml`** — seed, temperature, top_p, k_values, max_tokens, `data_dir`, `results_dir`
-**`configs/models.yaml`** — модели, бэкенды, API-ключи (через env vars), параметры, pricing
+**`configs/models.yaml`** — модели, бэкенды, `model_id`, URL и API-ключи (через env vars), параметры, pricing
 **`configs/metrics.yaml`** — веса Eff (α+β+γ+δ = 1.0), pricing reference values, statistical tests, параметры ES
+
+### Переменные окружения
+
+Пример лежит в [`.env.example`](/home/count/code/vkr/.env.example).
+
+Основные переменные:
+
+- `DEEPSEEK_API_KEY`
+- `DEEPSEEK_API_URL`
+- `DEEPSEEK_MODEL_ID`
+- `OPENAI_API_KEY`
+- `OPENAI_API_URL`
+- `OPENAI_MODEL_ID`
+- `OLLAMA_API_URL`
 
 ---
 
@@ -160,10 +228,16 @@ wc -l results/raw/*.jsonl
 ### Проверить прогресс по конкретной модели и режиму
 
 ```bash
-wc -l results/raw/DeepSeek-V3.2_*_ea_*.jsonl
+wc -l results/raw/DeepSeek_*_ea_*.jsonl
+wc -l results/raw/ChatGPT_*_ea_*.jsonl
 wc -l results/raw/Defog-Llama3-SQLCoder-8B_*_ea_*.jsonl
-wc -l results/raw/DeepSeek-V3.2_*_pass_k_*.jsonl
+wc -l results/raw/Hrida-T2SQL_*_ea_*.jsonl
+wc -l results/raw/Arctic-Text2SQL-R1-7B_*_ea_*.jsonl
+wc -l results/raw/DeepSeek_*_pass_k_*.jsonl
+wc -l results/raw/ChatGPT_*_pass_k_*.jsonl
 wc -l results/raw/Defog-Llama3-SQLCoder-8B_*_pass_k_*.jsonl
+wc -l results/raw/Hrida-T2SQL_*_pass_k_*.jsonl
+wc -l results/raw/Arctic-Text2SQL-R1-7B_*_pass_k_*.jsonl
 ```
 
 ### Как понять, что происходит во время выполнения
@@ -177,7 +251,7 @@ wc -l results/raw/Defog-Llama3-SQLCoder-8B_*_pass_k_*.jsonl
 Можно просто повторно запустить ту же команду:
 
 ```bash
-uv run python scripts/02_run_inference.py --model m2_compact --benchmark all --mode ea
+uv run python scripts/02_run_inference.py --model m2_defog --benchmark all --mode ea
 ```
 
 `ExperimentRunner` автоматически подхватит последний JSONL для того же `model + benchmark + mode` и продолжит запись.
@@ -185,18 +259,31 @@ uv run python scripts/02_run_inference.py --model m2_compact --benchmark all --m
 ### Быстрая проверка метрик после завершения
 
 ```bash
-uv run python scripts/03_evaluate.py
+uv run python scripts/03_evaluate.py --run-label ea
 ```
 
-Итоговый CSV записывается в `results/metrics/summary_metrics.csv`.
+Итоговый CSV записывается в `results/metrics/<run_label>/summary_metrics.csv`.
+
+### Очистить рабочие артефакты без удаления истории
+
+Если нужно начать новый запуск с чистого `results/`, не удаляя старые файлы, используй архивирование:
+
+```bash
+.venv/bin/python scripts/04_archive_results.py --label before_new_run
+```
+
+Скрипт переместит текущие артефакты в новую папку внутри `results/archive/`, а затем создаст нужные рабочие каталоги заново. Для `--scope ea` и `--scope pass_k` архивируются только соответствующие raw-файлы и подпапки `metrics/<run_label>`, `figures/<run_label>`.
 
 ---
 
 ## Отчеты
 
-Основной ноутбук проекта — **`notebooks/01_report.ipynb`**.
+В проекте два отдельных отчетных ноутбука:
 
-Содержит:
+- **`notebooks/01_report_ea.ipynb`** — отчет по single-shot режиму `ea`
+- **`notebooks/02_report_pass_k.ipynb`** — отчет по режиму `pass_k`
+
+Оба ноутбука содержат:
 - обзор данных
 - основные метрики `EA` и `Pass@K`
 - эффективность (`Tinf`, `Tok`, `Cost`, `Eff`)
@@ -204,7 +291,14 @@ uv run python scripts/03_evaluate.py
 - error analysis
 - блок под expert score
 
-Ноутбук использует `notebooks/analysis_utils.py`, автоматически находит доступный каталог результатов и сохраняет графики в `results/figures/`.
+Ноутбуки используют `notebooks/analysis_utils.py`, автоматически находят доступный каталог результатов и сохраняют графики в `results/figures/<run_label>/`.
+
+Если нужно открыть отчет по конкретному набору результатов, можно явно указать каталог:
+
+```bash
+NL2SQL_RESULTS_DIR=/путь/к/results jupyter lab notebooks/01_report_ea.ipynb
+NL2SQL_RESULTS_DIR=/путь/к/results jupyter lab notebooks/02_report_pass_k.ipynb
+```
 
 ---
 

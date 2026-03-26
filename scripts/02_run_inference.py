@@ -11,12 +11,12 @@ from typing import Any
 
 import yaml
 from dotenv import load_dotenv
-from tqdm import tqdm
 
 from src.data.loader import load_benchmark
 from src.inference.api_backend import APIBackend
 from src.inference.ollama_backend import OllamaBackend
 from src.inference.runner import ExperimentRunner
+from src.logging_utils import configure_logging, create_progress
 from src.prompt.template import PromptBuilder
 
 
@@ -42,17 +42,70 @@ def _load_models_config(config_dir: Path) -> dict[str, Any]:
         return (yaml.safe_load(handle) or {})["models"]
 
 
+def _resolve_model_keys(model_arg: str, models_cfg: dict[str, Any]) -> list[str]:
+    """Resolve a model selector into an ordered list of model keys.
+
+    Supports:
+    - single model key, e.g. ``m1_deepseek``
+    - ``all`` for every configured model
+    - ``m1`` for all keys starting with ``m1_``
+    - ``m2`` for all keys starting with ``m2_``
+    - comma-separated combinations, e.g. ``m1,m2_defog`` or
+      ``m1_deepseek,m1_chatgpt,m2_defog``
+    """
+    tokens = [token.strip() for token in model_arg.split(",") if token.strip()]
+    if not tokens:
+        raise ValueError("Model selector must not be empty.")
+
+    resolved: list[str] = []
+    seen: set[str] = set()
+
+    def add_keys(keys: list[str]) -> None:
+        for key in keys:
+            if key not in seen:
+                seen.add(key)
+                resolved.append(key)
+
+    for token in tokens:
+        if token == "all":
+            add_keys(list(models_cfg))
+        elif token == "m1":
+            add_keys([key for key in models_cfg if key.startswith("m1_")])
+        elif token == "m2":
+            add_keys([key for key in models_cfg if key.startswith("m2_")])
+        elif token in models_cfg:
+            add_keys([token])
+        else:
+            available = ", ".join(sorted(models_cfg))
+            raise ValueError(
+                f"Unknown model selector '{token}'. Use one of: all, m1, m2, {available}"
+            )
+
+    if not resolved:
+        raise ValueError(f"Model selector '{model_arg}' did not resolve to any configured models.")
+    return resolved
+
+
 def _build_backend(model_key: str, model_cfg: dict[str, Any]):
     """Build an inference backend from model configuration."""
     backend = model_cfg["backend"]
+    base_url = model_cfg["base_url"]
+    base_url_env = model_cfg.get("base_url_env")
+    model_id = model_cfg["model_id"]
+    model_id_env = model_cfg.get("model_id_env")
+    if base_url_env:
+        base_url = os.getenv(base_url_env, base_url)
+    if model_id_env:
+        model_id = os.getenv(model_id_env, model_id)
+
     if backend == "api":
         env_key = model_cfg["env_key"]
         api_key = os.getenv(env_key)
         if not api_key:
             raise RuntimeError(f"Environment variable {env_key} is required for {model_key}")
         return APIBackend(
-            model_id=model_cfg["model_id"],
-            base_url=model_cfg["base_url"],
+            model_id=model_id,
+            base_url=base_url,
             api_key=api_key,
             model_name=model_cfg["name"],
             parameters=model_cfg.get("parameters", {}),
@@ -62,13 +115,22 @@ def _build_backend(model_key: str, model_cfg: dict[str, Any]):
         parameters = dict(model_cfg.get("parameters", {}))
         num_ctx = int(parameters.pop("num_ctx", 4096))
         return OllamaBackend(
-            model_id=model_cfg["model_id"],
-            base_url=model_cfg["base_url"],
+            model_id=model_id,
+            base_url=base_url,
             num_ctx=num_ctx,
             model_name=model_cfg["name"],
             parameters=parameters,
         )
     raise ValueError(f"Unsupported backend: {backend}")
+
+
+def _resolve_mode_params(mode: str, exp_cfg: dict[str, Any]) -> tuple[float, int, int | None]:
+    """Return (temperature, n, seed) for an inference mode."""
+    if mode == "ea":
+        return 0.0, 1, exp_cfg.get("seed")
+    if mode == "pass_k":
+        return exp_cfg["temperature_pass_k"], max(exp_cfg["k_values"]), None
+    raise ValueError(f"Unsupported mode: {mode}")
 
 
 async def _run(
@@ -77,18 +139,17 @@ async def _run(
     models_cfg: dict[str, Any],
     temperature: float,
     n: int,
+    seed: int | None,
 ) -> None:
     """Create backends, load data, and run inference."""
     prompt_builder = PromptBuilder()
     benchmark_names = exp_cfg["benchmarks"] if args.benchmark == "all" else [args.benchmark]
-    model_keys = list(models_cfg) if args.model == "all" else [args.model]
+    model_keys = _resolve_model_keys(args.model, models_cfg)
     max_tokens = int(exp_cfg.get("max_tokens", 512))
-    seed: int | None = exp_cfg.get("seed")
     top_p: float | None = exp_cfg.get("top_p")
     total_groups = len(model_keys) * len(benchmark_names)
-    groups_progress = tqdm(total=total_groups, desc="Inference groups", unit="group")
-
-    try:
+    with create_progress() as progress:
+        groups_task = progress.add_task("Inference groups", total=total_groups, status="")
         for model_key in model_keys:
             model_cfg = models_cfg[model_key]
             backend = _build_backend(model_key, model_cfg)
@@ -99,7 +160,7 @@ async def _run(
                 data_root=args.data_dir,
             )
             for benchmark in benchmark_names:
-                groups_progress.set_postfix(model=model_key, benchmark=benchmark, mode=args.mode)
+                progress.update(groups_task, status=f"{model_key}/{benchmark}/{args.mode}")
                 samples = load_benchmark(benchmark, args.data_dir)
                 if args.limit is not None:
                     samples = samples[: args.limit]
@@ -114,16 +175,15 @@ async def _run(
                     max_tokens=max_tokens,
                     seed=seed,
                     top_p=top_p,
+                    progress=progress,
                 )
                 LOGGER.info("Saved raw generations to %s", output_path)
-                groups_progress.update(1)
-    finally:
-        groups_progress.close()
+                progress.update(groups_task, advance=1)
 
 
 def main() -> None:
     """Parse args, load config, and start the async inference workflow."""
-    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
+    configure_logging(logging.INFO)
     load_dotenv()
 
     config_parser = argparse.ArgumentParser(add_help=False)
@@ -132,10 +192,15 @@ def main() -> None:
     defaults = _config_defaults(config_args.config_dir)
 
     models_cfg = _load_models_config(config_args.config_dir)
-    model_choices = sorted(models_cfg.keys()) + ["all"]
-
     parser = argparse.ArgumentParser()
-    parser.add_argument("--model", choices=model_choices, required=True)
+    parser.add_argument(
+        "--model",
+        required=True,
+        help=(
+            "Model selector: a single key from configs/models.yaml, "
+            "'all', 'm1', 'm2', or a comma-separated combination."
+        ),
+    )
     parser.add_argument("--benchmark", choices=["spider", "bird", "all"], default="all")
     parser.add_argument(
         "--mode",
@@ -158,15 +223,11 @@ def main() -> None:
     with (args.config_dir / "experiment.yaml").open("r", encoding="utf-8") as handle:
         exp_cfg = yaml.safe_load(handle) or {}
     models_cfg = _load_models_config(args.config_dir)
+    _resolve_model_keys(args.model, models_cfg)
 
-    if args.mode == "ea":
-        temperature = 0.0
-        n = 1
-    else:
-        temperature = exp_cfg["temperature_pass_k"]
-        n = max(exp_cfg["k_values"])
+    temperature, n, seed = _resolve_mode_params(args.mode, exp_cfg)
 
-    asyncio.run(_run(args, exp_cfg, models_cfg, temperature, n))
+    asyncio.run(_run(args, exp_cfg, models_cfg, temperature, n, seed))
 
 
 if __name__ == "__main__":
