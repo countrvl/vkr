@@ -11,7 +11,7 @@ from pathlib import Path
 from typing import Any
 
 from src.config import load_yaml_config
-from src.evaluation.ea import candidate_execution_matches, execution_accuracy
+from src.evaluation.ea import evaluate_candidate_predictions
 from src.evaluation.efficiency import compute_efficiency, normalize_efficiency_rows
 from src.evaluation.pass_at_k import pass_at_k
 from src.inference.base import GenerationResult
@@ -170,12 +170,10 @@ def main() -> None:
     args.output_dir.mkdir(parents=True, exist_ok=True)
 
     rows = []
+    sample_rows: list[dict[str, Any]] = []
     grouped = _load_records(args.raw_dir)
     _validate_records(grouped, experiment_cfg=experiment_cfg, data_dir=args.data_dir)
     for (model_name, benchmark, run_label), records in grouped.items():
-        predictions: list[str] = []
-        gold: list[str] = []
-        db_paths: list[Path] = []
         pass_results: list[list[bool]] = []
         generation_results: list[GenerationResult] = []
 
@@ -189,12 +187,38 @@ def main() -> None:
                 continue
 
             candidate_sql = [gen["sql"] for gen in generations]
-            candidate_hits = candidate_execution_matches(candidate_sql, gold_sql, db_path)
+            evaluation = evaluate_candidate_predictions(candidate_sql, gold_sql, db_path)
+            candidate_hits = evaluation["candidate_hits"]
 
             pass_results.append(candidate_hits)
-            predictions.append(candidate_sql[0])
-            gold.append(gold_sql)
-            db_paths.append(db_path)
+            sample_rows.append(
+                {
+                    "sample_id": record.get("sample_id"),
+                    "model_name": model_name,
+                    "benchmark": benchmark,
+                    "run_label": run_label,
+                    "question": record.get("question", ""),
+                    "gold_sql": gold_sql,
+                    "db_id": record.get("db_id"),
+                    "db_path": str(db_path),
+                    "difficulty": record.get("difficulty"),
+                    "evidence": record.get("evidence"),
+                    "question_len": len(record.get("question", "")),
+                    "gold_sql_len": len(gold_sql),
+                    "n_generations": len(generations),
+                    "source_path": record.get("_source_path", ""),
+                    "gold_success": evaluation["gold_success"],
+                    "gold_error": evaluation["gold_error"],
+                    "candidate_hits": json.dumps(candidate_hits),
+                    "first_hit": bool(candidate_hits[0]),
+                    "any_hit": any(candidate_hits),
+                    "n_candidates": len(candidate_hits),
+                    "first_pred_sql": candidate_sql[0],
+                    "first_pred_success": evaluation["first_pred_success"],
+                    "first_pred_error": evaluation["first_pred_error"],
+                    "empty_sql": not str(candidate_sql[0]).strip(),
+                }
+            )
 
             for gen in generations:
                 generation_results.append(
@@ -209,7 +233,7 @@ def main() -> None:
                     )
                 )
 
-        if not predictions:
+        if not pass_results:
             LOGGER.warning("No usable samples for %s / %s.", model_name, benchmark)
             continue
 
@@ -217,8 +241,8 @@ def main() -> None:
             "model_name": model_name,
             "benchmark": benchmark,
             "run_label": run_label,
-            "n_samples": len(predictions),
-            "execution_accuracy": execution_accuracy(predictions, gold, db_paths),
+            "n_samples": len(pass_results),
+            "execution_accuracy": sum(hits[0] for hits in pass_results) / len(pass_results),
         }
         for k in experiment_cfg["k_values"]:
             row[f"pass@{k}"] = pass_at_k(pass_results, k)
@@ -243,6 +267,15 @@ def main() -> None:
         writer.writeheader()
         writer.writerows(rows)
     LOGGER.info("Saved metrics to %s", output_path)
+
+    sample_output_path = args.output_dir / "sample_metrics.csv"
+    if sample_rows:
+        sample_fieldnames = sorted({key for row in sample_rows for key in row})
+        with sample_output_path.open("w", encoding="utf-8", newline="") as handle:
+            writer = csv.DictWriter(handle, fieldnames=sample_fieldnames)
+            writer.writeheader()
+            writer.writerows(sample_rows)
+        LOGGER.info("Saved sample metrics to %s", sample_output_path)
 
 
 if __name__ == "__main__":
