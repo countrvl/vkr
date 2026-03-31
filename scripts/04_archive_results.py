@@ -14,6 +14,7 @@ from src.logging_utils import configure_logging
 LOGGER = logging.getLogger(__name__)
 _ARTIFACT_DIRS = ("raw", "metrics", "figures")
 _RUN_LABELS = ("ea", "pass_k")
+_NOTEBOOKS_TO_COPY = ("01_report_ea.ipynb", "02_report_pass_k.ipynb")
 
 
 def parse_args() -> argparse.Namespace:
@@ -110,6 +111,31 @@ def _archive_paths(results_dir: Path, archive_dir: Path, dry_run: bool, scope: s
     return moved
 
 
+def _copy_report_notebooks(archive_dir: Path, dry_run: bool) -> list[Path]:
+    copied: list[Path] = []
+    project_root = Path(__file__).resolve().parents[1]
+    notebooks_dir = project_root / "notebooks"
+    archive_notebooks_dir = archive_dir / "notebooks"
+
+    for notebook_name in _NOTEBOOKS_TO_COPY:
+        source = notebooks_dir / notebook_name
+        if not source.exists():
+            LOGGER.info("Skipping missing notebook: %s", source)
+            continue
+
+        destination = archive_notebooks_dir / notebook_name
+        copied.append(source)
+        if dry_run:
+            LOGGER.info("Would copy %s -> %s", source, destination)
+            continue
+
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(source, destination)
+        LOGGER.info("Copied %s -> %s", source, destination)
+
+    return copied
+
+
 def main() -> None:
     configure_logging(logging.INFO)
     args = parse_args()
@@ -127,16 +153,27 @@ def main() -> None:
         archive_root.mkdir(parents=True, exist_ok=True)
 
     moved = _archive_paths(results_dir, archive_dir, args.dry_run, args.scope)
-    if not moved:
+    copied = _copy_report_notebooks(archive_dir, args.dry_run)
+    if not moved and not copied:
         LOGGER.info("No artifacts found to archive under %s", results_dir)
         _ensure_clean_workdirs(results_dir, args.dry_run, args.scope)
         return
 
     if args.dry_run:
-        LOGGER.info("Would archive %d directories into %s", len(moved), archive_dir)
+        LOGGER.info(
+            "Would archive %d paths and copy %d notebooks into %s",
+            len(moved),
+            len(copied),
+            archive_dir,
+        )
     else:
         _ensure_clean_workdirs(results_dir, dry_run=False, scope=args.scope)
-        LOGGER.info("Archived %d directories into %s", len(moved), archive_dir)
+        LOGGER.info(
+            "Archived %d paths and copied %d notebooks into %s",
+            len(moved),
+            len(copied),
+            archive_dir,
+        )
 
 
 if __name__ == "__main__":

@@ -44,6 +44,8 @@ class APIBackend(InferenceBackend):
         self.parameters = parameters or {}
         self.pricing = self._normalize_pricing(pricing)
         self._structured_output_enabled = True
+        self._warned_rejected_n_values: set[int] = set()
+        self._warned_partial_choice_counts: set[tuple[int, int]] = set()
 
     @staticmethod
     def _normalize_pricing(pricing: dict[str, Any] | None) -> dict[str, float] | None:
@@ -94,12 +96,14 @@ class APIBackend(InferenceBackend):
         except BadRequestError:
             if n <= 1:
                 raise
-            LOGGER.warning(
-                "Model %s rejected n=%s; falling back to %s separate requests.",
-                self.model_id,
-                n,
-                n,
-            )
+            if n not in self._warned_rejected_n_values:
+                LOGGER.debug(
+                    "Model %s rejected n=%s; falling back to %s separate requests.",
+                    self.model_id,
+                    n,
+                    n,
+                )
+                self._warned_rejected_n_values.add(n)
             results: list[GenerationResult] = []
             for _ in range(n):
                 results.extend(
@@ -130,13 +134,16 @@ class APIBackend(InferenceBackend):
             return results[:requested_n]
 
         missing = requested_n - len(results)
-        LOGGER.warning(
-            "Model %s returned only %s/%s choices; fetching %s additional single-choice requests.",
-            self.model_id,
-            len(results),
-            requested_n,
-            missing,
-        )
+        partial_choice_key = (requested_n, len(results))
+        if partial_choice_key not in self._warned_partial_choice_counts:
+            LOGGER.debug(
+                "Model %s returned only %s/%s choices; fetching %s additional single-choice requests.",
+                self.model_id,
+                len(results),
+                requested_n,
+                missing,
+            )
+            self._warned_partial_choice_counts.add(partial_choice_key)
         topped_up = list(results)
         for _ in range(missing):
             topped_up.extend(
@@ -225,7 +232,7 @@ class APIBackend(InferenceBackend):
         except BadRequestError as exc:
             if response_format is None or not self._should_disable_structured_output(exc):
                 raise
-            LOGGER.warning(
+            LOGGER.debug(
                 "Structured output is not supported by %s; retrying without response_format.",
                 self.model_id,
             )

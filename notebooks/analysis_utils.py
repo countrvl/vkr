@@ -106,6 +106,15 @@ def get_sample_metrics_path(run_label: str | None = None) -> Path:
     return get_metrics_dir(run_label) / "sample_metrics.csv"
 
 
+def _raise_missing_run_artifacts(run_label: str, artifact_name: str) -> None:
+    """Raise a clear error when notebook artifacts for a run label are missing."""
+    metrics_dir = get_metrics_dir(run_label)
+    raise FileNotFoundError(
+        f"No {artifact_name} for run_label={run_label!r} in {metrics_dir}. "
+        f"Run `uv run python scripts/03_evaluate.py --run-label {run_label}` first."
+    )
+
+
 def infer_run_label(record: dict[str, Any], source_path: str) -> str:
     run_label = record.get("run_label")
     if isinstance(run_label, str) and run_label.strip():
@@ -217,6 +226,8 @@ def load_summary_metrics(run_label: str | None = None) -> pd.DataFrame:
     metrics_path = get_metrics_dir(run_label) / "summary_metrics.csv"
     if metrics_path.exists():
         return pd.read_csv(metrics_path)
+    if run_label is not None and not _iter_raw_records(get_results_dir(), run_label):
+        _raise_missing_run_artifacts(run_label, "summary metrics or raw records")
     return compute_summary_metrics(run_label)
 
 
@@ -241,6 +252,8 @@ def _parse_candidate_hits(value: Any) -> list[bool]:
 def load_sample_metrics(run_label: str | None = None) -> pd.DataFrame:
     sample_metrics_path = get_sample_metrics_path(run_label)
     if not sample_metrics_path.exists():
+        if run_label is not None and not _iter_raw_records(get_results_dir(), run_label):
+            _raise_missing_run_artifacts(run_label, "sample metrics or raw records")
         return pd.DataFrame()
 
     outcomes_df = pd.read_csv(sample_metrics_path)
