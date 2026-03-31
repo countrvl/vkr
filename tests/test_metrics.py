@@ -365,6 +365,7 @@ def test_archive_results_scope_pass_k_moves_only_matching_artifacts(tmp_path: Pa
 
     archive_dir = results_dir / "archive" / "20260101_000000_test"
     moved = _ARCHIVE_MODULE._archive_paths(results_dir, archive_dir, dry_run=False, scope="pass_k")
+    copied = _ARCHIVE_MODULE._copy_report_notebooks(archive_dir, dry_run=False)
     _ARCHIVE_MODULE._ensure_clean_workdirs(results_dir, dry_run=False, scope="pass_k")
 
     assert raw_dir.joinpath("Demo_spider_ea_1.jsonl").exists()
@@ -378,7 +379,10 @@ def test_archive_results_scope_pass_k_moves_only_matching_artifacts(tmp_path: Pa
     assert (archive_dir / "raw" / "Demo_spider_pass_k_1.jsonl").exists()
     assert (archive_dir / "metrics" / "pass_k" / "summary_metrics.csv").exists()
     assert (archive_dir / "figures" / "pass_k" / "plot.png").exists()
+    assert (archive_dir / "notebooks" / "01_report_ea.ipynb").exists()
+    assert (archive_dir / "notebooks" / "02_report_pass_k.ipynb").exists()
     assert moved
+    assert copied
 
 
 def test_notebook_helper_loads_persisted_sample_metrics_without_sql_execution(
