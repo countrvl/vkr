@@ -1,0 +1,12 @@
+seed: 42
+temperature: 0.0
+temperature_pass_k: 0.8
+top_p: 0.95
+max_tokens: 512
+data_dir: "data/nl2sql"
+results_dir: "results/nl2sql/raw"
+k_values: [1, 3, 5]
+benchmarks:
+  - spider
+  - bird
+sql_timeout_seconds: 30

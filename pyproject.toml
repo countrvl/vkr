@@ -3,9 +3,9 @@ requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "nl2sql-bench"
+name = "benchmark-domains"
 version = "0.1.0"
-description = "Benchmark scaffold for comparing NL2SQL models across Spider and BIRD."
+description = "Benchmark scaffold for multiple model-evaluation domains, including NL2SQL and code generation."
 readme = "README.md"
 requires-python = ">=3.11"
 authors = [{ name = "Research Team" }]
@@ -37,10 +37,10 @@ include-package-data = true
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["src*"]
+include = ["nl2sql*", "code*", "shared*"]
 
 [tool.setuptools.package-data]
-src = ["prompt/templates/*.j2"]
+"nl2sql.src" = ["prompt/templates/*.j2"]
 
 [dependency-groups]
 dev = [
@@ -57,7 +57,7 @@ dev = [
 
 [tool.pytest.ini_options]
 pythonpath = ["."]
-testpaths = ["tests"]
+testpaths = ["nl2sql/tests", "code/tests"]
 
 [tool.ruff]
 line-length = 100

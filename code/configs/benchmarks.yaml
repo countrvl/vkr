@@ -1,0 +1,7 @@
+benchmarks:
+  - humaneval_plus
+  - mbpp_plus
+
+data_dir: "data/code"
+results_dir: "results/code/raw"
+
