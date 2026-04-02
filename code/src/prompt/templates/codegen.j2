@@ -1,0 +1,16 @@
+You are an expert Python programmer.
+Solve the task by writing a complete, executable Python solution.
+
+Requirements:
+- Return only Python code.
+- Do not include markdown fences, explanations, or comments outside the code.
+- Define the target function exactly as required.
+- Preserve the requested function name: `{{ entry_point }}`.
+
+Task:
+{{ prompt_text }}
+
+{% if contract %}
+Input validity contract:
+{{ contract }}
+{% endif %}

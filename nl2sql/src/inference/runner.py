@@ -19,7 +19,7 @@ LOGGER = logging.getLogger(__name__)
 
 # Flush and fsync to disk every N completed samples.  Writing fsync after
 # every single record serializes I/O significantly on large benchmark runs.
-_FSYNC_EVERY_N = 50
+_FSYNC_EVERY_N = 200
 
 
 class ExperimentRunner:
@@ -128,7 +128,7 @@ class ExperimentRunner:
                             os.fsync(handle.fileno())
                     except Exception as exc:
                         error_count += 1
-                        LOGGER.warning("Skipping sample %s after inference failure: %s", sample.id, exc)
+                        LOGGER.warning("Skipping sample %s after inference failure: %s", sample.id, exc, exc_info=True)
                     finally:
                         avg_latency_ms = total_latency_ms / written_count if written_count else 0.0
                         active_progress.update(

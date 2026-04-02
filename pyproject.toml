@@ -10,6 +10,7 @@ readme = "README.md"
 requires-python = ">=3.11"
 authors = [{ name = "Research Team" }]
 dependencies = [
+  "evalplus>=0.3.1",
   "openai>=1.0.0",
   "httpx>=0.27.0",
   "jinja2>=3.1.0",
@@ -41,6 +42,7 @@ include = ["nl2sql*", "code*", "shared*"]
 
 [tool.setuptools.package-data]
 "nl2sql.src" = ["prompt/templates/*.j2"]
+"code.src" = ["prompt/templates/*.j2"]
 
 [dependency-groups]
 dev = [

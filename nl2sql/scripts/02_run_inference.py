@@ -22,6 +22,7 @@ from nl2sql.src.data.loader import load_benchmark
 from nl2sql.src.inference.api_backend import APIBackend
 from nl2sql.src.inference.ollama_backend import OllamaBackend
 from nl2sql.src.inference.runner import ExperimentRunner
+from shared.config import load_domain_models
 from shared.logging_utils import configure_logging, create_progress
 from nl2sql.src.prompt.template import PromptBuilder
 
@@ -47,8 +48,8 @@ def _config_defaults(config_dir: Path) -> dict[str, Path]:
 
 
 def _load_models_config(config_dir: Path) -> dict[str, Any]:
-    with (config_dir / "models.yaml").open("r", encoding="utf-8") as handle:
-        return (yaml.safe_load(handle) or {})["models"]
+    _ = config_dir
+    return load_domain_models("supports_sql")
 
 
 def _resolve_model_keys(model_arg: str, models_cfg: dict[str, Any]) -> list[str]:
@@ -154,13 +155,13 @@ async def _run(
     prompt_builder = PromptBuilder()
     benchmark_names = exp_cfg["benchmarks"] if args.benchmark == "all" else [args.benchmark]
     model_keys = _resolve_model_keys(args.model, models_cfg)
-    max_tokens = int(exp_cfg.get("max_tokens", 512))
     top_p: float | None = exp_cfg.get("top_p")
     total_groups = len(model_keys) * len(benchmark_names)
     with create_progress() as progress:
         groups_task = progress.add_task("Inference groups", total=total_groups, status="")
         for model_key in model_keys:
             model_cfg = models_cfg[model_key]
+            max_tokens = int(model_cfg.get("max_tokens", exp_cfg.get("max_tokens", 512)))
             backend = _build_backend(model_key, model_cfg)
             runner = ExperimentRunner(
                 backend=backend,
@@ -206,7 +207,8 @@ def main() -> None:
         "--model",
         required=True,
         help=(
-            "Model selector: a single key from nl2sql/configs/models.yaml, "
+            "Model selector: a single key from shared/configs/models.yaml "
+            "with supports_sql=true, "
             "'all', 'm1', 'm2', or a comma-separated combination."
         ),
     )

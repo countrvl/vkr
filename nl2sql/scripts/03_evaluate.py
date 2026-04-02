@@ -243,11 +243,14 @@ def _evaluate_records(
         progress.remove_task(task_id)
         return results
 
-    results: list[dict[str, Any]] = []
+    results: list[dict[str, Any]] = [None] * len(records)  # type: ignore[list-item]
     with ProcessPoolExecutor(max_workers=max_workers) as executor:
-        futures = [executor.submit(_evaluate_record, record, data_dir) for record in records]
-        for future in as_completed(futures):
-            results.append(future.result())
+        future_to_idx = {
+            executor.submit(_evaluate_record, record, data_dir): idx
+            for idx, record in enumerate(records)
+        }
+        for future in as_completed(future_to_idx):
+            results[future_to_idx[future]] = future.result()
             progress.update(task_id, advance=1)
     progress.remove_task(task_id)
     return results
@@ -306,6 +309,19 @@ def main() -> None:
                 LOGGER.warning("No usable samples for %s / %s.", model_name, benchmark)
                 progress.update(groups_task, advance=1)
                 continue
+
+            gold_failures = sum(
+                1 for row in sample_rows_by_label[run_label]
+                if row.get("model_name") == model_name
+                and row.get("benchmark") == benchmark
+                and not row.get("gold_success", True)
+            )
+            if gold_failures:
+                LOGGER.warning(
+                    "%s / %s / %s: %d sample(s) have failing gold SQL — "
+                    "these are counted as model misses but may indicate data issues.",
+                    model_name, benchmark, run_label, gold_failures,
+                )
 
             row: dict[str, Any] = {
                 "model_name": model_name,

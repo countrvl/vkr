@@ -2,22 +2,88 @@
 
 Домен для тестирования моделей-кодеров на `HumanEval+` и `MBPP+`.
 
-Сейчас здесь создан каркас проекта:
+Основные метрики:
 
-- собственные `configs/`
-- собственные `scripts/`
-- собственные `src/`
-- собственные `tests/`
-- собственные `notebooks/`
+- `Functional Correctness`
+- `Pass@1`, `Pass@5`, `Pass@10`
+- efficiency-метрики: latency, tokens, cost
 
-Полный pipeline для code-бенчмарков будет добавляться следующим этапом.
+## Конфиги
 
-Предполагаемые команды:
+- [benchmarks.yaml](/home/count/code/vkr/code/configs/benchmarks.yaml)
+- [experiment.yaml](/home/count/code/vkr/code/configs/experiment.yaml)
+- [shared/configs/models.yaml](/home/count/code/vkr/shared/configs/models.yaml)
+- [metrics.yaml](/home/count/code/vkr/code/configs/metrics.yaml)
+
+Модели для code-domain берутся из общего каталога и фильтруются по `supports_code: true`. Доменные runtime-параметры задаются через `domain_overrides.code`.
+
+## Подготовка данных
 
 ```bash
-uv run python code/scripts/01_prepare_benchmarks.py
-uv run python code/scripts/02_run_inference.py
-uv run python code/scripts/03_evaluate.py
-uv run python code/scripts/04_archive_results.py
+uv run python code/scripts/01_prepare_benchmarks.py --benchmark all
 ```
 
+Это подтянет `HumanEval+` и `MBPP+` через `EvalPlus` и сохранит локальные metadata-артефакты в `data/code/...`.
+
+## Инференс
+
+Single-shot:
+
+```bash
+uv run python code/scripts/02_run_inference.py --model all --benchmark all --mode fc
+```
+
+Совместимый alias:
+
+```bash
+uv run python code/scripts/02_run_inference.py --model all --benchmark all --mode ea
+```
+
+Многократная генерация:
+
+```bash
+uv run python code/scripts/02_run_inference.py --model all --benchmark all --mode pass_k
+```
+
+Smoke-run:
+
+```bash
+uv run python code/scripts/02_run_inference.py --model m1 --benchmark humaneval_plus --mode fc --limit 5 --mini
+```
+
+## Оценка
+
+```bash
+uv run python code/scripts/03_evaluate.py --run-label fc
+uv run python code/scripts/03_evaluate.py --run-label pass_k
+```
+
+Артефакты:
+
+- `results/code/raw/*.jsonl`
+- `results/code/metrics/fc/summary_metrics.csv`
+- `results/code/metrics/fc/sample_metrics.csv`
+- `results/code/metrics/fc/candidate_metrics.csv`
+- `results/code/metrics/pass_k/summary_metrics.csv`
+- `results/code/metrics/pass_k/sample_metrics.csv`
+- `results/code/metrics/pass_k/candidate_metrics.csv`
+
+## Ноутбук
+
+```bash
+jupyter lab code/notebooks/01_report_fc_passk.ipynb
+```
+
+При необходимости выбрать конкретный каталог результатов:
+
+```bash
+CODE_RESULTS_DIR=/path/to/results/code jupyter lab code/notebooks/01_report_fc_passk.ipynb
+```
+
+## Архивация
+
+```bash
+.venv/bin/python code/scripts/04_archive_results.py --dry-run
+.venv/bin/python code/scripts/04_archive_results.py --label before_new_run
+.venv/bin/python code/scripts/04_archive_results.py --scope pass_k --label after_passk
+```

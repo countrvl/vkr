@@ -1,7 +1,7 @@
 from pathlib import Path
 import importlib.util
 
-from shared.config import load_yaml_config
+from shared.config import load_domain_models, load_yaml_config
 
 
 _INFERENCE_SPEC = importlib.util.spec_from_file_location(
@@ -14,9 +14,11 @@ _INFERENCE_SPEC.loader.exec_module(_INFERENCE_MODULE)
 
 
 def test_models_config_includes_pricing() -> None:
-    config = load_yaml_config(Path("nl2sql/configs/models.yaml"))
+    config = load_yaml_config(Path("shared/configs/models.yaml"))
 
     assert config["models"]["m1_deepseek"]["pricing"]["input_per_1m"] == 0.28
+    assert config["models"]["m1_deepseek"]["supports_sql"] is True
+    assert config["models"]["m1_deepseek"]["supports_code"] is True
     assert config["models"]["m1_deepseek"]["base_url_env"] == "DEEPSEEK_API_URL"
     assert config["models"]["m1_deepseek"]["model_id_env"] == "DEEPSEEK_MODEL_ID"
     assert config["models"]["m1_deepseek"]["name"] == "DeepSeek"
@@ -28,12 +30,16 @@ def test_models_config_includes_pricing() -> None:
     assert config["models"]["m1_chatgpt"]["pricing"]["output_per_1m"] == 10.0
     assert config["models"]["m2_defog"]["pricing"]["output_per_1m"] == 0.0
     assert config["models"]["m2_defog"]["base_url_env"] == "OLLAMA_API_URL"
+    assert config["models"]["m2_defog"]["supports_sql"] is True
+    assert config["models"]["m2_defog"]["supports_code"] is False
     assert config["models"]["m2_hrida"]["model_id"] == "HridaAI/hrida-t2sql:q8_0"
     assert config["models"]["m2_hrida"]["pricing"]["output_per_1m"] == 0.0
     assert config["models"]["m2_hrida"]["base_url_env"] == "OLLAMA_API_URL"
     assert config["models"]["m2_arctic"]["model_id"] == "a-kore/Arctic-Text2SQL-R1-7B:latest"
     assert config["models"]["m2_arctic"]["pricing"]["output_per_1m"] == 0.0
     assert config["models"]["m2_arctic"]["base_url_env"] == "OLLAMA_API_URL"
+    assert config["models"]["m2_qwen2_5_coder"]["supports_sql"] is False
+    assert config["models"]["m2_qwen2_5_coder"]["supports_code"] is True
 
 
 def test_metrics_config_includes_statistical_tests_and_pricing() -> None:
@@ -42,6 +48,16 @@ def test_metrics_config_includes_statistical_tests_and_pricing() -> None:
     assert config["deepseek_pricing"]["output_per_1m"] == 0.42
     assert config["ollama_pricing"]["input_per_1m"] == 0.0
     assert config["statistical_tests"]["alpha"] == 0.05
+
+
+def test_domain_model_filter_keeps_only_sql_models() -> None:
+    models = load_domain_models("supports_sql")
+
+    assert "m1_deepseek" in models
+    assert "m2_defog" in models
+    assert "m2_qwen2_5_coder" not in models
+    assert models["m1_deepseek"]["max_tokens"] == 512
+    assert models["m2_defog"]["parameters"]["num_ctx"] == 4096
 
 
 def test_experiment_config_includes_path_defaults() -> None:

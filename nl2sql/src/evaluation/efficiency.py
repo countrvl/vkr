@@ -51,8 +51,9 @@ def compute_efficiency(results: list[GenerationResult], config: dict[str, Any]) 
         if backend == "ollama":
             cost_values.append(0.0)
             continue
-        if "cost_usd" in result.metadata:
-            cost_values.append(float(result.metadata["cost_usd"]))
+        cost_usd = result.metadata.get("cost_usd")
+        if cost_usd is not None:
+            cost_values.append(float(cost_usd))
             continue
         pricing = result.metadata.get("pricing")
         if pricing:

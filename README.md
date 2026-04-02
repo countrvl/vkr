@@ -24,9 +24,12 @@ benchmark-domains/
 ## Что где
 
 - [`nl2sql/README.md`](/home/count/code/vkr/nl2sql/README.md) — все инструкции по Spider/BIRD
-- [`code/README.md`](/home/count/code/vkr/code/README.md) — каркас и будущий pipeline для HumanEval+/MBPP+
+- [`code/README.md`](/home/count/code/vkr/code/README.md) — pipeline для HumanEval+/MBPP+
 - [`shared/config.py`](/home/count/code/vkr/shared/config.py) — общий загрузчик YAML-конфигов
+- [`shared/configs/models.yaml`](/home/count/code/vkr/shared/configs/models.yaml) — единый каталог моделей для обоих доменов
 - [`shared/logging_utils.py`](/home/count/code/vkr/shared/logging_utils.py) — общий logging/progress UX
+
+В `shared/configs/models.yaml` доменные runtime overrides задаются через `domain_overrides.sql` и `domain_overrides.code`.
 
 ## Установка
 
@@ -50,9 +53,7 @@ Code:
 
 ```bash
 uv run python code/scripts/01_prepare_benchmarks.py
-uv run python code/scripts/02_run_inference.py
-uv run python code/scripts/03_evaluate.py
+uv run python code/scripts/02_run_inference.py --model all --benchmark all --mode fc
+uv run python code/scripts/03_evaluate.py --run-label fc
+jupyter lab code/notebooks/01_report_fc_passk.ipynb
 ```
-
-Сейчас полноценный production-ready pipeline реализован только для `nl2sql/`.
-

@@ -8,7 +8,7 @@ NL2SQL.
 - `M1` — крупные general-purpose LLM через OpenAI-compatible API
 - `M2` — компактные специализированные text-to-SQL модели через Ollama
 
-Текущий набор моделей задается в [`nl2sql/configs/models.yaml`](/home/count/code/vkr/nl2sql/configs/models.yaml):
+Текущий набор моделей берется из [`shared/configs/models.yaml`](/home/count/code/vkr/shared/configs/models.yaml) и фильтруется по `supports_sql: true`:
 
 | Модель | Тип | Бэкенд |
 | --- | --- | --- |
@@ -79,7 +79,6 @@ jupyter lab nl2sql/notebooks/01_report_ea.ipynb
 nl2sql/
 ├── configs/
 │   ├── experiment.yaml   # seed, temperature, top_p, k_values, data_dir, results_dir
-│   ├── models.yaml       # конфигурации доступных M1 и M2
 │   └── metrics.yaml      # веса Eff, pricing, statistical_tests, параметры ES
 │
 ├── scripts/
@@ -129,7 +128,7 @@ nl2sql/
 ### `02_run_inference.py`
 
 ```text
---model     ключ из nl2sql/configs/models.yaml | all | m1 | m2 | список через запятую   (обязательный)
+--model     ключ из shared/configs/models.yaml с supports_sql=true | all | m1 | m2 | список через запятую   (обязательный)
 --benchmark spider | bird | all               (default: all)
 --mode      ea | pass_k                       (ea: temp=0, n=1 / pass_k: temp из конфига, n=max(k_values))
 --config-dir путь к конфигам                  (default: configs)
@@ -195,7 +194,7 @@ uv run python nl2sql/scripts/03_evaluate.py --run-label all
 Все параметры в YAML-файлах, magic numbers в коде отсутствуют.
 
 **`nl2sql/configs/experiment.yaml`** — seed, temperature, top_p, k_values, max_tokens, `data_dir`, `results_dir`
-**`nl2sql/configs/models.yaml`** — модели, бэкенды, `model_id`, URL и API-ключи (через env vars), параметры, pricing
+**`shared/configs/models.yaml`** — единый каталог моделей, capability-флаги (`supports_sql`, `supports_code`), бэкенды, `model_id`, URL и API-ключи (через env vars), параметры, pricing и `domain_overrides.sql`
 **`nl2sql/configs/metrics.yaml`** — веса Eff (α+β+γ+δ = 1.0), pricing reference values, statistical tests, параметры ES
 
 ### Переменные окружения
@@ -329,7 +328,7 @@ NL2SQL_RESULTS_DIR=/путь/к/results/nl2sql jupyter lab nl2sql/notebooks/02_r
 - **Retry**: 3 попытки с exponential backoff (1 s, 2 s, 4 s) для обоих бэкендов.
 - **Токены при n > 1**: prompt-токены не делятся (один вход для всех choices); completion-токены распределяются без потери остатка.
 - **seed/top_p**: читаются из `experiment.yaml` и передаются в оба бэкенда.
-- **Pricing**: для API-моделей pricing из `models.yaml` сохраняется в metadata generation results и используется в `Efficiency`.
+- **Pricing**: для API-моделей pricing из `shared/configs/models.yaml` сохраняется в metadata generation results и используется в `Efficiency`.
 - **Шаблон**: Jinja2 загружается один раз при создании `PromptBuilder` (`auto_reload=False`).
 
 ---

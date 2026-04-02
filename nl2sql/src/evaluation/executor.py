@@ -114,6 +114,8 @@ def execute_sql(sql: str, db_path: Path, timeout: int = 30) -> ExecutionResult:
         connection.set_progress_handler(None, 0)
 
     if len(_RESULT_CACHE) >= _MAX_RESULT_CACHE_SIZE:
-        _RESULT_CACHE.clear()
+        evict_keys = list(_RESULT_CACHE)[:_MAX_RESULT_CACHE_SIZE // 2]
+        for evict_key in evict_keys:
+            del _RESULT_CACHE[evict_key]
     _RESULT_CACHE[key] = result
     return result
