@@ -10,9 +10,9 @@ from typing import Any
 
 import pandas as pd
 
-from shared.config import load_yaml_config
+from shared.config import load_domain_models, load_yaml_config
 from nl2sql.src.evaluation.efficiency import compute_efficiency, normalize_efficiency_rows
-from nl2sql.src.evaluation.executor import ExecutionResult, execute_sql
+from nl2sql.src.evaluation.executor import execute_sql
 from nl2sql.src.evaluation.pass_at_k import compute_all_pass_at_k
 from nl2sql.src.inference.base import GenerationResult
 
@@ -32,6 +32,29 @@ CONFIG_DIR = DOMAIN_ROOT / "configs"
 EXPERIMENT_CFG = load_yaml_config(CONFIG_DIR / "experiment.yaml")
 METRICS_CFG = load_yaml_config(CONFIG_DIR / "metrics.yaml")
 DATA_DIR = PROJECT_ROOT / EXPERIMENT_CFG.get("data_dir", "data/nl2sql")
+MODEL_DISPLAY_LOOKUP = {
+    cfg.get("name"): {
+        "display_name": cfg.get("display_name") or cfg.get("name"),
+        "version": cfg.get("version"),
+        "key": key,
+    }
+    for key, cfg in load_domain_models("supports_sql").items()
+}
+
+
+def model_display_name(record: dict[str, Any]) -> Any:
+    model_name = record.get("model_name")
+    return record.get("model_display_name") or MODEL_DISPLAY_LOOKUP.get(model_name, {}).get("display_name") or model_name
+
+
+def model_version(record: dict[str, Any]) -> Any:
+    model_name = record.get("model_name")
+    return record.get("model_version") or MODEL_DISPLAY_LOOKUP.get(model_name, {}).get("version")
+
+
+def model_key(record: dict[str, Any]) -> Any:
+    model_name = record.get("model_name")
+    return record.get("model_key") or MODEL_DISPLAY_LOOKUP.get(model_name, {}).get("key")
 
 
 def candidate_results_dirs() -> list[Path]:
@@ -173,7 +196,10 @@ def load_records(run_label: str | None = None) -> tuple[pd.DataFrame, pd.DataFra
         db_path = resolve_db_path(record["db_path"])
         sample_row = {
             "sample_id": record.get("sample_id"),
+            "model_key": model_key(record),
             "model_name": record.get("model_name"),
+            "model_display_name": model_display_name(record),
+            "model_version": model_version(record),
             "benchmark": record.get("benchmark"),
             "run_label": record.get("run_label"),
             "question": record.get("question", ""),
@@ -194,6 +220,8 @@ def load_records(run_label: str | None = None) -> tuple[pd.DataFrame, pd.DataFra
                 {
                     "sample_id": record.get("sample_id"),
                     "model_name": record.get("model_name"),
+                    "model_display_name": model_display_name(record),
+                    "model_version": model_version(record),
                     "benchmark": record.get("benchmark"),
                     "run_label": record.get("run_label"),
                     "generation_index": idx,
@@ -306,6 +334,16 @@ def compute_summary_metrics(run_label: str | None = None) -> pd.DataFrame:
         eff_metrics = compute_efficiency(generation_results, METRICS_CFG)
         row = {
             "model_name": model_name,
+            "model_display_name": (
+                group["model_display_name"].dropna().iloc[0]
+                if "model_display_name" in group.columns and not group["model_display_name"].dropna().empty
+                else model_name
+            ),
+            "model_version": (
+                group["model_version"].dropna().iloc[0]
+                if "model_version" in group.columns and not group["model_version"].dropna().empty
+                else None
+            ),
             "benchmark": benchmark,
             "run_label": run_label,
             "n_samples": int(len(group)),

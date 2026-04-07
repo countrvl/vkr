@@ -79,7 +79,7 @@ class InferenceBackend(ABC):
         if not raw or not raw.strip():
             return ""
 
-        cleaned = raw.strip()
+        cleaned = normalize_sql_text(raw)
         lowered = cleaned.lower()
         if any(pattern in lowered for pattern in REFUSAL_PATTERNS):
             return ""
@@ -96,11 +96,10 @@ class InferenceBackend(ABC):
             if generic_fence:
                 cleaned = generic_fence.group(1)
 
-        cleaned = cleaned.strip()
+        cleaned = normalize_sql_text(cleaned)
         if not cleaned:
             return ""
 
-        cleaned = cleaned.rstrip().rstrip(";").strip()
         return cleaned if cleaned else ""
 
     @staticmethod
@@ -121,7 +120,7 @@ class InferenceBackend(ABC):
             sql = payload.get("sql")
             if not isinstance(sql, str):
                 continue
-            cleaned = sql.strip().rstrip(";").strip()
+            cleaned = normalize_sql_text(sql)
             if cleaned:
                 return cleaned
         return ""
@@ -130,3 +129,12 @@ class InferenceBackend(ABC):
 def extract_sql(raw: str) -> str:
     """Backward-compatible wrapper around `InferenceBackend.extract_sql()`."""
     return InferenceBackend.extract_sql(raw)
+
+
+def normalize_sql_text(sql: str) -> str:
+    """Normalize model-output SQL before persistence or execution."""
+    if not sql:
+        return ""
+    cleaned = sql.replace("\\n", "\n").replace("\\t", "\t").strip()
+    cleaned = cleaned.rstrip().rstrip(";").strip()
+    return cleaned

@@ -13,6 +13,7 @@ from openai import APIConnectionError, APITimeoutError, AsyncOpenAI, BadRequestE
 LOGGER = logging.getLogger(__name__)
 RETRY_DELAYS_SECONDS = (1.0, 2.0, 4.0)
 ResultT = TypeVar("ResultT")
+DEFAULT_INVALID_RESPONSE_MARKERS = {"no assistant response"}
 
 
 class OpenAIChatTransport:
@@ -35,7 +36,11 @@ class OpenAIChatTransport:
         self.client = AsyncOpenAI(base_url=base_url, api_key=api_key)
         self.model_id = model_id
         self.model_name = model_name
-        self.parameters = parameters or {}
+        self.parameters = dict(parameters or {})
+        invalid_markers = self.parameters.pop("invalid_response_markers", None)
+        self.invalid_response_markers = set(DEFAULT_INVALID_RESPONSE_MARKERS)
+        if invalid_markers:
+            self.invalid_response_markers.update(str(marker).strip().lower() for marker in invalid_markers)
         self.pricing = self._normalize_pricing(pricing)
         self.response_format = response_format
         self.extractor = extractor
@@ -251,6 +256,7 @@ class OpenAIChatTransport:
         results: list[ResultT] = []
         for idx, choice in enumerate(choices):
             content = choice.message.content if choice.message else ""
+            self._validate_response_content(content)
             cost_usd = None
             if self.pricing:
                 cost_usd = (
@@ -274,6 +280,13 @@ class OpenAIChatTransport:
                 )
             )
         return results
+
+    def _validate_response_content(self, content: str | None) -> None:
+        normalized = (content or "").strip().lower()
+        if normalized in self.invalid_response_markers:
+            raise RuntimeError(
+                f"Model {self.model_id} returned an invalid placeholder response: {content!r}"
+            )
 
     @staticmethod
     def _should_disable_structured_output(exc: BadRequestError) -> bool:

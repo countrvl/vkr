@@ -18,8 +18,9 @@ DOMAIN_ROOT = PROJECT_ROOT / "nl2sql"
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from shared.config import load_yaml_config
+from shared.config import load_domain_models, load_yaml_config
 from nl2sql.src.evaluation.ea import evaluate_candidate_predictions
+from nl2sql.src.inference.base import normalize_sql_text
 from nl2sql.src.evaluation.efficiency import compute_efficiency, normalize_efficiency_rows
 from nl2sql.src.evaluation.pass_at_k import pass_at_k
 from nl2sql.src.inference.base import GenerationResult
@@ -28,6 +29,34 @@ from shared.logging_utils import ProgressType, configure_logging, create_progres
 
 LOGGER = logging.getLogger(__name__)
 _LEGACY_RUN_LABEL = "legacy"
+_MODEL_DISPLAY_LOOKUP = {
+    cfg.get("name"): {
+        "display_name": cfg.get("display_name") or cfg.get("name"),
+        "version": cfg.get("version"),
+        "key": key,
+    }
+    for key, cfg in load_domain_models("supports_sql").items()
+}
+
+
+def _model_display_name(record: dict[str, Any]) -> str:
+    model_name = record.get("model_name")
+    return (
+        record.get("model_display_name")
+        or _MODEL_DISPLAY_LOOKUP.get(model_name, {}).get("display_name")
+        or model_name
+        or ""
+    )
+
+
+def _model_version(record: dict[str, Any]) -> Any:
+    model_name = record.get("model_name")
+    return record.get("model_version") or _MODEL_DISPLAY_LOOKUP.get(model_name, {}).get("version")
+
+
+def _model_key(record: dict[str, Any]) -> Any:
+    model_name = record.get("model_name")
+    return record.get("model_key") or _MODEL_DISPLAY_LOOKUP.get(model_name, {}).get("key")
 
 
 def _config_defaults(config_dir: Path) -> dict[str, Path]:
@@ -182,7 +211,7 @@ def _evaluate_record(record: dict[str, Any], data_dir: Path) -> dict[str, Any]:
     gold_sql = record.get("gold_sql", "")
     db_path = _resolve_db_path(record["db_path"], data_dir)
     generations = record.get("generations", [])
-    candidate_sql = [gen["sql"] for gen in generations]
+    candidate_sql = [normalize_sql_text(gen["sql"]) for gen in generations]
     evaluation = evaluate_candidate_predictions(candidate_sql, gold_sql, db_path)
     candidate_hits = evaluation["candidate_hits"]
 
@@ -190,7 +219,10 @@ def _evaluate_record(record: dict[str, Any], data_dir: Path) -> dict[str, Any]:
         "candidate_hits": candidate_hits,
         "sample_row": {
             "sample_id": record.get("sample_id"),
+            "model_key": _model_key(record),
             "model_name": record.get("model_name"),
+            "model_display_name": _model_display_name(record),
+            "model_version": _model_version(record),
             "benchmark": record.get("benchmark"),
             "run_label": _normalize_run_label(record),
             "question": record.get("question", ""),
@@ -325,6 +357,22 @@ def main() -> None:
 
             row: dict[str, Any] = {
                 "model_name": model_name,
+                "model_display_name": next(
+                    (
+                        row.get("model_display_name")
+                        for row in sample_rows_by_label[run_label]
+                        if row.get("model_name") == model_name and row.get("benchmark") == benchmark
+                    ),
+                    model_name,
+                ),
+                "model_version": next(
+                    (
+                        row.get("model_version")
+                        for row in sample_rows_by_label[run_label]
+                        if row.get("model_name") == model_name and row.get("benchmark") == benchmark
+                    ),
+                    None,
+                ),
                 "benchmark": benchmark,
                 "run_label": run_label,
                 "n_samples": len(pass_results),

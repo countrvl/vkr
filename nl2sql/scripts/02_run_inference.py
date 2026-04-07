@@ -107,6 +107,7 @@ def _build_backend(model_key: str, model_cfg: dict[str, Any]):
         base_url = os.getenv(base_url_env, base_url)
     if model_id_env:
         model_id = os.getenv(model_id_env, model_id)
+    structured_output = bool(model_cfg.get("structured_output", True))
 
     if backend == "api":
         env_key = model_cfg["env_key"]
@@ -120,6 +121,7 @@ def _build_backend(model_key: str, model_cfg: dict[str, Any]):
             model_name=model_cfg["name"],
             parameters=model_cfg.get("parameters", {}),
             pricing=model_cfg.get("pricing"),
+            structured_output=structured_output,
         )
     if backend == "ollama":
         parameters = dict(model_cfg.get("parameters", {}))
@@ -130,6 +132,7 @@ def _build_backend(model_key: str, model_cfg: dict[str, Any]):
             num_ctx=num_ctx,
             model_name=model_cfg["name"],
             parameters=parameters,
+            structured_output=structured_output,
         )
     raise ValueError(f"Unsupported backend: {backend}")
 
@@ -162,6 +165,7 @@ async def _run(
         for model_key in model_keys:
             model_cfg = models_cfg[model_key]
             max_tokens = int(model_cfg.get("max_tokens", exp_cfg.get("max_tokens", 512)))
+            prompt_profile = str(model_cfg.get("prompt_profile", "nl2sql_json"))
             backend = _build_backend(model_key, model_cfg)
             runner = ExperimentRunner(
                 backend=backend,
@@ -179,12 +183,16 @@ async def _run(
                     samples,
                     model_name=model_cfg["name"],
                     benchmark=benchmark,
+                    model_display_name=model_cfg.get("display_name"),
+                    model_version=model_cfg.get("version"),
+                    model_key=model_key,
                     run_label=args.mode,
                     n=n,
                     temperature=temperature,
                     max_tokens=max_tokens,
                     seed=seed,
                     top_p=top_p,
+                    prompt_profile=prompt_profile,
                     progress=progress,
                 )
                 LOGGER.info("Saved raw generations to %s", output_path)

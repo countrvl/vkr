@@ -44,12 +44,16 @@ class ExperimentRunner:
         samples: list[DataSample],
         model_name: str,
         benchmark: str,
+        model_display_name: str | None = None,
+        model_version: str | None = None,
+        model_key: str | None = None,
         run_label: str | None = None,
         n: int = 1,
         temperature: float = 0.0,
         max_tokens: int = 512,
         seed: int | None = None,
         top_p: float | None = None,
+        prompt_profile: str = "nl2sql_json",
         progress: ProgressType | None = None,
     ) -> Path:
         """Run inference over all samples and append to a JSONL file."""
@@ -83,7 +87,7 @@ class ExperimentRunner:
                 )
                 for sample in pending_samples:
                     try:
-                        prompt = self._prompt_builder.build(sample)
+                        prompt = self._prompt_builder.build(sample, prompt_profile)
                         generations = await self._backend.generate(
                             prompt,
                             n=n,
@@ -102,7 +106,11 @@ class ExperimentRunner:
                             "gold_sql": sample.gold_sql,
                             "difficulty": sample.difficulty,
                             "evidence": sample.evidence,
+                            "prompt_profile": prompt_profile,
+                            "model_key": model_key,
                             "model_name": model_name,
+                            "model_display_name": model_display_name or model_name,
+                            "model_version": model_version,
                             "generations": [
                                 {
                                     "sql": generation.sql,

@@ -11,8 +11,10 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 DOMAIN_ROOT = PROJECT_ROOT / "code"
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
+if str(DOMAIN_ROOT) not in sys.path:
+    sys.path.insert(0, str(DOMAIN_ROOT))
 
-from code.src.data.prepare import normalize_benchmark_name, prepare_benchmark_artifacts
+from code_bench.data.prepare import normalize_benchmark_name, prepare_benchmark_artifacts
 from shared.config import load_yaml_config
 from shared.logging_utils import configure_logging
 

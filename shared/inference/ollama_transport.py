@@ -34,7 +34,8 @@ class OllamaGenerateTransport:
         self.base_url = base_url.rstrip("/")
         self.num_ctx = num_ctx
         self.model_name = model_name
-        self.parameters = parameters or {}
+        self.parameters = dict(parameters or {})
+        self.request_timeout = float(self.parameters.pop("request_timeout", 120.0))
         self.extractor = extractor
         self.result_factory = result_factory
         self.format_schema = format_schema
@@ -51,7 +52,7 @@ class OllamaGenerateTransport:
         top_p: float | None,
     ) -> list[ResultT]:
         results: list[ResultT] = []
-        async with httpx.AsyncClient(timeout=120.0, trust_env=False) as client:
+        async with httpx.AsyncClient(timeout=self.request_timeout, trust_env=False) as client:
             for _ in range(n):
                 payload, latency_ms = await self._generate_with_retry(
                     client=client,

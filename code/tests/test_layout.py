@@ -1,10 +1,13 @@
 from pathlib import Path
 
 from shared.config import load_domain_models, load_yaml_config
-from code.src.data.prepare import build_metadata_records, prepare_benchmark_artifacts
-from code.src.evaluation.functional_correctness import evaluate_code_candidate
-from code.src.evaluation.pass_at_k import compute_all_pass_at_k
-from code.src.inference.base import extract_code
+from code_bench.data.prepare import build_metadata_records, prepare_benchmark_artifacts
+from code_bench.evaluation.functional_correctness import evaluate_code_candidate
+from code_bench.evaluation.pass_at_k import compute_all_pass_at_k
+from code_bench.inference.base import extract_code
+from code_bench.data.loader import load_benchmark
+from code_bench.prompt.template import PromptBuilder
+from shared.inference.api_transport import OpenAIChatTransport
 
 
 def test_code_domain_layout_exists() -> None:
@@ -33,6 +36,11 @@ def test_code_domain_model_filter_keeps_only_code_models() -> None:
     assert "m2_qwen2_5_coder" in models
     assert "m2_defog" not in models
     assert models["m1_chatgpt"]["max_tokens"] == 768
+    assert models["m1_chatgpt"]["prompt_profile"] == "codegen_default"
+    assert models["m2_qwen2_5_coder"]["prompt_profile"] == "qwen2_5_coder"
+    assert models["m2_codegemma"]["prompt_profile"] == "codegemma_instruct"
+    assert models["m2_deepseek_coder"]["prompt_profile"] == "deepseek_coder"
+    assert models["m2_codellama"]["prompt_profile"] == "codellama_instruct"
     assert models["m2_qwen2_5_coder"]["parameters"]["num_ctx"] == 8192
 
 
@@ -41,9 +49,50 @@ def test_extract_code_from_fenced_response() -> None:
     assert extract_code(raw) == "def foo():\n    return 1"
 
 
+def test_code_prompt_profiles_render() -> None:
+    from code_bench.data.schema import CodeSample
+
+    sample = CodeSample(
+        id="Task/1",
+        benchmark="humaneval_plus",
+        prompt_text='def solve(x):\n    """Return x."""\n',
+        entry_point="solve",
+        canonical_solution="",
+        contract="",
+    )
+    builder = PromptBuilder()
+    for profile in (
+        "codegen_default",
+        "qwen2_5_coder",
+        "codegemma_instruct",
+        "deepseek_coder",
+        "codellama_instruct",
+    ):
+        prompt = builder.build(sample, prompt_profile=profile)
+        assert "solve" in prompt
+        assert "```" not in prompt
+
+
+def test_api_transport_rejects_placeholder_response() -> None:
+    transport = OpenAIChatTransport(
+        model_id="demo",
+        base_url="http://example.invalid",
+        api_key="test",
+        model_name="demo",
+        extractor=lambda raw: raw,
+        result_factory=lambda **kwargs: kwargs,
+    )
+
+    try:
+        transport._validate_response_content("no assistant response")
+    except RuntimeError as exc:
+        assert "invalid placeholder" in str(exc)
+    else:
+        raise AssertionError("Expected placeholder response to be rejected.")
+
+
 def test_prepare_benchmark_artifacts_writes_metadata(tmp_path, monkeypatch) -> None:
-    from code.src import data as data_pkg
-    from code.src.data import prepare as prepare_module
+    from code_bench.data import prepare as prepare_module
 
     monkeypatch.setattr(
         prepare_module,
@@ -71,6 +120,9 @@ def test_prepare_benchmark_artifacts_writes_metadata(tmp_path, monkeypatch) -> N
     assert manifest["dataset_hash"] == "hash123"
     assert (tmp_path / "humaneval_plus" / "metadata.jsonl").exists()
     assert (tmp_path / "humaneval_plus" / "manifest.json").exists()
+    samples = load_benchmark("humaneval_plus", tmp_path)
+    assert samples[0].id == "Task/1"
+    assert samples[0].metadata["source"] == "prepared_metadata"
 
 
 def test_build_metadata_records() -> None:

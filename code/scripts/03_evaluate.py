@@ -15,16 +15,46 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 DOMAIN_ROOT = PROJECT_ROOT / "code"
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
+if str(DOMAIN_ROOT) not in sys.path:
+    sys.path.insert(0, str(DOMAIN_ROOT))
 
-from code.src.evaluation.efficiency import compute_efficiency, normalize_efficiency_rows
-from code.src.evaluation.functional_correctness import evaluate_code_candidate
-from code.src.evaluation.pass_at_k import compute_all_pass_at_k
-from code.src.inference.base import GenerationResult
-from shared.config import load_yaml_config
+from code_bench.evaluation.efficiency import compute_efficiency, normalize_efficiency_rows
+from code_bench.evaluation.functional_correctness import evaluate_code_candidate
+from code_bench.evaluation.pass_at_k import compute_all_pass_at_k
+from code_bench.inference.base import GenerationResult
+from shared.config import load_domain_models, load_yaml_config
 from shared.logging_utils import configure_logging, create_progress
 
 
 LOGGER = logging.getLogger(__name__)
+_MODEL_DISPLAY_LOOKUP = {
+    cfg.get("name"): {
+        "display_name": cfg.get("display_name") or cfg.get("name"),
+        "version": cfg.get("version"),
+        "key": key,
+    }
+    for key, cfg in load_domain_models("supports_code").items()
+}
+
+
+def _model_display_name(record: dict[str, Any]) -> str:
+    model_name = record.get("model_name")
+    return (
+        record.get("model_display_name")
+        or _MODEL_DISPLAY_LOOKUP.get(model_name, {}).get("display_name")
+        or model_name
+        or ""
+    )
+
+
+def _model_version(record: dict[str, Any]) -> Any:
+    model_name = record.get("model_name")
+    return record.get("model_version") or _MODEL_DISPLAY_LOOKUP.get(model_name, {}).get("version")
+
+
+def _model_key(record: dict[str, Any]) -> Any:
+    model_name = record.get("model_name")
+    return record.get("model_key") or _MODEL_DISPLAY_LOOKUP.get(model_name, {}).get("key")
 
 
 def _config_defaults(config_dir: Path) -> dict[str, Path]:
@@ -126,13 +156,18 @@ def _evaluate_record(record: dict[str, Any], execution_cfg: dict[str, Any]) -> d
             candidate_index=idx - 1,
             code=generation.get("code", ""),
             execution_cfg=execution_cfg,
+            mini=bool(record.get("benchmark_mini", False)),
+            noextreme=bool(record.get("benchmark_noextreme", False)),
         )
         candidate_hit = bool(candidate["functional_correctness"])
         candidate_hits.append(candidate_hit)
         candidate_rows.append(
             {
                 "sample_id": record["sample_id"],
+                "model_key": _model_key(record),
                 "model_name": record["model_name"],
+                "model_display_name": _model_display_name(record),
+                "model_version": _model_version(record),
                 "benchmark": record["benchmark"],
                 "run_label": record["run_label"],
                 "candidate_index": idx,
@@ -154,7 +189,10 @@ def _evaluate_record(record: dict[str, Any], execution_cfg: dict[str, Any]) -> d
     first_candidate = candidate_rows[0]
     sample_row = {
         "sample_id": record["sample_id"],
+        "model_key": _model_key(record),
         "model_name": record["model_name"],
+        "model_display_name": _model_display_name(record),
+        "model_version": _model_version(record),
         "benchmark": record["benchmark"],
         "run_label": record["run_label"],
         "entry_point": record.get("entry_point"),
@@ -232,6 +270,22 @@ def main() -> None:
 
             row: dict[str, Any] = {
                 "model_name": model_name,
+                "model_display_name": next(
+                    (
+                        row.get("model_display_name")
+                        for row in sample_rows_by_label[run_label]
+                        if row.get("model_name") == model_name and row.get("benchmark") == benchmark
+                    ),
+                    model_name,
+                ),
+                "model_version": next(
+                    (
+                        row.get("model_version")
+                        for row in sample_rows_by_label[run_label]
+                        if row.get("model_name") == model_name and row.get("benchmark") == benchmark
+                    ),
+                    None,
+                ),
                 "benchmark": benchmark,
                 "run_label": run_label,
                 "n_samples": len(pass_results),

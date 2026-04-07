@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-import httpx
+import httpx  # noqa: F401 - kept for tests that monkeypatch the shared transport client
 from typing import Any
 
 from nl2sql.src.inference.base import GenerationResult, InferenceBackend, SQL_RESPONSE_SCHEMA
@@ -19,6 +19,7 @@ class OllamaBackend(InferenceBackend):
         num_ctx: int = 4096,
         model_name: str | None = None,
         parameters: dict[str, Any] | None = None,
+        structured_output: bool = True,
     ) -> None:
         """Initialize the Ollama backend.
 
@@ -38,7 +39,7 @@ class OllamaBackend(InferenceBackend):
             parameters=parameters,
             extractor=self.extract_sql,
             result_factory=self._make_result,
-            format_schema=SQL_RESPONSE_SCHEMA,
+            format_schema=SQL_RESPONSE_SCHEMA if structured_output else None,
         )
 
     async def generate(

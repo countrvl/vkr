@@ -38,6 +38,15 @@ uv sync
 cp .env.example .env
 ```
 
+## Sanity Check
+
+Перед длинными запусками:
+
+```bash
+.venv/bin/ruff check .
+.venv/bin/pytest -q
+```
+
 ## Запуск
 
 NL2SQL:

@@ -9,7 +9,13 @@ from jinja2 import Environment, FileSystemLoader
 from nl2sql.src.data.loader import DataSample
 
 
-_DEFAULT_TEMPLATE = "nl2sql.j2"
+_DEFAULT_PROFILE = "nl2sql_json"
+_PROFILE_TO_TEMPLATE = {
+    "nl2sql_json": "nl2sql.j2",
+    "m2_sql_continuation": "m2_sql_continuation.j2",
+    "defog_sqlcoder": "defog_sqlcoder.j2",
+    "xiyansql_sqlite": "xiyansql_sqlite.j2",
+}
 
 
 class PromptBuilder:
@@ -33,26 +39,32 @@ class PromptBuilder:
             lstrip_blocks=True,
             auto_reload=False,
         )
-        self._default_template = self._environment.get_template(_DEFAULT_TEMPLATE)
+        self._default_template = self._environment.get_template(_PROFILE_TO_TEMPLATE[_DEFAULT_PROFILE])
 
-    def build(self, sample: DataSample, template_name: str = _DEFAULT_TEMPLATE) -> str:
+    def build(self, sample: DataSample, template_name: str = _DEFAULT_PROFILE) -> str:
         """Render a prompt from a benchmark sample.
 
-        Uses the pre-loaded default template when ``template_name`` matches the
-        default; falls back to ``get_template()`` for non-default names.
+        ``template_name`` may be either a prompt profile from
+        ``_PROFILE_TO_TEMPLATE`` or a direct template filename.
 
         Args:
             sample: Unified benchmark sample.
-            template_name: Template filename within the template directory.
+            template_name: Prompt profile or template filename within the template directory.
 
         Returns:
             Rendered prompt text.
         """
-        if template_name == _DEFAULT_TEMPLATE:
+        resolved_template = _PROFILE_TO_TEMPLATE.get(template_name, template_name)
+        if resolved_template == _PROFILE_TO_TEMPLATE[_DEFAULT_PROFILE]:
             template = self._default_template
         else:
-            template = self._environment.get_template(template_name)
-        return template.render(schema=sample.schema, question=sample.question)
+            template = self._environment.get_template(resolved_template)
+        return template.render(
+            schema=sample.schema,
+            question=sample.question,
+            evidence=sample.evidence or "",
+            dialect="SQLite",
+        )
 
     def render(self, sample: DataSample) -> str:
         """Backward-compatible alias for `build()`."""

@@ -9,9 +9,9 @@ from contextlib import nullcontext
 from datetime import datetime
 from pathlib import Path
 
-from code.src.data.schema import CodeSample
-from code.src.inference.base import InferenceBackend
-from code.src.prompt.template import PromptBuilder
+from code_bench.data.schema import CodeSample
+from code_bench.inference.base import InferenceBackend
+from code_bench.prompt.template import PromptBuilder
 from shared.logging_utils import ProgressType, create_progress
 
 
@@ -38,6 +38,8 @@ class ExperimentRunner:
         samples: list[CodeSample],
         model_key: str,
         model_name: str,
+        model_display_name: str | None,
+        model_version: str | None,
         benchmark: str,
         run_label: str,
         n: int = 1,
@@ -45,6 +47,7 @@ class ExperimentRunner:
         max_tokens: int = 768,
         seed: int | None = None,
         top_p: float | None = None,
+        prompt_profile: str = "codegen_default",
         progress: ProgressType | None = None,
     ) -> Path:
         output_path = self._resolve_output_path(
@@ -77,7 +80,7 @@ class ExperimentRunner:
                 )
                 for sample in pending_samples:
                     try:
-                        prompt = self._prompt_builder.build(sample)
+                        prompt = self._prompt_builder.build(sample, prompt_profile=prompt_profile)
                         generations = await self._backend.generate(
                             prompt,
                             n=n,
@@ -94,7 +97,13 @@ class ExperimentRunner:
                             "entry_point": sample.entry_point,
                             "prompt": sample.prompt_text,
                             "contract": sample.contract,
+                            "prompt_profile": prompt_profile,
+                            "benchmark_mini": bool(sample.metadata.get("mini", False)),
+                            "benchmark_noextreme": bool(sample.metadata.get("noextreme", False)),
+                            "benchmark_dataset_hash": sample.metadata.get("dataset_hash"),
                             "model_name": model_name,
+                            "model_display_name": model_display_name or model_name,
+                            "model_version": model_version,
                             "generations": [
                                 {
                                     "candidate_index": idx,

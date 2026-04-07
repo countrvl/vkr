@@ -17,12 +17,14 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 DOMAIN_ROOT = PROJECT_ROOT / "code"
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
+if str(DOMAIN_ROOT) not in sys.path:
+    sys.path.insert(0, str(DOMAIN_ROOT))
 
-from code.src.data.loader import load_benchmark
-from code.src.inference.api_backend import APIBackend
-from code.src.inference.ollama_backend import OllamaBackend
-from code.src.inference.runner import ExperimentRunner
-from code.src.prompt.template import PromptBuilder
+from code_bench.data.loader import load_benchmark
+from code_bench.inference.api_backend import APIBackend
+from code_bench.inference.ollama_backend import OllamaBackend
+from code_bench.inference.runner import ExperimentRunner
+from code_bench.prompt.template import PromptBuilder
 from shared.config import load_domain_models
 from shared.logging_utils import configure_logging, create_progress
 
@@ -151,6 +153,7 @@ async def _run(
         for model_key in model_keys:
             model_cfg = models_cfg[model_key]
             max_tokens = int(model_cfg.get("max_tokens", exp_cfg.get("max_tokens", 768)))
+            prompt_profile = str(model_cfg.get("prompt_profile", "codegen_default"))
             backend = _build_backend(model_key, model_cfg)
             runner = ExperimentRunner(
                 backend=backend,
@@ -164,6 +167,7 @@ async def _run(
                     benchmark,
                     args.data_dir,
                     mini=bool(args.mini and benchmark_cfg.get("supports_mini", False)),
+                    noextreme=bool(benchmark_cfg.get("noextreme", False)),
                 )
                 if args.limit is not None:
                     samples = samples[: args.limit]
@@ -172,6 +176,8 @@ async def _run(
                     samples,
                     model_key=model_key,
                     model_name=model_cfg["name"],
+                    model_display_name=model_cfg.get("display_name"),
+                    model_version=model_cfg.get("version"),
                     benchmark=benchmark,
                     run_label=run_label,
                     n=n,
@@ -179,6 +185,7 @@ async def _run(
                     max_tokens=max_tokens,
                     seed=seed,
                     top_p=top_p,
+                    prompt_profile=prompt_profile,
                     progress=progress,
                 )
                 LOGGER.info("Saved raw generations to %s", output_path)

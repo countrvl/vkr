@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from code.src.inference.base import GenerationResult, InferenceBackend
+from code_bench.inference.base import GenerationResult, InferenceBackend
 from shared.inference.api_transport import OpenAIChatTransport
 
 

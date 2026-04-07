@@ -37,12 +37,13 @@ notebooks = [
 include-package-data = true
 
 [tool.setuptools.packages.find]
-where = ["."]
-include = ["nl2sql*", "code*", "shared*"]
+where = [".", "code"]
+include = ["nl2sql*", "code_bench*", "shared*"]
 
 [tool.setuptools.package-data]
 "nl2sql.src" = ["prompt/templates/*.j2"]
-"code.src" = ["prompt/templates/*.j2"]
+"code_bench" = ["prompt/templates/*.j2"]
+"shared" = ["configs/*.yaml"]
 
 [dependency-groups]
 dev = [
@@ -58,9 +59,18 @@ dev = [
 ]
 
 [tool.pytest.ini_options]
-pythonpath = ["."]
+pythonpath = [".", "code"]
 testpaths = ["nl2sql/tests", "code/tests"]
 
 [tool.ruff]
 line-length = 100
 target-version = "py311"
+extend-exclude = [
+  "*.ipynb",
+  "results/**",
+  "*.egg-info/**",
+]
+
+[tool.ruff.lint.per-file-ignores]
+"nl2sql/scripts/*.py" = ["E402"]
+"code/scripts/*.py" = ["E402"]

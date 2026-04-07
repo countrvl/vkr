@@ -1,6 +1,8 @@
 models:
   m1_deepseek:
     name: "DeepSeek"
+    version: "V3.2"
+    display_name: "DeepSeek V3.2"
     backend: "api"
     family: "m1"
     supports_sql: true
@@ -18,11 +20,16 @@ models:
     domain_overrides:
       sql:
         max_tokens: 512
+        prompt_profile: "nl2sql_json"
+        structured_output: true
       code:
         max_tokens: 768
+        prompt_profile: "codegen_default"
 
   m1_chatgpt:
     name: "ChatGPT"
+    version: "5.2"
+    display_name: "ChatGPT 5.2"
     backend: "api"
     family: "m1"
     supports_sql: true
@@ -40,11 +47,16 @@ models:
     domain_overrides:
       sql:
         max_tokens: 512
+        prompt_profile: "nl2sql_json"
+        structured_output: true
       code:
         max_tokens: 768
+        prompt_profile: "codegen_default"
 
   m2_defog:
     name: "Defog-Llama3-SQLCoder-8B"
+    version: "q4_0"
+    display_name: "Defog-Llama3-SQLCoder-8B q4_0"
     backend: "ollama"
     family: "m2"
     supports_sql: true
@@ -60,9 +72,13 @@ models:
     domain_overrides:
       sql:
         max_tokens: 512
+        prompt_profile: "defog_sqlcoder"
+        structured_output: false
 
   m2_hrida:
     name: "Hrida-T2SQL"
+    version: "q8_0"
+    display_name: "Hrida-T2SQL q8_0"
     backend: "ollama"
     family: "m2"
     supports_sql: true
@@ -78,9 +94,13 @@ models:
     domain_overrides:
       sql:
         max_tokens: 512
+        prompt_profile: "m2_sql_continuation"
+        structured_output: false
 
   m2_arctic:
     name: "Arctic-Text2SQL-R1-7B"
+    version: "latest"
+    display_name: "Arctic-Text2SQL-R1-7B"
     backend: "ollama"
     family: "m2"
     supports_sql: true
@@ -96,9 +116,40 @@ models:
     domain_overrides:
       sql:
         max_tokens: 512
+        prompt_profile: "m2_sql_continuation"
+        structured_output: false
+
+  m2_xiyansql_32b:
+    name: "XiYanSQL-QwenCoder-32B-2504"
+    version: "32B-2504"
+    display_name: "XiYanSQL-QwenCoder-32B-2504"
+    backend: "ollama"
+    family: "m2"
+    supports_sql: true
+    supports_code: false
+    model_id: "Kaiyue/xiyansql-32b:latest"
+    model_id_env: "SQL_XIYANSQL_32B_MODEL_ID"
+    base_url: "http://localhost:11434"
+    base_url_env: "OLLAMA_API_URL"
+    pricing:
+      input_per_1m: 0.0
+      output_per_1m: 0.0
+    parameters:
+      num_ctx: 8192
+      request_timeout: 300
+      stop:
+        - "<|im_start|>"
+        - "<|im_end|>"
+    domain_overrides:
+      sql:
+        max_tokens: 512
+        prompt_profile: "xiyansql_sqlite"
+        structured_output: false
 
   m2_qwen2_5_coder:
     name: "Qwen2.5-Coder-7B"
+    version: "7B Instruct Q4_K_M"
+    display_name: "Qwen2.5-Coder-7B Instruct Q4_K_M"
     backend: "ollama"
     family: "m2"
     supports_sql: false
@@ -115,9 +166,12 @@ models:
     domain_overrides:
       code:
         max_tokens: 768
+        prompt_profile: "qwen2_5_coder"
 
   m2_codegemma:
     name: "CodeGemma-7B"
+    version: "7B Instruct Q4_K_M"
+    display_name: "CodeGemma-7B Instruct Q4_K_M"
     backend: "ollama"
     family: "m2"
     supports_sql: false
@@ -133,9 +187,12 @@ models:
     domain_overrides:
       code:
         max_tokens: 768
+        prompt_profile: "codegemma_instruct"
 
   m2_deepseek_coder:
     name: "DeepSeek-Coder-V2-Lite"
+    version: "16B Lite Instruct Q4_0"
+    display_name: "DeepSeek-Coder-V2-Lite 16B Q4_0"
     backend: "ollama"
     family: "m2"
     supports_sql: false
@@ -151,9 +208,12 @@ models:
     domain_overrides:
       code:
         max_tokens: 768
+        prompt_profile: "deepseek_coder"
 
   m2_codellama:
     name: "CodeLlama-7B"
+    version: "7B Instruct Q4_K_M"
+    display_name: "CodeLlama-7B Instruct Q4_K_M"
     backend: "ollama"
     family: "m2"
     supports_sql: false
@@ -169,3 +229,4 @@ models:
     domain_overrides:
       code:
         max_tokens: 768
+        prompt_profile: "codellama_instruct"

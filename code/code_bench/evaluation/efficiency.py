@@ -6,7 +6,7 @@ import copy
 from statistics import mean
 from typing import Any
 
-from code.src.inference.base import GenerationResult
+from code_bench.inference.base import GenerationResult
 
 
 _EFF_COMPONENTS = ("Tinf", "Mem", "Tok", "Cost")

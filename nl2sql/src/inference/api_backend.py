@@ -23,6 +23,7 @@ class APIBackend(InferenceBackend):
         model_name: str | None = None,
         parameters: dict[str, Any] | None = None,
         pricing: dict[str, Any] | None = None,
+        structured_output: bool = True,
     ) -> None:
         """Initialize the API backend.
 
@@ -42,7 +43,7 @@ class APIBackend(InferenceBackend):
             model_name=self.model_name,
             parameters=parameters,
             pricing=pricing,
-            response_format={"type": "json_object"},
+            response_format={"type": "json_object"} if structured_output else None,
             extractor=self.extract_sql,
             result_factory=self._make_result,
             disable_response_format_on_bad_request=True,

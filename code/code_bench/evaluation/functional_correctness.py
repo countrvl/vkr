@@ -9,7 +9,7 @@ from typing import Any
 from evalplus.eval import PASS, TIMEOUT, MBPP_OUTPUT_NOT_NONE_TASKS
 from evalplus.evaluate import check_correctness, get_groundtruth
 
-from code.src.data.prepare import get_benchmark_hash, load_evalplus_tasks, normalize_benchmark_name
+from code_bench.data.prepare import get_benchmark_hash, load_evalplus_tasks, normalize_benchmark_name
 
 
 def _dataset_name_for_evalplus(benchmark: str) -> str:
@@ -18,16 +18,26 @@ def _dataset_name_for_evalplus(benchmark: str) -> str:
 
 
 @lru_cache(maxsize=8)
-def load_problems(benchmark: str) -> dict[str, dict[str, Any]]:
+def load_problems(
+    benchmark: str,
+    *,
+    mini: bool = False,
+    noextreme: bool = False,
+) -> dict[str, dict[str, Any]]:
     """Load full EvalPlus problems for a benchmark."""
-    return load_evalplus_tasks(benchmark)
+    return load_evalplus_tasks(benchmark, mini=mini, noextreme=noextreme)
 
 
 @lru_cache(maxsize=8)
-def load_expected_outputs(benchmark: str) -> dict[str, dict[str, Any]]:
+def load_expected_outputs(
+    benchmark: str,
+    *,
+    mini: bool = False,
+    noextreme: bool = False,
+) -> dict[str, dict[str, Any]]:
     """Load or compute ground-truth outputs for a benchmark."""
-    problems = load_problems(benchmark)
-    dataset_hash = get_benchmark_hash(benchmark)
+    problems = load_problems(benchmark, mini=mini, noextreme=noextreme)
+    dataset_hash = get_benchmark_hash(benchmark, mini=mini, noextreme=noextreme)
     tasks_only_output_not_none = [] if benchmark == "humaneval_plus" else MBPP_OUTPUT_NOT_NONE_TASKS
     return get_groundtruth(problems, dataset_hash, tasks_only_output_not_none)
 
@@ -61,10 +71,12 @@ def evaluate_code_candidate(
     candidate_index: int,
     code: str,
     execution_cfg: dict[str, Any],
+    mini: bool = False,
+    noextreme: bool = False,
 ) -> dict[str, Any]:
     """Evaluate one code candidate against EvalPlus tests."""
-    problems = load_problems(benchmark)
-    expected_outputs = load_expected_outputs(benchmark)
+    problems = load_problems(benchmark, mini=mini, noextreme=noextreme)
+    expected_outputs = load_expected_outputs(benchmark, mini=mini, noextreme=noextreme)
     problem = problems[task_id]
     normalized_code = normalize_solution_code(code, problem, benchmark)
 

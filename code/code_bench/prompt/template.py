@@ -6,10 +6,17 @@ from pathlib import Path
 
 from jinja2 import Environment, FileSystemLoader
 
-from code.src.data.schema import CodeSample
+from code_bench.data.schema import CodeSample
 
 
-_DEFAULT_TEMPLATE = "codegen.j2"
+_DEFAULT_PROFILE = "codegen_default"
+_TEMPLATE_BY_PROFILE = {
+    "codegen_default": "codegen.j2",
+    "qwen2_5_coder": "qwen2_5_coder.j2",
+    "codegemma_instruct": "codegemma_instruct.j2",
+    "deepseek_coder": "deepseek_coder.j2",
+    "codellama_instruct": "codellama_instruct.j2",
+}
 
 
 class PromptBuilder:
@@ -24,10 +31,15 @@ class PromptBuilder:
             lstrip_blocks=True,
             auto_reload=False,
         )
-        self._default_template = self._environment.get_template(_DEFAULT_TEMPLATE)
+        self._default_template = self._environment.get_template(_TEMPLATE_BY_PROFILE[_DEFAULT_PROFILE])
 
-    def build(self, sample: CodeSample, template_name: str = _DEFAULT_TEMPLATE) -> str:
-        template = self._default_template if template_name == _DEFAULT_TEMPLATE else self._environment.get_template(template_name)
+    def build(self, sample: CodeSample, prompt_profile: str = _DEFAULT_PROFILE) -> str:
+        template_name = _TEMPLATE_BY_PROFILE.get(prompt_profile, prompt_profile)
+        template = (
+            self._default_template
+            if template_name == _TEMPLATE_BY_PROFILE[_DEFAULT_PROFILE]
+            else self._environment.get_template(template_name)
+        )
         return template.render(
             prompt_text=sample.prompt_text,
             entry_point=sample.entry_point,

@@ -17,6 +17,16 @@
 
 Модели для code-domain берутся из общего каталога и фильтруются по `supports_code: true`. Доменные runtime-параметры задаются через `domain_overrides.code`.
 
+Для code-domain также задается `prompt_profile`:
+
+- `m1_deepseek`, `m1_chatgpt`: `codegen_default`
+- `m2_qwen2_5_coder`: `qwen2_5_coder`
+- `m2_codegemma`: `codegemma_instruct`
+- `m2_deepseek_coder`: `deepseek_coder`
+- `m2_codellama`: `codellama_instruct`
+
+Важно: chat/template-формат модели не собирается вручную в prompt. Для API это делает chat endpoint, а для локальных моделей это делает Ollama Modelfile template. В проекте настраивается только task-level prompt: что просить сгенерировать и какой формат ответа нужен.
+
 ## Подготовка данных
 
 ```bash
@@ -24,6 +34,7 @@ uv run python code/scripts/01_prepare_benchmarks.py --benchmark all
 ```
 
 Это подтянет `HumanEval+` и `MBPP+` через `EvalPlus` и сохранит локальные metadata-артефакты в `data/code/...`.
+Инференс сначала использует подготовленные `metadata.jsonl`/`manifest.json`, если они соответствуют режимам `mini`/`noextreme`; иначе fallback идет напрямую в EvalPlus loader.
 
 ## Инференс
 

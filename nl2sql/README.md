@@ -17,6 +17,9 @@ NL2SQL.
 | `m2_defog` / **Defog-Llama3-SQLCoder-8B** | Compact local | Ollama |
 | `m2_hrida` / **Hrida-T2SQL** | Compact local | Ollama |
 | `m2_arctic` / **Arctic-Text2SQL-R1-7B** | Compact local | Ollama |
+| `m2_xiyansql_32b` / **XiYanSQL-QwenCoder-32B-2504** | 32B SQL-specialized local | Ollama |
+
+Для `m2_xiyansql_32b` используется Ollama tag `Kaiyue/xiyansql-32b:latest`.
 
 Метрики: Execution Accuracy (EA), Pass@K (K=1,5,10), Expert Score (ES), Efficiency (Eff).
 
@@ -276,7 +279,7 @@ uv run python nl2sql/scripts/03_evaluate.py --run-label ea
 .venv/bin/python nl2sql/scripts/04_archive_results.py --label before_new_run
 ```
 
-Скрипт переместит текущие артефакты в новую папку внутри `results/archive/`, а затем создаст нужные рабочие каталоги заново. Для `--scope ea` и `--scope pass_k` архивируются только соответствующие raw-файлы и подпапки `metrics/<run_label>`, `figures/<run_label>`.
+Скрипт переместит текущие артефакты в новую папку внутри `results/nl2sql/archive/`, а затем создаст нужные рабочие каталоги заново. Для `--scope ea` и `--scope pass_k` архивируются только соответствующие raw-файлы и подпапки `metrics/<run_label>`, `figures/<run_label>`.
 
 ---
 

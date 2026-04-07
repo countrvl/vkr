@@ -23,7 +23,8 @@ class DummyBackend:
 
 
 class DummyPromptBuilder:
-    def build(self, sample: DataSample) -> str:
+    def build(self, sample: DataSample, template_name: str = "nl2sql_json") -> str:
+        _ = template_name
         return sample.question
 
 
@@ -57,6 +58,63 @@ def test_runner_serializes_db_path_relative_to_data_root(tmp_path: Path) -> None
     payload = json.loads(output_path.read_text(encoding="utf-8").splitlines()[0])
 
     assert payload["db_path"] == "spider/database/demo/demo.sqlite"
+
+
+def test_runner_records_prompt_profile(tmp_path: Path) -> None:
+    data_root = tmp_path / "data"
+    db_path = data_root / "spider" / "database" / "demo" / "demo.sqlite"
+    db_path.parent.mkdir(parents=True)
+    db_path.touch()
+
+    runner = ExperimentRunner(
+        backend=DummyBackend(),
+        prompt_builder=DummyPromptBuilder(),
+        output_dir=tmp_path / "out",
+        data_root=data_root,
+    )
+
+    output_path = asyncio.run(
+        runner.run(
+            [_sample(db_path)],
+            model_name="m",
+            benchmark="spider",
+            prompt_profile="defog_sqlcoder",
+        )
+    )
+    payload = json.loads(output_path.read_text(encoding="utf-8").splitlines()[0])
+
+    assert payload["prompt_profile"] == "defog_sqlcoder"
+
+
+def test_runner_records_model_version_and_display_name(tmp_path: Path) -> None:
+    data_root = tmp_path / "data"
+    db_path = data_root / "spider" / "database" / "demo" / "demo.sqlite"
+    db_path.parent.mkdir(parents=True)
+    db_path.touch()
+
+    runner = ExperimentRunner(
+        backend=DummyBackend(),
+        prompt_builder=DummyPromptBuilder(),
+        output_dir=tmp_path / "out",
+        data_root=data_root,
+    )
+
+    output_path = asyncio.run(
+        runner.run(
+            [_sample(db_path)],
+            model_name="ChatGPT",
+            model_display_name="ChatGPT 5.2",
+            model_version="5.2",
+            model_key="m1_chatgpt",
+            benchmark="spider",
+        )
+    )
+    payload = json.loads(output_path.read_text(encoding="utf-8").splitlines()[0])
+
+    assert payload["model_key"] == "m1_chatgpt"
+    assert payload["model_name"] == "ChatGPT"
+    assert payload["model_display_name"] == "ChatGPT 5.2"
+    assert payload["model_version"] == "5.2"
 
 
 def test_runner_falls_back_to_original_db_path_outside_data_root(tmp_path: Path) -> None:

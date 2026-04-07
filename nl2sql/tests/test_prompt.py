@@ -31,6 +31,31 @@ def test_prompt_builder_contains_schema_and_question(tmp_path: Path) -> None:
     assert sample.question in prompt
 
 
+def test_prompt_builder_supports_m2_sql_continuation_profile(tmp_path: Path) -> None:
+    sample = _make_sample(tmp_path)
+    builder = PromptBuilder()
+
+    prompt = builder.build(sample, "m2_sql_continuation")
+
+    assert "SQL query:" in prompt
+    assert '"sql"' not in prompt
+    assert sample.schema in prompt
+    assert sample.question in prompt
+
+
+def test_prompt_builder_supports_xiyansql_profile(tmp_path: Path) -> None:
+    sample = _make_sample(tmp_path)
+    builder = PromptBuilder()
+
+    prompt = builder.build(sample, "xiyansql_sqlite")
+
+    assert "### Dialect" in prompt
+    assert "SQLite" in prompt
+    assert "```sql" in prompt
+    assert sample.schema in prompt
+    assert sample.question in prompt
+
+
 def test_prompt_builder_is_deterministic(tmp_path: Path) -> None:
     sample = _make_sample(tmp_path)
     builder = PromptBuilder()

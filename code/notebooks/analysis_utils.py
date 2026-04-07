@@ -2,14 +2,13 @@ from __future__ import annotations
 
 import json
 import os
-from collections import defaultdict
 from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
 import pandas as pd
 
-from shared.config import load_yaml_config
+from shared.config import load_domain_models, load_yaml_config
 
 
 def detect_project_root() -> Path:
@@ -27,6 +26,63 @@ CONFIG_DIR = DOMAIN_ROOT / "configs"
 BENCHMARKS_CFG = load_yaml_config(CONFIG_DIR / "benchmarks.yaml")
 EXPERIMENT_CFG = load_yaml_config(CONFIG_DIR / "experiment.yaml")
 METRICS_CFG = load_yaml_config(CONFIG_DIR / "metrics.yaml")
+MODEL_DISPLAY_LOOKUP: dict[str, dict[str, Any]] = {}
+for key, cfg in load_domain_models("supports_code").items():
+    lookup_row = {
+        "display_name": cfg.get("display_name") or cfg.get("name") or key,
+        "version": cfg.get("version"),
+        "key": key,
+        "family": str(cfg.get("family", "")).upper() or ("M1" if key.startswith("m1_") else "M2"),
+    }
+    for alias in {key, cfg.get("name"), cfg.get("display_name")}:
+        if alias:
+            MODEL_DISPLAY_LOOKUP[str(alias)] = lookup_row
+
+
+def model_display_name(record: dict[str, Any]) -> Any:
+    model_key = record.get("model_key")
+    model_name = record.get("model_name")
+    lookup = MODEL_DISPLAY_LOOKUP.get(str(model_key)) or MODEL_DISPLAY_LOOKUP.get(str(model_name))
+    return record.get("model_display_name") or (lookup or {}).get("display_name") or model_name
+
+
+def model_version(record: dict[str, Any]) -> Any:
+    model_key = record.get("model_key")
+    model_name = record.get("model_name")
+    lookup = MODEL_DISPLAY_LOOKUP.get(str(model_key)) or MODEL_DISPLAY_LOOKUP.get(str(model_name))
+    return record.get("model_version") or (lookup or {}).get("version")
+
+
+def model_key(record: dict[str, Any]) -> Any:
+    model_name = record.get("model_name")
+    return record.get("model_key") or MODEL_DISPLAY_LOOKUP.get(str(model_name), {}).get("key")
+
+
+def model_family(name_or_key: Any) -> str:
+    """Classify a model label into M1 (large API) or M2 (specialized/local)."""
+    lookup = MODEL_DISPLAY_LOOKUP.get(str(name_or_key))
+    if lookup and lookup.get("family"):
+        return str(lookup["family"]).upper()
+    return "M1" if name_or_key in {"DeepSeek", "ChatGPT"} else "M2"
+
+
+def ensure_model_label_columns(df: pd.DataFrame) -> pd.DataFrame:
+    """Add display/version/family columns for old metrics files when needed."""
+    if df.empty or "model_name" not in df.columns:
+        return df
+    enriched = df.copy()
+    if "model_key" not in enriched.columns:
+        enriched["model_key"] = enriched.apply(lambda row: model_key(row.to_dict()), axis=1)
+    if "model_display_name" not in enriched.columns:
+        enriched["model_display_name"] = enriched.apply(
+            lambda row: model_display_name(row.to_dict()),
+            axis=1,
+        )
+    if "model_version" not in enriched.columns:
+        enriched["model_version"] = enriched.apply(lambda row: model_version(row.to_dict()), axis=1)
+    if "family" not in enriched.columns:
+        enriched["family"] = enriched["model_key"].map(model_family)
+    return enriched
 
 
 def get_results_dir() -> Path:
@@ -83,7 +139,7 @@ def _parse_candidate_hits(value: Any) -> list[bool]:
 @lru_cache(maxsize=8)
 def load_summary_metrics(run_label: str, *, required: bool = False) -> pd.DataFrame:
     run_label = _normalize_run_label(run_label)
-    return _load_csv(get_metrics_dir(run_label) / "summary_metrics.csv", required)
+    return ensure_model_label_columns(_load_csv(get_metrics_dir(run_label) / "summary_metrics.csv", required))
 
 
 @lru_cache(maxsize=8)
@@ -92,6 +148,7 @@ def load_sample_metrics(run_label: str, *, required: bool = False) -> pd.DataFra
     df = _load_csv(get_metrics_dir(run_label) / "sample_metrics.csv", required)
     if df.empty:
         return df
+    df = ensure_model_label_columns(df)
     if "candidate_hits" in df.columns:
         df["candidate_hits"] = df["candidate_hits"].map(_parse_candidate_hits)
     for col in ["first_hit", "any_hit", "first_compiled_ok", "first_tests_passed"]:
@@ -106,6 +163,7 @@ def load_candidate_metrics(run_label: str, *, required: bool = False) -> pd.Data
     df = _load_csv(get_metrics_dir(run_label) / "candidate_metrics.csv", required)
     if df.empty:
         return df
+    df = ensure_model_label_columns(df)
     for col in ["compiled_ok", "tests_passed", "functional_correctness"]:
         if col in df.columns:
             df[col] = df[col].map(_parse_bool)
@@ -149,10 +207,12 @@ def load_records(run_label: str | None = None) -> tuple[pd.DataFrame, pd.DataFra
     for record in _iter_raw_records(get_results_dir(), run_label):
         sample_row = {
             "sample_id": record.get("sample_id"),
+            "model_key": model_key(record),
             "model_name": record.get("model_name"),
+            "model_display_name": model_display_name(record),
+            "model_version": model_version(record),
             "benchmark": record.get("benchmark"),
             "run_label": record.get("run_label"),
-            "model_key": record.get("model_key"),
             "entry_point": record.get("entry_point"),
             "prompt": record.get("prompt", ""),
             "contract": record.get("contract", ""),
@@ -167,6 +227,8 @@ def load_records(run_label: str | None = None) -> tuple[pd.DataFrame, pd.DataFra
                 {
                     "sample_id": record.get("sample_id"),
                     "model_name": record.get("model_name"),
+                    "model_display_name": model_display_name(record),
+                    "model_version": model_version(record),
                     "benchmark": record.get("benchmark"),
                     "run_label": record.get("run_label"),
                     "generation_index": idx,
@@ -198,28 +260,23 @@ def pairwise_metric_deltas(summary_df: pd.DataFrame, metric: str) -> pd.DataFram
         return pd.DataFrame()
     rows: list[dict[str, object]] = []
     for benchmark, group in summary_df.groupby("benchmark"):
-        values = group[["model_name", metric]].dropna()
+        model_col = "model_display_name" if "model_display_name" in group.columns else "model_name"
+        values = group[[model_col, metric]].dropna()
         records = values.to_dict("records")
         for left in records:
             for right in records:
-                if left["model_name"] >= right["model_name"]:
+                if left[model_col] >= right[model_col]:
                     continue
                 rows.append(
                     {
                         "benchmark": benchmark,
                         "metric": metric,
-                        "left_model": left["model_name"],
-                        "right_model": right["model_name"],
+                        "left_model": left[model_col],
+                        "right_model": right[model_col],
                         "delta": float(left[metric]) - float(right[metric]),
                     }
                 )
     return pd.DataFrame(rows)
-
-
-def model_family(name: str) -> str:
-    """Classify a model name into M1 (large API) or M2 (compact local)."""
-    m1_names = {"DeepSeek", "ChatGPT"}
-    return "M1" if name in m1_names else "M2"
 
 
 def ensure_expert_template(run_label: str | None = None) -> Path:
@@ -236,7 +293,8 @@ def ensure_expert_template(run_label: str | None = None) -> Path:
     if sample_df.empty:
         return template_path
 
-    template_df = sample_df[["sample_id", "model_name", "benchmark"]].copy()
+    template_cols = ["sample_id", "model_name", "model_display_name", "benchmark"]
+    template_df = sample_df[[col for col in template_cols if col in sample_df.columns]].copy()
     template_df["completeness"] = pd.NA
     template_df["efficiency"] = pd.NA
     template_df["readability"] = pd.NA

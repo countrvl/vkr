@@ -22,22 +22,36 @@ def test_models_config_includes_pricing() -> None:
     assert config["models"]["m1_deepseek"]["base_url_env"] == "DEEPSEEK_API_URL"
     assert config["models"]["m1_deepseek"]["model_id_env"] == "DEEPSEEK_MODEL_ID"
     assert config["models"]["m1_deepseek"]["name"] == "DeepSeek"
+    assert config["models"]["m1_deepseek"]["version"] == "V3.2"
+    assert config["models"]["m1_deepseek"]["display_name"] == "DeepSeek V3.2"
     assert config["models"]["m1_chatgpt"]["model_id"] == "openai/gpt-5.2"
     assert config["models"]["m1_chatgpt"]["base_url_env"] == "OPENAI_API_URL"
     assert config["models"]["m1_chatgpt"]["model_id_env"] == "OPENAI_MODEL_ID"
     assert config["models"]["m1_chatgpt"]["env_key"] == "OPENAI_API_KEY"
     assert config["models"]["m1_chatgpt"]["name"] == "ChatGPT"
+    assert config["models"]["m1_chatgpt"]["version"] == "5.2"
+    assert config["models"]["m1_chatgpt"]["display_name"] == "ChatGPT 5.2"
     assert config["models"]["m1_chatgpt"]["pricing"]["output_per_1m"] == 10.0
     assert config["models"]["m2_defog"]["pricing"]["output_per_1m"] == 0.0
     assert config["models"]["m2_defog"]["base_url_env"] == "OLLAMA_API_URL"
     assert config["models"]["m2_defog"]["supports_sql"] is True
     assert config["models"]["m2_defog"]["supports_code"] is False
+    assert config["models"]["m2_defog"]["domain_overrides"]["sql"]["prompt_profile"] == "defog_sqlcoder"
+    assert config["models"]["m2_defog"]["domain_overrides"]["sql"]["structured_output"] is False
     assert config["models"]["m2_hrida"]["model_id"] == "HridaAI/hrida-t2sql:q8_0"
     assert config["models"]["m2_hrida"]["pricing"]["output_per_1m"] == 0.0
     assert config["models"]["m2_hrida"]["base_url_env"] == "OLLAMA_API_URL"
     assert config["models"]["m2_arctic"]["model_id"] == "a-kore/Arctic-Text2SQL-R1-7B:latest"
     assert config["models"]["m2_arctic"]["pricing"]["output_per_1m"] == 0.0
     assert config["models"]["m2_arctic"]["base_url_env"] == "OLLAMA_API_URL"
+    assert config["models"]["m2_xiyansql_32b"]["supports_sql"] is True
+    assert config["models"]["m2_xiyansql_32b"]["supports_code"] is False
+    assert config["models"]["m2_xiyansql_32b"]["model_id"] == "Kaiyue/xiyansql-32b:latest"
+    assert config["models"]["m2_xiyansql_32b"]["model_id_env"] == "SQL_XIYANSQL_32B_MODEL_ID"
+    assert (
+        config["models"]["m2_xiyansql_32b"]["domain_overrides"]["sql"]["prompt_profile"]
+        == "xiyansql_sqlite"
+    )
     assert config["models"]["m2_qwen2_5_coder"]["supports_sql"] is False
     assert config["models"]["m2_qwen2_5_coder"]["supports_code"] is True
 
@@ -55,9 +69,14 @@ def test_domain_model_filter_keeps_only_sql_models() -> None:
 
     assert "m1_deepseek" in models
     assert "m2_defog" in models
+    assert "m2_xiyansql_32b" in models
     assert "m2_qwen2_5_coder" not in models
     assert models["m1_deepseek"]["max_tokens"] == 512
+    assert models["m1_deepseek"]["prompt_profile"] == "nl2sql_json"
+    assert models["m1_deepseek"]["structured_output"] is True
     assert models["m2_defog"]["parameters"]["num_ctx"] == 4096
+    assert models["m2_defog"]["prompt_profile"] == "defog_sqlcoder"
+    assert models["m2_defog"]["structured_output"] is False
 
 
 def test_experiment_config_includes_path_defaults() -> None:
