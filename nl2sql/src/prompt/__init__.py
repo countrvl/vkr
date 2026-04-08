@@ -1,4 +1,4 @@
-"""Prompt-building helpers."""
+"""Вспомогательные компоненты prompt-слоя."""
 
 from .template import PromptBuilder
 

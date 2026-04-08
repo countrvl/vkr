@@ -1,4 +1,4 @@
-"""SQLite execution with normalization and timeout handling."""
+"""Выполнение SQL в SQLite с нормализацией и таймаутом."""
 
 from __future__ import annotations
 
@@ -15,7 +15,7 @@ _MAX_RESULT_CACHE_SIZE = 10_000
 
 @dataclass(slots=True)
 class ExecutionResult:
-    """Outcome of executing a SQL query."""
+    """Результат выполнения SQL-запроса."""
 
     success: bool
     rows: list[tuple[str, ...]] | None
@@ -23,13 +23,7 @@ class ExecutionResult:
 
 
 def _normalize_value(value: Any) -> str:
-    """Normalize a single cell value to a canonical string.
-
-    Floats are rendered with 10 significant digits (``.10g``) to tolerate
-    floating-point representation differences while preserving enough precision
-    to detect genuine numeric mismatches.  NULL is mapped to the literal string
-    ``"NULL"``; all other types use ``str()``.
-    """
+    """Нормализовать одно значение ячейки в каноническую строку."""
     if value is None:
         return "NULL"
     if isinstance(value, float):
@@ -38,14 +32,7 @@ def _normalize_value(value: Any) -> str:
 
 
 def _normalize_rows(rows: list[tuple[Any, ...]]) -> list[tuple[str, ...]]:
-    """Normalize and sort result rows for order-independent comparison.
-
-    Row order is intentionally discarded: Spider and BIRD evaluate Execution
-    Accuracy by result-*set* equality, not sequence equality.  This is the
-    standard treatment in the benchmark literature — queries with ``ORDER BY``
-    are still considered correct as long as their result set matches the gold
-    result set.
-    """
+    """Нормализовать и отсортировать строки результата для сравнения без учета порядка."""
     normalized = [tuple(_normalize_value(value) for value in row) for row in rows]
     return sorted(normalized)
 
@@ -65,7 +52,7 @@ def _get_connection(db_path: Path) -> sqlite3.Connection:
 
 
 def clear_executor_caches() -> None:
-    """Clear process-local SQL result and connection caches."""
+    """Очистить process-local кэши результатов SQL и соединений."""
     for connection in _CONNECTION_CACHE.values():
         connection.close()
     _CONNECTION_CACHE.clear()
@@ -73,16 +60,7 @@ def clear_executor_caches() -> None:
 
 
 def execute_sql(sql: str, db_path: Path, timeout: int = 30) -> ExecutionResult:
-    """Execute SQL against SQLite with a progress-handler timeout.
-
-    Args:
-        sql: SQL query to execute.
-        db_path: SQLite database path.
-        timeout: Timeout in seconds.
-
-    Returns:
-        Normalized execution result.
-    """
+    """Выполнить SQL в SQLite с таймаутом через progress handler."""
     if not sql or not sql.strip():
         return ExecutionResult(success=False, rows=None, error="empty query")
 

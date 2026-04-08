@@ -1,8 +1,8 @@
-"""Async Ollama backend for local NL2SQL models."""
+"""Async Ollama-backend для локальных NL2SQL-моделей."""
 
 from __future__ import annotations
 
-import httpx  # noqa: F401 - kept for tests that monkeypatch the shared transport client
+import httpx  # noqa: F401 - оставлено для тестов, которые monkeypatch-ят shared transport client
 from typing import Any
 
 from nl2sql.src.inference.base import GenerationResult, InferenceBackend, SQL_RESPONSE_SCHEMA
@@ -10,7 +10,7 @@ from shared.inference.ollama_transport import OllamaGenerateTransport
 
 
 class OllamaBackend(InferenceBackend):
-    """Inference backend for Ollama's `/api/generate` endpoint."""
+    """Backend инференса для Ollama `/api/generate`."""
 
     def __init__(
         self,
@@ -21,15 +21,7 @@ class OllamaBackend(InferenceBackend):
         parameters: dict[str, Any] | None = None,
         structured_output: bool = True,
     ) -> None:
-        """Initialize the Ollama backend.
-
-        Args:
-            model_id: Ollama model tag.
-            base_url: Ollama REST API base URL.
-            num_ctx: Context window size.
-            model_name: Human-readable model name.
-            parameters: Additional Ollama options.
-        """
+        """Инициализировать Ollama-backend."""
         self.model_name = model_name or model_id
         self._transport = OllamaGenerateTransport(
             model_id=model_id,
@@ -51,7 +43,7 @@ class OllamaBackend(InferenceBackend):
         seed: int | None = None,
         top_p: float | None = None,
     ) -> list[GenerationResult]:
-        """Generate SQL candidates sequentially through Ollama."""
+        """Сгенерировать SQL-кандидаты последовательно через Ollama."""
         return await self._transport.generate(
             prompt=prompt,
             n=n,

@@ -1,4 +1,4 @@
-"""Shared logging and progress configuration for CLI scripts."""
+"""Общая настройка logging и progress bar для CLI-скриптов."""
 
 from __future__ import annotations
 
@@ -45,12 +45,12 @@ ProgressType = Progress
 
 
 def get_console() -> Console:
-    """Return the shared console used for logs and progress bars."""
+    """Вернуть общий Console для логов и progress bar."""
     return _CONSOLE
 
 
 def create_progress() -> Progress:
-    """Return the shared rich progress layout used by CLI scripts."""
+    """Вернуть общий layout progress bar на базе rich."""
     return Progress(
         SpinnerColumn(),
         TextColumn("[progress.description]{task.description}"),
@@ -67,7 +67,7 @@ def create_progress() -> Progress:
 
 
 def configure_logging(level: int = logging.INFO) -> None:
-    """Configure project logging with quieter third-party defaults."""
+    """Настроить logging проекта и приглушить шумные сторонние логи."""
     root_logger = logging.getLogger()
     root_logger.handlers.clear()
     handler = RichHandler(

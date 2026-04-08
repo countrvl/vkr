@@ -1,4 +1,4 @@
-"""Efficiency metric aggregation."""
+"""Агрегация метрик эффективности."""
 
 from __future__ import annotations
 
@@ -8,12 +8,12 @@ from typing import Any
 
 from nl2sql.src.inference.base import GenerationResult
 
-# Components subject to cross-model min-max normalization.
+# Компоненты, которые нормализуются по min-max между моделями.
 _EFF_COMPONENTS = ("Tinf", "Mem", "Tok", "Cost")
 
 
 def _validate_weights(weights: dict[str, Any]) -> None:
-    """Raise ValueError if efficiency weights do not sum to 1.0."""
+    """Проверить, что веса эффективности суммируются в `1.0`."""
     total = sum(weights[k] for k in ("alpha", "beta", "gamma", "delta"))
     if abs(total - 1.0) > 1e-9:
         raise ValueError(
@@ -22,13 +22,10 @@ def _validate_weights(weights: dict[str, Any]) -> None:
 
 
 def compute_efficiency(results: list[GenerationResult], config: dict[str, Any]) -> dict[str, float | None]:
-    """Compute Tinf, Mem, Tok, Cost, and an aggregate efficiency score.
+    """Посчитать `Tinf`, `Mem`, `Tok`, `Cost` и агрегированный `Eff`.
 
-    Local backends default to zero direct monetary cost. Missing pricing or
-    missing memory measurements produce `None` for the affected component.
-
-    Raises:
-        ValueError: If efficiency_weights do not sum to 1.0.
+    Для локальных backend-ов прямые денежные затраты считаются равными нулю.
+    Если нет pricing или замеров памяти, соответствующий компонент получает `None`.
     """
     if not results:
         return {"Tinf": None, "Mem": None, "Tok": None, "Cost": None, "Eff": None}
@@ -76,26 +73,10 @@ def compute_efficiency(results: list[GenerationResult], config: dict[str, Any]) 
 
 
 def normalize_efficiency_rows(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    """Return a new list of rows with min-max normalized Eff components.
+    """Вернуть новый список строк с min-max-нормализованными компонентами Eff.
 
-    Does NOT mutate the input. Each returned row is a shallow copy of the
-    original, augmented with ``{component}_norm`` keys and ``Eff_normalized``.
-
-    Components with ``None`` values produce a ``None`` norm. When all
-    components of a row are identical across the batch (span == 0), their
-    normalized value is 0.0 (lower-bound convention).
-
-    The formula from the TZ requires normalizing each raw metric to [0, 1]
-    before computing the weighted sum:
-
-        Eff_normalized = α·Tinf_norm + β·Mem_norm + γ·Tok_norm + δ·Cost_norm
-
-    Args:
-        rows: List of metric dicts as produced by :func:`compute_efficiency`,
-              each optionally augmented with a ``_weights`` key for Eff recomputation.
-
-    Returns:
-        New list of dicts with normalized components and ``Eff_normalized``.
+    Входные данные не мутируются. Для каждой строки добавляются поля
+    ``{component}_norm`` и ``Eff_normalized``.
     """
     result = [copy.copy(row) for row in rows]
 
@@ -118,7 +99,7 @@ def normalize_efficiency_rows(rows: list[dict[str, Any]]) -> list[dict[str, Any]
             else:
                 row[f"{component}_norm"] = 0.0 if span == 0 else (float(raw) - lo) / span
 
-    # Recompute Eff using normalized components if weights are present.
+    # Пересчитываем Eff по нормализованным компонентам, если веса присутствуют.
     for row in result:
         weights = row.get("_weights")
         if not weights:

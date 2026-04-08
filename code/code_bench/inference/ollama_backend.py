@@ -1,4 +1,4 @@
-"""Async Ollama backend for local code-generation models."""
+"""Async Ollama-backend для локальных моделей генерации кода."""
 
 from __future__ import annotations
 
@@ -9,7 +9,7 @@ from shared.inference.ollama_transport import OllamaGenerateTransport
 
 
 class OllamaBackend(InferenceBackend):
-    """Inference backend for Ollama's `/api/generate` endpoint."""
+    """Backend инференса для Ollama `/api/generate`."""
 
     def __init__(
         self,

@@ -1,2 +1,1 @@
-"""Code-generation domain implementation package."""
-
+"""Пакет реализации домена генерации кода."""

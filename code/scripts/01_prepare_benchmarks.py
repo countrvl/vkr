@@ -1,4 +1,4 @@
-"""Prepare code-generation benchmarks such as HumanEval+ and MBPP+."""
+"""Подготовить code-бенчмарки, например HumanEval+ и MBPP+."""
 
 from __future__ import annotations
 

@@ -1,2 +1,1 @@
-"""Shared infrastructure helpers reused across project domains."""
-
+"""Общие инфраструктурные компоненты для разных доменов проекта."""

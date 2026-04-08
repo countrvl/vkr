@@ -1,4 +1,4 @@
-"""OpenAI-compatible API backend for code-generation models."""
+"""OpenAI-compatible API-backend для моделей генерации кода."""
 
 from __future__ import annotations
 
@@ -9,7 +9,7 @@ from shared.inference.api_transport import OpenAIChatTransport
 
 
 class APIBackend(InferenceBackend):
-    """Inference backend for OpenAI-compatible chat completion APIs."""
+    """Backend инференса для OpenAI-compatible chat completion API."""
 
     def __init__(
         self,

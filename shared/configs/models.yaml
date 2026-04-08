@@ -5,6 +5,9 @@ models:
     display_name: "DeepSeek V3.2"
     backend: "api"
     family: "m1"
+    batch_support: false
+    batch_mode: "none"
+    dispatch_preference: "online"
     supports_sql: true
     supports_code: true
     model_id: "deepseek-chat"
@@ -32,6 +35,9 @@ models:
     display_name: "ChatGPT 5.2"
     backend: "api"
     family: "m1"
+    batch_support: false
+    batch_mode: "none"
+    dispatch_preference: "online"
     supports_sql: true
     supports_code: true
     model_id: "openai/gpt-5.2"
@@ -49,6 +55,36 @@ models:
         max_tokens: 512
         prompt_profile: "nl2sql_json"
         structured_output: true
+      code:
+        max_tokens: 768
+        prompt_profile: "codegen_default"
+
+  m1_claude:
+    name: "Claude"
+    version: "Sonnet 4.5"
+    display_name: "Claude Sonnet 4.5"
+    backend: "anthropic"
+    family: "m1"
+    batch_support: true
+    batch_mode: "native"
+    dispatch_preference: "batch"
+    supports_sql: true
+    supports_code: true
+    model_id: "claude-sonnet-4-20250514"
+    model_id_env: "ANTHROPIC_MODEL_ID"
+    base_url: "https://api.anthropic.com"
+    base_url_env: "ANTHROPIC_BASE_URL"
+    env_key: "ANTHROPIC_API_KEY"
+    pricing:
+      input_per_1m: 3.0
+      output_per_1m: 15.0
+    parameters:
+      anthropic_version: "2023-06-01"
+      batch_pricing_multiplier: 0.5
+    domain_overrides:
+      sql:
+        max_tokens: 512
+        prompt_profile: "nl2sql_json"
       code:
         max_tokens: 768
         prompt_profile: "codegen_default"

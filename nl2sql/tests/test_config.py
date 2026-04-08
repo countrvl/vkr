@@ -17,6 +17,8 @@ def test_models_config_includes_pricing() -> None:
     config = load_yaml_config(Path("shared/configs/models.yaml"))
 
     assert config["models"]["m1_deepseek"]["pricing"]["input_per_1m"] == 0.28
+    assert config["models"]["m1_deepseek"]["batch_support"] is False
+    assert config["models"]["m1_deepseek"]["batch_mode"] == "none"
     assert config["models"]["m1_deepseek"]["supports_sql"] is True
     assert config["models"]["m1_deepseek"]["supports_code"] is True
     assert config["models"]["m1_deepseek"]["base_url_env"] == "DEEPSEEK_API_URL"
@@ -32,6 +34,17 @@ def test_models_config_includes_pricing() -> None:
     assert config["models"]["m1_chatgpt"]["version"] == "5.2"
     assert config["models"]["m1_chatgpt"]["display_name"] == "ChatGPT 5.2"
     assert config["models"]["m1_chatgpt"]["pricing"]["output_per_1m"] == 10.0
+    assert config["models"]["m1_chatgpt"]["batch_support"] is False
+    assert config["models"]["m1_chatgpt"]["batch_mode"] == "none"
+    assert config["models"]["m1_claude"]["backend"] == "anthropic"
+    assert config["models"]["m1_claude"]["batch_support"] is True
+    assert config["models"]["m1_claude"]["batch_mode"] == "native"
+    assert config["models"]["m1_claude"]["dispatch_preference"] == "batch"
+    assert config["models"]["m1_claude"]["env_key"] == "ANTHROPIC_API_KEY"
+    assert config["models"]["m1_claude"]["base_url_env"] == "ANTHROPIC_BASE_URL"
+    assert config["models"]["m1_claude"]["model_id_env"] == "ANTHROPIC_MODEL_ID"
+    assert config["models"]["m1_claude"]["display_name"] == "Claude Sonnet 4.5"
+    assert config["models"]["m1_claude"]["pricing"]["input_per_1m"] == 3.0
     assert config["models"]["m2_defog"]["pricing"]["output_per_1m"] == 0.0
     assert config["models"]["m2_defog"]["base_url_env"] == "OLLAMA_API_URL"
     assert config["models"]["m2_defog"]["supports_sql"] is True
@@ -68,6 +81,7 @@ def test_domain_model_filter_keeps_only_sql_models() -> None:
     models = load_domain_models("supports_sql")
 
     assert "m1_deepseek" in models
+    assert "m1_claude" in models
     assert "m2_defog" in models
     assert "m2_xiyansql_32b" in models
     assert "m2_qwen2_5_coder" not in models

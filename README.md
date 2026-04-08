@@ -1,17 +1,26 @@
 # benchmark-domains
 
-Один репозиторий с двумя независимыми доменами тестирования моделей:
+Один репозиторий для двух независимых доменов сравнения моделей:
 
-- [`nl2sql/`](/home/count/code/vkr/nl2sql) — Spider/BIRD
-- [`code/`](/home/count/code/vkr/code) — HumanEval+/MBPP+
+- [`nl2sql/`](/home/count/code/vkr/nl2sql) — генерация SQL для `Spider` и `BIRD`
+- [`code/`](/home/count/code/vkr/code) — генерация Python-кода для `HumanEval+` и `MBPP+`
+
+## Назначение
+
+Проект используется для сравнения двух классов моделей:
+
+- `M1` — крупные general-purpose модели
+- `M2` — компактные специализированные модели
+
+Домены независимы по данным, prompt-слою, evaluation, метрикам и ноутбукам. Общая инфраструктура вынесена в `shared/`.
 
 ## Структура
 
 ```text
 benchmark-domains/
-├── nl2sql/   # text-to-SQL domain
-├── code/     # code-generation domain
-├── shared/   # только infra: config/logging/progress
+├── nl2sql/
+├── code/
+├── shared/
 ├── data/
 │   ├── nl2sql/
 │   └── code/
@@ -21,15 +30,17 @@ benchmark-domains/
 └── pyproject.toml
 ```
 
-## Что где
+## Общие компоненты
 
-- [`nl2sql/README.md`](/home/count/code/vkr/nl2sql/README.md) — все инструкции по Spider/BIRD
-- [`code/README.md`](/home/count/code/vkr/code/README.md) — pipeline для HumanEval+/MBPP+
-- [`shared/config.py`](/home/count/code/vkr/shared/config.py) — общий загрузчик YAML-конфигов
-- [`shared/configs/models.yaml`](/home/count/code/vkr/shared/configs/models.yaml) — единый каталог моделей для обоих доменов
-- [`shared/logging_utils.py`](/home/count/code/vkr/shared/logging_utils.py) — общий logging/progress UX
+- [`shared/config.py`](/home/count/code/vkr/shared/config.py) — загрузка YAML-конфигов
+- [`shared/configs/models.yaml`](/home/count/code/vkr/shared/configs/models.yaml) — единый каталог моделей
+- [`shared/logging_utils.py`](/home/count/code/vkr/shared/logging_utils.py) — logging и progress bar
+- [`shared/inference/`](/home/count/code/vkr/shared/inference) — общий transport-слой для API, Anthropic и Ollama
 
-В `shared/configs/models.yaml` доменные runtime overrides задаются через `domain_overrides.sql` и `domain_overrides.code`.
+Доменные runtime-переопределения задаются через:
+
+- `domain_overrides.sql`
+- `domain_overrides.code`
 
 ## Установка
 
@@ -38,18 +49,30 @@ uv sync
 cp .env.example .env
 ```
 
-## Sanity Check
+Для `Claude` нужен отдельный ключ:
 
-Перед длинными запусками:
+```bash
+export ANTHROPIC_API_KEY=...
+```
+
+## Быстрая проверка
+
+Перед длинными прогонами:
 
 ```bash
 .venv/bin/ruff check .
 .venv/bin/pytest -q
 ```
 
-## Запуск
+## Основные документы
 
-NL2SQL:
+- [`nl2sql/README.md`](/home/count/code/vkr/nl2sql/README.md) — подробности по NL2SQL-домену
+- [`code/README.md`](/home/count/code/vkr/code/README.md) — подробности по code-домену
+- [`plan.md`](/home/count/code/vkr/plan.md) — рабочий план и backlog
+
+## Типовые команды
+
+### NL2SQL
 
 ```bash
 uv run python nl2sql/scripts/01_download_data.py --benchmark all
@@ -58,10 +81,10 @@ uv run python nl2sql/scripts/03_evaluate.py --run-label ea
 jupyter lab nl2sql/notebooks/01_report_ea.ipynb
 ```
 
-Code:
+### Code
 
 ```bash
-uv run python code/scripts/01_prepare_benchmarks.py
+uv run python code/scripts/01_prepare_benchmarks.py --benchmark all
 uv run python code/scripts/02_run_inference.py --model all --benchmark all --mode fc
 uv run python code/scripts/03_evaluate.py --run-label fc
 jupyter lab code/notebooks/01_report_fc_passk.ipynb

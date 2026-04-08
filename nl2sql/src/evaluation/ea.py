@@ -1,4 +1,4 @@
-"""Execution Accuracy metric."""
+"""Метрика Execution Accuracy."""
 
 from __future__ import annotations
 
@@ -9,12 +9,12 @@ from nl2sql.src.evaluation.executor import ExecutionResult, execute_sql
 
 
 def _results_match(pred_result: ExecutionResult, gold_result: ExecutionResult) -> bool:
-    """Return True when both results succeeded with identical normalized rows."""
+    """Вернуть `True`, если оба результата успешны и совпадают после нормализации."""
     return pred_result.success and gold_result.success and pred_result.rows == gold_result.rows
 
 
 def execution_match(pred_sql: str, gold_result: ExecutionResult, db_path: Path, timeout: int = 30) -> bool:
-    """Compare one prediction against a precomputed gold execution result."""
+    """Сравнить одно предсказание с заранее вычисленным gold execution result."""
     pred_result = execute_sql(pred_sql, db_path, timeout=timeout)
     return _results_match(pred_result, gold_result)
 
@@ -25,10 +25,9 @@ def evaluate_candidate_predictions(
     db_path: Path,
     timeout: int = 30,
 ) -> dict[str, Any]:
-    """Evaluate candidate SQL predictions against one gold query.
+    """Оценить SQL-кандидаты относительно одного gold-запроса.
 
-    Returns sample-level details that can be persisted and reused by later
-    analysis steps without re-executing SQL in notebooks.
+    Возвращает sample-level детали, которые можно сохранить и потом переиспользовать.
     """
     gold_result = execute_sql(gold_sql, db_path, timeout=timeout)
     candidate_hits: list[bool] = []
@@ -57,7 +56,7 @@ def candidate_execution_matches(
     db_path: Path,
     timeout: int = 30,
 ) -> list[bool]:
-    """Evaluate multiple predictions while executing the gold SQL only once."""
+    """Оценить несколько предсказаний, исполнив gold SQL только один раз."""
     return evaluate_candidate_predictions(
         predictions,
         gold_sql,
@@ -72,7 +71,7 @@ def execution_accuracy(
     db_paths: list[Path],
     timeout: int = 30,
 ) -> float:
-    """Compute execution accuracy over aligned predictions and gold SQL."""
+    """Посчитать execution accuracy по выровненным спискам predictions и gold SQL."""
     if not (len(predictions) == len(gold) == len(db_paths)):
         raise ValueError("predictions, gold, and db_paths must have the same length")
     if not predictions:

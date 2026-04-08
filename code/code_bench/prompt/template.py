@@ -1,4 +1,4 @@
-"""Jinja-backed prompt builder for code generation."""
+"""Построитель prompt-ов для генерации кода на базе Jinja."""
 
 from __future__ import annotations
 
@@ -20,7 +20,7 @@ _TEMPLATE_BY_PROFILE = {
 
 
 class PromptBuilder:
-    """Render prompts from a Jinja2 template."""
+    """Рендерить prompt-ы из Jinja2-шаблонов."""
 
     def __init__(self, template_dir: Path | None = None) -> None:
         resolved_template_dir = template_dir or Path(__file__).resolve().parent / "templates"

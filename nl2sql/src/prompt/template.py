@@ -1,4 +1,4 @@
-"""Jinja-backed NL2SQL prompt builder."""
+"""Построитель NL2SQL prompt-ов на базе Jinja."""
 
 from __future__ import annotations
 
@@ -19,18 +19,10 @@ _PROFILE_TO_TEMPLATE = {
 
 
 class PromptBuilder:
-    """Render prompts from a Jinja2 template."""
+    """Рендерить prompt-ы из Jinja2-шаблонов."""
 
     def __init__(self, template_dir: Path | None = None) -> None:
-        """Initialize the Jinja2 environment and pre-load the default template.
-
-        The default template is loaded once at construction time
-        (``auto_reload=False``), avoiding a disk stat on every ``build()``
-        call during large benchmark runs.
-
-        Args:
-            template_dir: Optional template directory. Defaults to `src/prompt/templates`.
-        """
+        """Инициализировать Jinja2 и заранее загрузить шаблон по умолчанию."""
         resolved_template_dir = template_dir or Path(__file__).resolve().parent / "templates"
         self._environment = Environment(
             loader=FileSystemLoader(str(resolved_template_dir)),
@@ -42,17 +34,9 @@ class PromptBuilder:
         self._default_template = self._environment.get_template(_PROFILE_TO_TEMPLATE[_DEFAULT_PROFILE])
 
     def build(self, sample: DataSample, template_name: str = _DEFAULT_PROFILE) -> str:
-        """Render a prompt from a benchmark sample.
+        """Собрать prompt из benchmark-sample.
 
-        ``template_name`` may be either a prompt profile from
-        ``_PROFILE_TO_TEMPLATE`` or a direct template filename.
-
-        Args:
-            sample: Unified benchmark sample.
-            template_name: Prompt profile or template filename within the template directory.
-
-        Returns:
-            Rendered prompt text.
+        `template_name` может быть либо prompt profile, либо прямым именем шаблона.
         """
         resolved_template = _PROFILE_TO_TEMPLATE.get(template_name, template_name)
         if resolved_template == _PROFILE_TO_TEMPLATE[_DEFAULT_PROFILE]:
@@ -67,5 +51,5 @@ class PromptBuilder:
         )
 
     def render(self, sample: DataSample) -> str:
-        """Backward-compatible alias for `build()`."""
+        """Совместимый alias для `build()`."""
         return self.build(sample)

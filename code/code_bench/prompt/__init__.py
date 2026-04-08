@@ -1,1 +1,1 @@
-"""Prompt helpers for the code-generation domain."""
+"""Вспомогательные компоненты prompt-слоя для домена генерации кода."""

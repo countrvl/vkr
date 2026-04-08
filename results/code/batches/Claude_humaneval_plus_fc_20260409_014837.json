@@ -1,0 +1,14 @@
+{
+  "model_key": "m1_claude",
+  "model_name": "Claude",
+  "benchmark": "humaneval_plus",
+  "run_label": "fc",
+  "n_requests": 164,
+  "raw_output_path": "/home/count/code/vkr/results/code/raw/Claude_humaneval_plus_fc_20260409_014837.jsonl",
+  "status": "completed",
+  "updated_at": "2026-04-09T01:50:35.065392",
+  "created_at": "2026-04-09T01:48:37.655447",
+  "batch_id": "msgbatch_01NBP6cu2zAirLnKhxT8rZjy",
+  "phase": "completed",
+  "elapsed_seconds": 104.0
+}

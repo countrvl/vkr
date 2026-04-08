@@ -1,4 +1,4 @@
-"""Evaluate code-generation benchmark results."""
+"""Оценить результаты benchmark-ов генерации кода."""
 
 from __future__ import annotations
 

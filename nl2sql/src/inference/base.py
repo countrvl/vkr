@@ -1,4 +1,4 @@
-"""Shared inference abstractions."""
+"""Базовые абстракции инференса для NL2SQL."""
 
 from __future__ import annotations
 
@@ -30,7 +30,7 @@ SQL_RESPONSE_SCHEMA: dict[str, Any] = {
 
 @dataclass(slots=True)
 class GenerationResult:
-    """Normalized generation payload."""
+    """Нормализованный payload генерации."""
 
     sql: str
     raw_response: str
@@ -43,7 +43,7 @@ class GenerationResult:
 
 
 class InferenceBackend(ABC):
-    """Interface for async inference backends."""
+    """Интерфейс async-backend-ов инференса."""
 
     @abstractmethod
     async def generate(
@@ -55,26 +55,22 @@ class InferenceBackend(ABC):
         seed: int | None = None,
         top_p: float | None = None,
     ) -> list[GenerationResult]:
-        """Generate SQL candidates.
+        """Сгенерировать SQL-кандидаты.
 
-        Args:
-            prompt: Rendered prompt text.
-            n: Number of independent completions to generate.
-            temperature: Sampling temperature (0 = greedy).
-            max_tokens: Maximum output tokens.
-            seed: Optional random seed for reproducibility.
-            top_p: Optional nucleus sampling threshold.
+        Аргументы:
+            prompt: уже собранный текст prompt-а.
+            n: число независимых генераций.
+            temperature: температура сэмплирования (`0` = greedy).
+            max_tokens: максимальное число выходных токенов.
+            seed: необязательный seed для воспроизводимости.
+            top_p: необязательный порог nucleus sampling.
         """
 
     @staticmethod
     def extract_sql(raw: str) -> str:
-        """Extract SQL from a raw model response.
+        """Извлечь SQL из сырого ответа модели.
 
-        Args:
-            raw: Full model output.
-
-        Returns:
-            Cleaned SQL string or an empty string.
+        Возвращает очищенный SQL или пустую строку.
         """
         if not raw or not raw.strip():
             return ""
@@ -104,7 +100,7 @@ class InferenceBackend(ABC):
 
     @staticmethod
     def _extract_sql_from_json(raw: str) -> str:
-        """Return SQL from a JSON response with a top-level ``sql`` field."""
+        """Вернуть SQL из JSON-ответа с верхнеуровневым полем ``sql``."""
         candidates = [raw]
         json_match = _JSON_OBJECT_PATTERN.search(raw)
         if json_match is not None and json_match.group(0) != raw:
@@ -127,12 +123,12 @@ class InferenceBackend(ABC):
 
 
 def extract_sql(raw: str) -> str:
-    """Backward-compatible wrapper around `InferenceBackend.extract_sql()`."""
+    """Совместимая обертка вокруг `InferenceBackend.extract_sql()`."""
     return InferenceBackend.extract_sql(raw)
 
 
 def normalize_sql_text(sql: str) -> str:
-    """Normalize model-output SQL before persistence or execution."""
+    """Нормализовать SQL модели перед сохранением или выполнением."""
     if not sql:
         return ""
     cleaned = sql.replace("\\n", "\n").replace("\\t", "\t").strip()
