@@ -38,10 +38,33 @@ def test_code_domain_model_filter_keeps_only_code_models() -> None:
     assert models["m1_chatgpt"]["max_tokens"] == 768
     assert models["m1_chatgpt"]["prompt_profile"] == "codegen_default"
     assert models["m2_qwen2_5_coder"]["prompt_profile"] == "qwen2_5_coder"
-    assert models["m2_codegemma"]["prompt_profile"] == "codegemma_instruct"
+    assert models["m2_qwen2_5_coder_14b"]["prompt_profile"] == "qwen2_5_coder"
     assert models["m2_deepseek_coder"]["prompt_profile"] == "deepseek_coder"
-    assert models["m2_codellama"]["prompt_profile"] == "codellama_instruct"
+    assert models["m2_qwen2_5_coder_32b"]["prompt_profile"] == "qwen2_5_coder"
+    assert models["m2_qwen3_coder_30b"]["prompt_profile"] == "qwen2_5_coder"
+    assert models["m2_qwen2_5_coder_32b"]["active_by_default"] is False
+    assert models["m2_qwen3_coder_30b"]["active_by_default"] is False
+    assert "m2_codegemma" not in models
+    assert "m2_codellama" not in models
     assert models["m2_qwen2_5_coder"]["parameters"]["num_ctx"] == 8192
+
+
+def test_code_model_selector_excludes_heavy_candidates_by_default() -> None:
+    from importlib import util
+
+    script_path = Path("code/scripts/02_run_inference.py")
+    spec = util.spec_from_file_location("code_run_inference", script_path)
+    assert spec is not None
+    assert spec.loader is not None
+    module = util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+
+    models = load_domain_models("supports_code")
+    assert "m2_qwen2_5_coder_32b" not in module._resolve_model_keys("m2", models)
+    assert "m2_qwen3_coder_30b" not in module._resolve_model_keys("m2", models)
+    assert module._resolve_model_keys("m2_qwen2_5_coder_32b", models) == [
+        "m2_qwen2_5_coder_32b"
+    ]
 
 
 def test_extract_code_from_fenced_response() -> None:
@@ -64,9 +87,7 @@ def test_code_prompt_profiles_render() -> None:
     for profile in (
         "codegen_default",
         "qwen2_5_coder",
-        "codegemma_instruct",
         "deepseek_coder",
-        "codellama_instruct",
     ):
         prompt = builder.build(sample, prompt_profile=profile)
         assert "solve" in prompt

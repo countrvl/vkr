@@ -168,15 +168,15 @@ models:
         max_tokens: 768
         prompt_profile: "qwen2_5_coder"
 
-  m2_codegemma:
-    name: "CodeGemma-7B"
-    version: "7B Instruct Q4_K_M"
-    display_name: "CodeGemma-7B Instruct Q4_K_M"
+  m2_qwen2_5_coder_14b:
+    name: "Qwen2.5-Coder-14B"
+    version: "14B Instruct"
+    display_name: "Qwen2.5-Coder-14B Instruct"
     backend: "ollama"
     family: "m2"
     supports_sql: false
     supports_code: true
-    model_id: "codegemma:7b-instruct-q4_K_M"
+    model_id: "qwen2.5-coder:14b"
     base_url: "http://localhost:11434"
     base_url_env: "OLLAMA_API_URL"
     pricing:
@@ -187,7 +187,7 @@ models:
     domain_overrides:
       code:
         max_tokens: 768
-        prompt_profile: "codegemma_instruct"
+        prompt_profile: "qwen2_5_coder"
 
   m2_deepseek_coder:
     name: "DeepSeek-Coder-V2-Lite"
@@ -210,15 +210,16 @@ models:
         max_tokens: 768
         prompt_profile: "deepseek_coder"
 
-  m2_codellama:
-    name: "CodeLlama-7B"
-    version: "7B Instruct Q4_K_M"
-    display_name: "CodeLlama-7B Instruct Q4_K_M"
+  m2_qwen2_5_coder_32b:
+    name: "Qwen2.5-Coder-32B"
+    version: "32B Instruct"
+    display_name: "Qwen2.5-Coder-32B Instruct"
     backend: "ollama"
     family: "m2"
+    active_by_default: false
     supports_sql: false
     supports_code: true
-    model_id: "codellama:7b-instruct-q4_K_M"
+    model_id: "qwen2.5-coder:32b"
     base_url: "http://localhost:11434"
     base_url_env: "OLLAMA_API_URL"
     pricing:
@@ -226,7 +227,31 @@ models:
       output_per_1m: 0.0
     parameters:
       num_ctx: 8192
+      request_timeout: 300
     domain_overrides:
       code:
         max_tokens: 768
-        prompt_profile: "codellama_instruct"
+        prompt_profile: "qwen2_5_coder"
+
+  m2_qwen3_coder_30b:
+    name: "Qwen3-Coder-30B-A3B"
+    version: "30B-A3B Instruct"
+    display_name: "Qwen3-Coder-30B-A3B Instruct"
+    backend: "ollama"
+    family: "m2"
+    active_by_default: false
+    supports_sql: false
+    supports_code: true
+    model_id: "qwen3-coder:30b"
+    base_url: "http://localhost:11434"
+    base_url_env: "OLLAMA_API_URL"
+    pricing:
+      input_per_1m: 0.0
+      output_per_1m: 0.0
+    parameters:
+      num_ctx: 8192
+      request_timeout: 300
+    domain_overrides:
+      code:
+        max_tokens: 768
+        prompt_profile: "qwen2_5_coder"

@@ -21,9 +21,13 @@
 
 - `m1_deepseek`, `m1_chatgpt`: `codegen_default`
 - `m2_qwen2_5_coder`: `qwen2_5_coder`
-- `m2_codegemma`: `codegemma_instruct`
+- `m2_qwen2_5_coder_14b`: `qwen2_5_coder`
 - `m2_deepseek_coder`: `deepseek_coder`
-- `m2_codellama`: `codellama_instruct`
+- `m2_qwen2_5_coder_32b`: `qwen2_5_coder`
+- `m2_qwen3_coder_30b`: `qwen2_5_coder`
+
+`CodeGemma-7B` и `CodeLlama-7B` убраны из активного набора `M2`: на smoke-run они были заметно слабее `Qwen2.5-Coder-7B`.
+`Codestral-22B` и `Devstral-24B` пока не добавлены в активный каталог; они зафиксированы в `plan.md` как кандидаты для отдельной проверки.
 
 Важно: chat/template-формат модели не собирается вручную в prompt. Для API это делает chat endpoint, а для локальных моделей это делает Ollama Modelfile template. В проекте настраивается только task-level prompt: что просить сгенерировать и какой формат ответа нужен.
 
