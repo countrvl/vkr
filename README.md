@@ -35,7 +35,7 @@ benchmark-domains/
 - [`shared/config.py`](/home/count/code/vkr/shared/config.py) — загрузка YAML-конфигов
 - [`shared/configs/models.yaml`](/home/count/code/vkr/shared/configs/models.yaml) — единый каталог моделей
 - [`shared/logging_utils.py`](/home/count/code/vkr/shared/logging_utils.py) — logging и progress bar
-- [`shared/inference/`](/home/count/code/vkr/shared/inference) — общий transport-слой для API и Ollama
+- [`shared/inference/`](/home/count/code/vkr/shared/inference) — общий transport-слой для API, Anthropic и Ollama
 
 Доменные runtime-переопределения задаются через:
 
@@ -47,6 +47,12 @@ benchmark-domains/
 ```bash
 uv sync
 cp .env.example .env
+```
+
+Для `Claude` нужен отдельный ключ:
+
+```bash
+export ANTHROPIC_API_KEY=...
 ```
 
 ## Быстрая проверка

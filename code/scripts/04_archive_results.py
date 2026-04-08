@@ -18,7 +18,7 @@ from shared.logging_utils import configure_logging
 
 
 LOGGER = logging.getLogger(__name__)
-_ARTIFACT_DIRS = ("raw", "metrics", "figures")
+_ARTIFACT_DIRS = ("raw", "metrics", "figures", "batches")
 _RUN_LABELS = ("fc", "pass_k")
 _NOTEBOOKS_TO_COPY = ("01_report_fc_passk.ipynb",)
 
@@ -63,7 +63,13 @@ def _move_path(source: Path, destination: Path, dry_run: bool) -> bool:
 
 
 def _ensure_clean_workdirs(results_dir: Path, dry_run: bool, scope: str) -> None:
-    base_dirs = [results_dir / "raw", results_dir / "metrics", results_dir / "figures", results_dir / "archive"]
+    base_dirs = [
+        results_dir / "raw",
+        results_dir / "metrics",
+        results_dir / "figures",
+        results_dir / "batches",
+        results_dir / "archive",
+    ]
     scoped_dirs: list[Path] = []
     if scope == "all":
         scoped_dirs.extend((results_dir / "metrics" / label for label in _RUN_LABELS))
@@ -99,6 +105,11 @@ def _archive_paths(results_dir: Path, archive_dir: Path, dry_run: bool, scope: s
         destination = archive_dir / kind / scope
         if _move_path(source, destination, dry_run):
             moved.append(source)
+    batches_dir = results_dir / "batches"
+    for path in sorted(batches_dir.glob(f"*_{scope}_*.json")):
+        destination = archive_dir / "batches" / path.name
+        if _move_path(path, destination, dry_run):
+            moved.append(path)
     return moved
 
 

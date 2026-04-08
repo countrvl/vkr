@@ -25,6 +25,7 @@
 | --- | --- | --- | --- |
 | `m1_deepseek` | `DeepSeek V3.2` | `M1` | API |
 | `m1_chatgpt` | `ChatGPT 5.2` | `M1` | API |
+| `m1_claude` | `Claude Sonnet 4.5` | `M1` | Anthropic |
 | `m2_qwen2_5_coder` | `Qwen2.5-Coder-7B Instruct Q4_K_M` | `M2` | Ollama |
 | `m2_qwen2_5_coder_14b` | `Qwen2.5-Coder-14B Instruct` | `M2` | Ollama |
 | `m2_deepseek_coder` | `DeepSeek-Coder-V2-Lite 16B Q4_0` | `M2` | Ollama |
@@ -52,6 +53,9 @@
 
 Для code-домена prompt profile задается через `domain_overrides.code`.
 
+Для `Claude Sonnet 4.5` batch используется как внутренняя транспортная оптимизация.
+Снаружи команды инференса, raw JSONL и evaluation не меняются.
+
 Текущие профили:
 
 - `m1_deepseek`, `m1_chatgpt` — `codegen_default`
@@ -65,6 +69,8 @@
 ```bash
 uv run python code/scripts/01_prepare_benchmarks.py --benchmark all
 ```
+
+Если планируется `Claude`, нужно задать `ANTHROPIC_API_KEY`.
 
 Скрипт подготавливает metadata-артефакты в `data/code/...`.
 

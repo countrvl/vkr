@@ -24,6 +24,7 @@
 | --- | --- | --- | --- |
 | `m1_deepseek` | `DeepSeek V3.2` | `M1` | API |
 | `m1_chatgpt` | `ChatGPT 5.2` | `M1` | API |
+| `m1_claude` | `Claude Sonnet 4.5` | `M1` | Anthropic |
 | `m2_defog` | `Defog-Llama3-SQLCoder-8B q4_0` | `M2` | Ollama |
 | `m2_hrida` | `Hrida-T2SQL q8_0` | `M2` | Ollama |
 | `m2_arctic` | `Arctic-Text2SQL-R1-7B` | `M2` | Ollama |
@@ -46,6 +47,9 @@
 
 Для SQL-домена model-specific prompt выбирается из `domain_overrides.sql`.
 
+Для `Claude Sonnet 4.5` batch используется как внутренняя оптимизация transport-слоя.
+Снаружи команды инференса и raw-артефакты остаются теми же, что и для других моделей.
+
 ## Быстрый старт
 
 ```bash
@@ -54,6 +58,8 @@ cp .env.example .env
 ollama serve
 uv run python nl2sql/scripts/01_download_data.py --benchmark all
 ```
+
+Если планируется `Claude`, нужно задать `ANTHROPIC_API_KEY`.
 
 Для локальных `M2` модели Ollama подтягиваются отдельно, например:
 

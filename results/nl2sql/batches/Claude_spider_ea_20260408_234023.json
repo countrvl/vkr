@@ -1,0 +1,14 @@
+{
+  "model_key": "m1_claude",
+  "model_name": "Claude",
+  "benchmark": "spider",
+  "run_label": "ea",
+  "n_requests": 1034,
+  "raw_output_path": "/home/count/code/vkr/results/nl2sql/raw/Claude_spider_ea_20260408_234023.jsonl",
+  "status": "in_progress",
+  "updated_at": "2026-04-08T23:41:35.395446",
+  "created_at": "2026-04-08T23:40:23.455049",
+  "batch_id": "msgbatch_01BXvrF6HwSQeP5JKMsEQd4X",
+  "phase": "polling",
+  "elapsed_seconds": 65.8
+}

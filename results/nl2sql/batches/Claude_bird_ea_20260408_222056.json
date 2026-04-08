@@ -1,0 +1,14 @@
+{
+  "model_key": "m1_claude",
+  "model_name": "Claude",
+  "benchmark": "bird",
+  "run_label": "ea",
+  "n_requests": 1534,
+  "raw_output_path": "/home/count/code/vkr/results/nl2sql/raw/Claude_bird_ea_20260408_222056.jsonl",
+  "status": "completed",
+  "updated_at": "2026-04-08T22:45:50.100531",
+  "created_at": "2026-04-08T22:20:56.230785",
+  "batch_id": "msgbatch_0161aTmKFu4s6WQraHTxKnfa",
+  "phase": "completed",
+  "elapsed_seconds": 1395.2
+}

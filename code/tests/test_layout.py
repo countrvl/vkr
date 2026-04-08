@@ -1,3 +1,4 @@
+import asyncio
 from pathlib import Path
 
 from shared.config import load_domain_models, load_yaml_config
@@ -6,8 +7,10 @@ from code_bench.evaluation.functional_correctness import evaluate_code_candidate
 from code_bench.evaluation.pass_at_k import compute_all_pass_at_k
 from code_bench.inference.base import extract_code
 from code_bench.data.loader import load_benchmark
+from code_bench.inference.runner import ExperimentRunner
 from code_bench.prompt.template import PromptBuilder
 from shared.inference.api_transport import OpenAIChatTransport
+from shared.inference.anthropic_transport import AnthropicMessagesTransport
 
 
 def test_code_domain_layout_exists() -> None:
@@ -24,7 +27,10 @@ def test_code_domain_configs_load() -> None:
     assert benchmarks["results_dir"] == "results/code/raw"
     assert experiment["k_values"] == [1, 5, 10]
     assert "m1_chatgpt" in models["models"]
+    assert "m1_claude" in models["models"]
     assert "m2_qwen2_5_coder" in models["models"]
+    assert models["models"]["m1_claude"]["batch_support"] is True
+    assert models["models"]["m1_chatgpt"]["batch_support"] is False
     assert models["models"]["m2_qwen2_5_coder"]["supports_code"] is True
     assert models["models"]["m2_qwen2_5_coder"]["supports_sql"] is False
 
@@ -33,6 +39,7 @@ def test_code_domain_model_filter_keeps_only_code_models() -> None:
     models = load_domain_models("supports_code")
 
     assert "m1_chatgpt" in models
+    assert "m1_claude" in models
     assert "m2_qwen2_5_coder" in models
     assert "m2_defog" not in models
     assert models["m1_chatgpt"]["max_tokens"] == 768
@@ -110,6 +117,292 @@ def test_api_transport_rejects_placeholder_response() -> None:
         assert "invalid placeholder" in str(exc)
     else:
         raise AssertionError("Expected placeholder response to be rejected.")
+
+
+def test_anthropic_transport_parses_batch_results() -> None:
+    transport = AnthropicMessagesTransport(
+        model_id="claude-sonnet-4-20250514",
+        base_url="https://api.anthropic.com",
+        api_key="test",
+        model_name="Claude",
+        parameters={"batch_pricing_multiplier": 0.5},
+        pricing={"input_per_1m": 3.0, "output_per_1m": 15.0},
+        extractor=lambda raw: raw.strip(),
+        result_factory=lambda **kwargs: kwargs,
+        use_batch=True,
+    )
+
+    async def fake_request_json(method: str, path: str, *, json_payload=None):
+        if method == "POST":
+            return {"id": "msgbatch_123", "processing_status": "in_progress"}
+        return {"id": "msgbatch_123", "processing_status": "ended", "results_url": "https://example.test/results"}
+
+    async def fake_request_jsonl(url: str):
+        assert url == "https://example.test/results"
+        return [
+            {
+                "custom_id": "req_000000",
+                "result": {
+                    "type": "succeeded",
+                    "message": {
+                        "content": [{"type": "text", "text": "print('ok')"}],
+                        "usage": {"input_tokens": 10, "output_tokens": 5},
+                    },
+                },
+            }
+        ]
+
+    transport._request_json = fake_request_json
+    transport._request_jsonl = fake_request_jsonl
+
+    results = asyncio.run(
+        transport.generate_batch(
+            prompts=["write code"],
+            temperature=0.0,
+            max_tokens=64,
+            seed=None,
+            top_p=None,
+        )
+    )
+    item = results[0]
+    assert not isinstance(item, Exception)
+    generation = item[0]
+    assert generation["raw_response"] == "print('ok')"
+    assert generation["tokens_input"] == 10
+    assert generation["tokens_output"] == 5
+    assert generation["metadata"]["dispatch"] == "batch"
+    assert generation["metadata"]["batch_id"] == "msgbatch_123"
+    assert generation["metadata"]["pricing_multiplier"] == 0.5
+
+
+def test_anthropic_transport_emits_status_callbacks() -> None:
+    transport = AnthropicMessagesTransport(
+        model_id="claude-sonnet-4-20250514",
+        base_url="https://api.anthropic.com",
+        api_key="test",
+        model_name="Claude",
+        extractor=lambda raw: raw.strip(),
+        result_factory=lambda **kwargs: kwargs,
+        use_batch=True,
+    )
+    events: list[dict] = []
+    transport.status_callback = events.append
+
+    async def fake_request_json(method: str, path: str, *, json_payload=None):
+        if method == "POST":
+            return {"id": "msgbatch_456", "processing_status": "in_progress"}
+        return {
+            "id": "msgbatch_456",
+            "processing_status": "ended",
+            "results_url": "https://example.test/results",
+        }
+
+    async def fake_request_jsonl(url: str):
+        return [
+            {
+                "custom_id": "req_000000",
+                "result": {
+                    "type": "succeeded",
+                    "message": {
+                        "content": [{"type": "text", "text": "hello"}],
+                        "usage": {"input_tokens": 1, "output_tokens": 1},
+                    },
+                },
+            }
+        ]
+
+    transport._request_json = fake_request_json
+    transport._request_jsonl = fake_request_jsonl
+
+    asyncio.run(
+        transport.generate_batch(
+            prompts=["ping"],
+            temperature=0.0,
+            max_tokens=16,
+            seed=None,
+            top_p=None,
+        )
+    )
+
+    statuses = [event["status"] for event in events]
+    assert "in_progress" in statuses
+    assert "ended" in statuses
+    assert "completed" in statuses
+
+
+def test_anthropic_transport_can_resume_existing_batch() -> None:
+    transport = AnthropicMessagesTransport(
+        model_id="claude-sonnet-4-20250514",
+        base_url="https://api.anthropic.com",
+        api_key="test",
+        model_name="Claude",
+        extractor=lambda raw: raw.strip(),
+        result_factory=lambda **kwargs: kwargs,
+        use_batch=True,
+    )
+
+    async def fake_request_json(method: str, path: str, *, json_payload=None):
+        assert method == "GET"
+        assert path == "/v1/messages/batches/msgbatch_resume"
+        return {
+            "id": "msgbatch_resume",
+            "processing_status": "ended",
+            "created_at": "2026-04-08T19:20:58.117962+00:00",
+            "results_url": "https://example.test/results",
+        }
+
+    async def fake_request_jsonl(url: str):
+        assert url == "https://example.test/results"
+        return [
+            {
+                "custom_id": "req_000000",
+                "result": {
+                    "type": "succeeded",
+                    "message": {
+                        "content": [{"type": "text", "text": "hello"}],
+                        "usage": {"input_tokens": 1, "output_tokens": 1},
+                    },
+                },
+            }
+        ]
+
+    transport._request_json = fake_request_json
+    transport._request_jsonl = fake_request_jsonl
+
+    results = asyncio.run(
+        transport.resume_batch(
+            batch_id="msgbatch_resume",
+            prompts=["ping"],
+            temperature=0.0,
+            max_tokens=16,
+            seed=None,
+            top_p=None,
+        )
+    )
+
+    item = results[0]
+    assert not isinstance(item, Exception)
+    assert item[0]["metadata"]["batch_id"] == "msgbatch_resume"
+
+
+def test_anthropic_transport_does_not_fallback_after_submit() -> None:
+    transport = AnthropicMessagesTransport(
+        model_id="claude-sonnet-4-20250514",
+        base_url="https://api.anthropic.com",
+        api_key="test",
+        model_name="Claude",
+        extractor=lambda raw: raw.strip(),
+        result_factory=lambda **kwargs: kwargs,
+        use_batch=True,
+    )
+    online_called = False
+
+    async def fake_online_many(prompts, temperature, max_tokens, seed, top_p):
+        nonlocal online_called
+        online_called = True
+        return []
+
+    async def fake_request_json(method: str, path: str, *, json_payload=None):
+        if method == "POST":
+            return {"id": "msgbatch_submit", "processing_status": "in_progress"}
+        raise RuntimeError("poll failed")
+
+    transport._generate_online_many = fake_online_many
+    transport._request_json = fake_request_json
+
+    try:
+        asyncio.run(
+            transport.generate_batch(
+                prompts=["ping"],
+                temperature=0.0,
+                max_tokens=16,
+                seed=None,
+                top_p=None,
+            )
+        )
+    except RuntimeError as exc:
+        assert "poll failed" in str(exc)
+    else:
+        raise AssertionError("Expected polling error to propagate after batch submit.")
+
+    assert online_called is False
+
+
+def test_batch_manifest_updates_preserve_batch_metadata(tmp_path) -> None:
+    class DummyBackend:
+        supports_batch = False
+
+    runner = ExperimentRunner(DummyBackend(), PromptBuilder(), tmp_path / "raw")
+    output_path = tmp_path / "raw" / "Claude_humaneval_plus_fc_20260408_000000.jsonl"
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    manifest_path = runner._manifest_path(output_path)
+
+    runner._write_batch_manifest(
+        manifest_path=manifest_path,
+        output_path=output_path,
+        benchmark="humaneval_plus",
+        model_key="m1_claude",
+        model_name="Claude",
+        run_label="fc",
+        n_requests=5,
+        status="polling",
+        batch_id="msgbatch_123",
+        phase="polling",
+        elapsed_seconds=12.5,
+    )
+    runner._write_batch_manifest(
+        manifest_path=manifest_path,
+        output_path=output_path,
+        benchmark="humaneval_plus",
+        model_key="m1_claude",
+        model_name="Claude",
+        run_label="fc",
+        n_requests=5,
+        status="completed",
+        phase="completed",
+    )
+
+    payload = load_yaml_config(manifest_path)
+    assert payload["batch_id"] == "msgbatch_123"
+    assert payload["status"] == "completed"
+    assert payload["phase"] == "completed"
+    assert payload["n_requests"] == 5
+    assert "created_at" in payload
+    assert "updated_at" in payload
+
+
+def test_runner_detects_resumable_batch_manifest(tmp_path) -> None:
+    class DummyBackend:
+        supports_batch = False
+
+    runner = ExperimentRunner(DummyBackend(), PromptBuilder(), tmp_path / "raw")
+    output_path = tmp_path / "raw" / "Claude_humaneval_plus_fc_20260408_000000.jsonl"
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    manifest_path = runner._manifest_path(output_path)
+    manifest_path.write_text(
+        """{
+  "model_key": "m1_claude",
+  "model_name": "Claude",
+  "benchmark": "humaneval_plus",
+  "run_label": "fc",
+  "raw_output_path": "%s",
+  "status": "in_progress",
+  "batch_id": "msgbatch_resume"
+}"""
+        % output_path,
+        encoding="utf-8",
+    )
+
+    batch_id = runner._resumable_batch_id(
+        manifest_path=manifest_path,
+        output_path=output_path,
+        benchmark="humaneval_plus",
+        model_name="Claude",
+        run_label="fc",
+        completed_ids=set(),
+    )
+
+    assert batch_id == "msgbatch_resume"
 
 
 def test_prepare_benchmark_artifacts_writes_metadata(tmp_path, monkeypatch) -> None:

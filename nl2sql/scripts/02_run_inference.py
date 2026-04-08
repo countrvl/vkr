@@ -19,6 +19,7 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 from nl2sql.src.data.loader import load_benchmark
+from nl2sql.src.inference.anthropic_backend import AnthropicBackend
 from nl2sql.src.inference.api_backend import APIBackend
 from nl2sql.src.inference.ollama_backend import OllamaBackend
 from nl2sql.src.inference.runner import ExperimentRunner
@@ -121,6 +122,20 @@ def _build_backend(model_key: str, model_cfg: dict[str, Any]):
             parameters=model_cfg.get("parameters", {}),
             pricing=model_cfg.get("pricing"),
             structured_output=structured_output,
+        )
+    if backend == "anthropic":
+        env_key = model_cfg["env_key"]
+        api_key = os.getenv(env_key)
+        if not api_key:
+            raise RuntimeError(f"Environment variable {env_key} is required for {model_key}")
+        return AnthropicBackend(
+            model_id=model_id,
+            base_url=base_url,
+            api_key=api_key,
+            model_name=model_cfg["name"],
+            parameters=model_cfg.get("parameters", {}),
+            pricing=model_cfg.get("pricing"),
+            use_batch=bool(model_cfg.get("batch_support")) and model_cfg.get("dispatch_preference") == "batch",
         )
     if backend == "ollama":
         parameters = dict(model_cfg.get("parameters", {}))

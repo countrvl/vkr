@@ -21,6 +21,7 @@ if str(DOMAIN_ROOT) not in sys.path:
     sys.path.insert(0, str(DOMAIN_ROOT))
 
 from code_bench.data.loader import load_benchmark
+from code_bench.inference.anthropic_backend import AnthropicBackend
 from code_bench.inference.api_backend import APIBackend
 from code_bench.inference.ollama_backend import OllamaBackend
 from code_bench.inference.runner import ExperimentRunner
@@ -119,6 +120,20 @@ def _build_backend(model_key: str, model_cfg: dict[str, Any]):
             model_name=model_cfg["name"],
             parameters=model_cfg.get("parameters", {}),
             pricing=model_cfg.get("pricing"),
+        )
+    if backend == "anthropic":
+        env_key = model_cfg["env_key"]
+        api_key = os.getenv(env_key)
+        if not api_key:
+            raise RuntimeError(f"Environment variable {env_key} is required for {model_key}")
+        return AnthropicBackend(
+            model_id=model_id,
+            base_url=base_url,
+            api_key=api_key,
+            model_name=model_cfg["name"],
+            parameters=model_cfg.get("parameters", {}),
+            pricing=model_cfg.get("pricing"),
+            use_batch=bool(model_cfg.get("batch_support")) and model_cfg.get("dispatch_preference") == "batch",
         )
     if backend == "ollama":
         parameters = dict(model_cfg.get("parameters", {}))
