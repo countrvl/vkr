@@ -1,0 +1,14 @@
+{
+  "model_key": "m1_claude",
+  "model_name": "Claude",
+  "benchmark": "mbpp_plus",
+  "run_label": "fc",
+  "n_requests": 378,
+  "raw_output_path": "/home/count/code/vkr/results/code/raw/Claude_mbpp_plus_fc_20260409_015035.jsonl",
+  "status": "completed",
+  "updated_at": "2026-04-09T01:55:39.192786",
+  "created_at": "2026-04-09T01:50:35.071681",
+  "batch_id": "msgbatch_01XU3PSEzX7EhukgjNZQdSSj",
+  "phase": "completed",
+  "elapsed_seconds": 276.9
+}
