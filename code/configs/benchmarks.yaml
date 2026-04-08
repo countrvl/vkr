@@ -1,0 +1,19 @@
+data_dir: "data/code"
+results_dir: "results/code/raw"
+
+benchmarks:
+  humaneval_plus:
+    name: "HumanEval+"
+    dataset: "humaneval"
+    local_dir: "data/code/humaneval_plus"
+    supports_mini: true
+    noextreme: false
+    version: "default"
+
+  mbpp_plus:
+    name: "MBPP+"
+    dataset: "mbpp"
+    local_dir: "data/code/mbpp_plus"
+    supports_mini: false
+    noextreme: false
+    version: "default"

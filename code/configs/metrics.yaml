@@ -1,0 +1,10 @@
+efficiency_weights:
+  alpha: 0.3
+  beta: 0.2
+  gamma: 0.2
+  delta: 0.3
+
+execution:
+  fast_check: false
+  min_time_limit: 1.0
+  gt_time_limit_factor: 4.0

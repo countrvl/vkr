@@ -3,13 +3,14 @@ requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "nl2sql-bench"
+name = "benchmark-domains"
 version = "0.1.0"
-description = "Benchmark scaffold for comparing NL2SQL models across Spider and BIRD."
+description = "Benchmark scaffold for multiple model-evaluation domains, including NL2SQL and code generation."
 readme = "README.md"
 requires-python = ">=3.11"
 authors = [{ name = "Research Team" }]
 dependencies = [
+  "evalplus>=0.3.1",
   "openai>=1.0.0",
   "httpx>=0.27.0",
   "jinja2>=3.1.0",
@@ -36,11 +37,13 @@ notebooks = [
 include-package-data = true
 
 [tool.setuptools.packages.find]
-where = ["."]
-include = ["src*"]
+where = [".", "code"]
+include = ["nl2sql*", "code_bench*", "shared*"]
 
 [tool.setuptools.package-data]
-src = ["prompt/templates/*.j2"]
+"nl2sql.src" = ["prompt/templates/*.j2"]
+"code_bench" = ["prompt/templates/*.j2"]
+"shared" = ["configs/*.yaml"]
 
 [dependency-groups]
 dev = [
@@ -56,9 +59,18 @@ dev = [
 ]
 
 [tool.pytest.ini_options]
-pythonpath = ["."]
-testpaths = ["tests"]
+pythonpath = [".", "code"]
+testpaths = ["nl2sql/tests", "code/tests"]
 
 [tool.ruff]
 line-length = 100
 target-version = "py311"
+extend-exclude = [
+  "*.ipynb",
+  "results/**",
+  "*.egg-info/**",
+]
+
+[tool.ruff.lint.per-file-ignores]
+"nl2sql/scripts/*.py" = ["E402"]
+"code/scripts/*.py" = ["E402"]

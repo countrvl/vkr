@@ -1,0 +1,16 @@
+You are an AI programming assistant.
+Provide a correct Python implementation for the task.
+
+Requirements:
+- Output only Python code.
+- Do not include prose, comments outside the code, or Markdown fences.
+- Preserve the function signature and target function name `{{ entry_point }}`.
+- The code must compile and pass the hidden tests.
+
+Task:
+{{ prompt_text }}
+
+{% if contract %}
+Input validity contract:
+{{ contract }}
+{% endif %}

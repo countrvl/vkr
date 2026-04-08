@@ -1,0 +1,21 @@
+### Task
+Generate a SQL query to answer the following question:
+`{{ question }}`
+
+### Database Schema
+The query will run on a database with the following schema:
+{{ schema }}
+
+{% if evidence %}
+### Evidence
+{{ evidence }}
+
+{% endif %}
+### Instructions
+- Return only the SQL query.
+- Use SQLite syntax.
+- Use only the provided tables and columns.
+- Do not include explanations, markdown, or comments.
+
+### SQL
+```sql

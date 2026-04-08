@@ -1,0 +1,21 @@
+You are an expert text-to-SQL model.
+Given the database schema and the question, write exactly one SQLite query that answers the question.
+
+Database schema:
+{{ schema }}
+
+{% if evidence %}
+Evidence:
+{{ evidence }}
+
+{% endif %}
+Question:
+{{ question }}
+
+Requirements:
+- Return only the SQL query.
+- Use only the provided tables and columns.
+- Do not include markdown, explanations, comments, or extra text.
+- Do not include multiple SQL statements.
+
+SQL query:
