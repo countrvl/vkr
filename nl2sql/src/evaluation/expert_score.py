@@ -1,4 +1,4 @@
-"""Expert score aggregation and Cohen's kappa."""
+"""Агрегация Expert Score и расчет Cohen's kappa."""
 
 from __future__ import annotations
 
@@ -16,19 +16,7 @@ _RATING_MAX = 5
 
 
 def expert_score(completeness: float, efficiency: float, readability: float) -> float:
-    """Compute Expert Score as the average of three criteria.
-
-    Args:
-        completeness: Completeness rating (1–5).
-        efficiency: Efficiency rating (1–5).
-        readability: Readability rating (1–5).
-
-    Returns:
-        ES = (C + E + R) / 3.
-
-    Raises:
-        ValueError: If any rating is outside [1, 5].
-    """
+    """Посчитать Expert Score как среднее по трем критериям."""
     for name, value in (
         ("completeness", completeness),
         ("efficiency", efficiency),
@@ -41,7 +29,7 @@ def expert_score(completeness: float, efficiency: float, readability: float) -> 
 
 @dataclass
 class ExpertEvaluation:
-    """Single expert evaluation of one SQL candidate."""
+    """Одна экспертная оценка для одного SQL-кандидата."""
 
     sample_id: str
     completeness: int  # 1–5
@@ -61,7 +49,7 @@ class ExpertEvaluation:
 
     @property
     def score(self) -> float:
-        """ES = (C + E + R) / 3. Delegates to :func:`expert_score`."""
+        """`ES = (C + E + R) / 3`; делегирует в `expert_score()`."""
         return expert_score(self.completeness, self.efficiency, self.readability)
 
 
@@ -69,7 +57,7 @@ def aggregate_expert_scores(
     rows: Iterable[RatingRow],
     criteria: list[str],
 ) -> dict[str, float]:
-    """Aggregate mean scores across criteria."""
+    """Агрегировать средние значения по критериям."""
     values: dict[str, list[float]] = defaultdict(list)
     for row in rows:
         for criterion in criteria:
@@ -85,10 +73,10 @@ def cohens_kappa(
     scale_min: int = 1,
     scale_max: int = 5,
 ) -> float:
-    """Compute Cohen's kappa for two aligned rating lists.
+    """Посчитать Cohen's kappa для двух выровненных списков оценок.
 
-    Uses ``sklearn.metrics.cohen_kappa_score`` when available; falls back to a
-    manual implementation otherwise.
+    Если доступен `sklearn.metrics.cohen_kappa_score`, используется он,
+    иначе берется ручная реализация.
     """
     if len(rater_a) != len(rater_b):
         raise ValueError("Rating lists must have equal length.")

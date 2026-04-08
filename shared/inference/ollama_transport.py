@@ -1,4 +1,4 @@
-"""Ollama `/api/generate` transport shared across domains."""
+"""Общий transport для Ollama `/api/generate`."""
 
 from __future__ import annotations
 
@@ -16,7 +16,7 @@ ResultT = TypeVar("ResultT")
 
 
 class OllamaGenerateTransport:
-    """Reusable Ollama generate transport."""
+    """Переиспользуемый transport генерации через Ollama."""
 
     def __init__(
         self,

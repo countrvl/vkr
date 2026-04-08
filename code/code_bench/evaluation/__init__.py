@@ -1,1 +1,1 @@
-"""Evaluation helpers for the code-generation domain."""
+"""Вспомогательные компоненты оценки для домена генерации кода."""

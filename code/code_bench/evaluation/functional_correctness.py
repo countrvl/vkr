@@ -1,4 +1,4 @@
-"""Execution-based correctness for HumanEval+ and MBPP+."""
+"""Execution-based проверка корректности для HumanEval+ и MBPP+."""
 
 from __future__ import annotations
 
@@ -24,7 +24,7 @@ def load_problems(
     mini: bool = False,
     noextreme: bool = False,
 ) -> dict[str, dict[str, Any]]:
-    """Load full EvalPlus problems for a benchmark."""
+    """Загрузить полные задачи EvalPlus для benchmark-а."""
     return load_evalplus_tasks(benchmark, mini=mini, noextreme=noextreme)
 
 
@@ -35,7 +35,7 @@ def load_expected_outputs(
     mini: bool = False,
     noextreme: bool = False,
 ) -> dict[str, dict[str, Any]]:
-    """Load or compute ground-truth outputs for a benchmark."""
+    """Загрузить или вычислить эталонные outputs для benchmark-а."""
     problems = load_problems(benchmark, mini=mini, noextreme=noextreme)
     dataset_hash = get_benchmark_hash(benchmark, mini=mini, noextreme=noextreme)
     tasks_only_output_not_none = [] if benchmark == "humaneval_plus" else MBPP_OUTPUT_NOT_NONE_TASKS
@@ -43,7 +43,7 @@ def load_expected_outputs(
 
 
 def normalize_solution_code(code: str, problem: dict[str, Any], benchmark: str) -> str:
-    """Normalize extracted code into the form expected by EvalPlus."""
+    """Нормализовать извлеченный код в формат, ожидаемый EvalPlus."""
     cleaned = (code or "").strip()
     if not cleaned:
         return ""
@@ -74,7 +74,7 @@ def evaluate_code_candidate(
     mini: bool = False,
     noextreme: bool = False,
 ) -> dict[str, Any]:
-    """Evaluate one code candidate against EvalPlus tests."""
+    """Оценить один кандидат кода на тестах EvalPlus."""
     problems = load_problems(benchmark, mini=mini, noextreme=noextreme)
     expected_outputs = load_expected_outputs(benchmark, mini=mini, noextreme=noextreme)
     problem = problems[task_id]

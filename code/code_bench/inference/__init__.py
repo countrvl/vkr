@@ -1,1 +1,1 @@
-"""Inference helpers for the code-generation domain."""
+"""Вспомогательные компоненты инференса для домена генерации кода."""

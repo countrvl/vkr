@@ -1,4 +1,4 @@
-"""Pass@K helpers."""
+"""Вспомогательные функции `Pass@K`."""
 
 from __future__ import annotations
 
@@ -6,10 +6,9 @@ from math import comb
 
 
 def pass_at_k(results_per_query: list[list[bool]], k: int) -> float:
-    """Compute unbiased Pass@K.
+    """Посчитать unbiased `Pass@K`.
 
-    If a query has fewer than `k` candidates, the metric uses the available
-    candidate count for that query.
+    Если у задачи меньше `k` кандидатов, используется фактическое число кандидатов.
     """
     if k <= 0:
         raise ValueError("k must be positive")
@@ -32,19 +31,7 @@ def pass_at_k(results_per_query: list[list[bool]], k: int) -> float:
 
 
 def compute_all_pass_at_k(results_per_query: list[list[bool]], k_values: list[int]) -> dict[int, float]:
-    """Compute Pass@K for every K in *k_values*.
-
-    Args:
-        results_per_query: For each query, a list of booleans (True = correct).
-        k_values: List of K values to evaluate (e.g. [1, 5, 10]).
-
-    Returns:
-        Mapping ``{k: pass_at_k_score}``.
-
-    Raises:
-        ValueError: If ``k_values`` is empty, contains non-positive values, or
-            contains duplicates.
-    """
+    """Посчитать `Pass@K` для каждого значения из `k_values`."""
     if not k_values:
         raise ValueError("k_values must not be empty")
     if any(k <= 0 for k in k_values):

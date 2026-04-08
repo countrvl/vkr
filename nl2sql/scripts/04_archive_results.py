@@ -1,4 +1,4 @@
-"""Archive current NL2SQL experiment artifacts under results/nl2sql/archive/."""
+"""Архивировать текущие артефакты NL2SQL в results/nl2sql/archive/."""
 
 from __future__ import annotations
 

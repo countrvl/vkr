@@ -1,4 +1,4 @@
-"""OpenAI-compatible API backend for frontier models."""
+"""OpenAI-compatible API-backend для frontier-моделей."""
 
 from __future__ import annotations
 
@@ -13,7 +13,7 @@ LOGGER = logging.getLogger(__name__)
 
 
 class APIBackend(InferenceBackend):
-    """Inference backend for OpenAI-compatible chat completion APIs."""
+    """Backend инференса для OpenAI-compatible chat completion API."""
 
     def __init__(
         self,
@@ -25,16 +25,7 @@ class APIBackend(InferenceBackend):
         pricing: dict[str, Any] | None = None,
         structured_output: bool = True,
     ) -> None:
-        """Initialize the API backend.
-
-        Args:
-            model_id: Provider model identifier.
-            base_url: OpenAI-compatible base URL.
-            api_key: Provider API key.
-            model_name: Human-readable model name.
-            parameters: Extra request parameters.
-            pricing: Optional per-million token pricing from config.
-        """
+        """Инициализировать API-backend."""
         self.model_name = model_name or model_id
         self._transport = OpenAIChatTransport(
             model_id=model_id,
@@ -70,7 +61,7 @@ class APIBackend(InferenceBackend):
         seed: int | None = None,
         top_p: float | None = None,
     ) -> list[GenerationResult]:
-        """Generate one or more SQL candidates."""
+        """Сгенерировать один или несколько SQL-кандидатов."""
         results = await self._generate_with_retry(
             prompt=prompt,
             n=n,

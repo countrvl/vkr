@@ -1,12 +1,11 @@
-"""Prefix-based Pass@K helpers for code generation."""
+"""Вспомогательные функции `Pass@K` для генерации кода."""
 
 from __future__ import annotations
 
 def pass_at_k(results_per_query: list[list[bool]], k: int) -> float:
-    """Compute prefix-based Pass@K.
+    """Посчитать prefix-based `Pass@K`.
 
-    A query counts as solved if any of the first ``k`` candidates is correct.
-    This matches the experiment definition used in the code-generation domain.
+    Задача считается решенной, если хотя бы один из первых ``k`` кандидатов корректен.
     """
     if k <= 0:
         raise ValueError("k must be positive")
@@ -24,7 +23,7 @@ def pass_at_k(results_per_query: list[list[bool]], k: int) -> float:
 
 
 def compute_all_pass_at_k(results_per_query: list[list[bool]], k_values: list[int]) -> dict[int, float]:
-    """Compute Pass@K for every K in *k_values*."""
+    """Посчитать `Pass@K` для каждого значения из `k_values`."""
     if not k_values:
         raise ValueError("k_values must not be empty")
     if any(k <= 0 for k in k_values):

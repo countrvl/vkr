@@ -1,4 +1,4 @@
-"""Download Spider and BIRD datasets."""
+"""Скачать наборы данных Spider и BIRD."""
 
 from __future__ import annotations
 
@@ -16,7 +16,7 @@ from shared.logging_utils import configure_logging
 
 
 def main() -> None:
-    """Download the requested benchmark datasets."""
+    """Скачать выбранные benchmark-наборы данных."""
     configure_logging(logging.INFO)
 
     parser = argparse.ArgumentParser()

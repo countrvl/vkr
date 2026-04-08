@@ -1,1 +1,1 @@
-"""Shared transport-layer inference helpers."""
+"""Общие transport-компоненты для инференса."""

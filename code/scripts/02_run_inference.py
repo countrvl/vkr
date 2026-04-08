@@ -1,4 +1,4 @@
-"""Run inference for code-generation benchmarks."""
+"""Запустить инференс для benchmark-ов генерации кода."""
 
 from __future__ import annotations
 

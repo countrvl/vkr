@@ -1,4 +1,4 @@
-"""OpenAI-compatible transport shared across domains."""
+"""Общий OpenAI-compatible transport для разных доменов."""
 
 from __future__ import annotations
 
@@ -17,7 +17,7 @@ DEFAULT_INVALID_RESPONSE_MARKERS = {"no assistant response"}
 
 
 class OpenAIChatTransport:
-    """Reusable OpenAI-compatible chat completions transport."""
+    """Переиспользуемый transport для chat completions API."""
 
     def __init__(
         self,

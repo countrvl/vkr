@@ -1,4 +1,4 @@
-"""Inference backends and experiment orchestration."""
+"""Backend-ы инференса и оркестрация экспериментов."""
 
 from .api_backend import APIBackend, ApiInferenceBackend
 from .base import GenerationResult, InferenceBackend, extract_sql

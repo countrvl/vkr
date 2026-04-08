@@ -1,4 +1,4 @@
-"""Inference abstractions for code generation."""
+"""Базовые абстракции инференса для генерации кода."""
 
 from __future__ import annotations
 
@@ -16,7 +16,7 @@ _PYTHON_START_PATTERN = re.compile(r"(?m)^(from\s+\S+\s+import|import\s+\S+|def\
 
 @dataclass(slots=True)
 class GenerationResult:
-    """Normalized code-generation payload."""
+    """Нормализованный payload генерации кода."""
 
     code: str
     raw_response: str
@@ -29,7 +29,7 @@ class GenerationResult:
 
 
 class InferenceBackend(ABC):
-    """Interface for async inference backends."""
+    """Интерфейс async-backend-ов инференса."""
 
     @abstractmethod
     async def generate(
@@ -41,11 +41,11 @@ class InferenceBackend(ABC):
         seed: int | None = None,
         top_p: float | None = None,
     ) -> list[GenerationResult]:
-        """Generate one or more code candidates."""
+        """Сгенерировать один или несколько кандидатов кода."""
 
     @staticmethod
     def extract_code(raw: str) -> str:
-        """Extract Python code from a raw model response."""
+        """Извлечь Python-код из сырого ответа модели."""
         if not raw or not raw.strip():
             return ""
 
@@ -74,7 +74,7 @@ class InferenceBackend(ABC):
 
     @staticmethod
     def _extract_code_from_json(raw: str) -> str:
-        """Return code from a JSON object with a top-level ``code`` field."""
+        """Вернуть код из JSON-объекта с верхнеуровневым полем ``code``."""
         candidates = [raw]
         json_match = _JSON_OBJECT_PATTERN.search(raw)
         if json_match is not None and json_match.group(0) != raw:
@@ -94,5 +94,5 @@ class InferenceBackend(ABC):
 
 
 def extract_code(raw: str) -> str:
-    """Backward-compatible wrapper around `InferenceBackend.extract_code()`."""
+    """Совместимая обертка вокруг `InferenceBackend.extract_code()`."""
     return InferenceBackend.extract_code(raw)

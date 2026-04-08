@@ -1,4 +1,4 @@
-"""Efficiency metric aggregation for code generation."""
+"""Агрегация метрик эффективности для генерации кода."""
 
 from __future__ import annotations
 
@@ -21,7 +21,7 @@ def _validate_weights(weights: dict[str, Any]) -> None:
 
 
 def compute_efficiency(results: list[GenerationResult], config: dict[str, Any]) -> dict[str, float | None]:
-    """Compute Tinf, Mem, Tok, Cost, and an aggregate efficiency score."""
+    """Посчитать `Tinf`, `Mem`, `Tok`, `Cost` и агрегированный `Eff`."""
     if not results:
         return {"Tinf": None, "Mem": None, "Tok": None, "Cost": None, "Eff": None}
 
@@ -68,7 +68,7 @@ def compute_efficiency(results: list[GenerationResult], config: dict[str, Any]) 
 
 
 def normalize_efficiency_rows(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    """Return a new list of rows with min-max normalized Eff components."""
+    """Вернуть новый список строк с min-max-нормализованными компонентами Eff."""
     result = [copy.copy(row) for row in rows]
     for component in _EFF_COMPONENTS:
         values = [float(row[component]) for row in result if row.get(component) is not None]

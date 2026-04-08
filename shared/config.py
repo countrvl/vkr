@@ -1,4 +1,4 @@
-"""Configuration helpers for YAML-backed experiment settings."""
+"""Вспомогательные функции для YAML-конфигов экспериментов."""
 
 from __future__ import annotations
 
@@ -14,7 +14,7 @@ SHARED_CONFIG_DIR = PROJECT_ROOT / "shared" / "configs"
 
 
 def load_yaml_config(path: Path) -> dict[str, Any]:
-    """Load a YAML file into a dictionary."""
+    """Загрузить YAML-файл в словарь."""
     with path.open("r", encoding="utf-8") as handle:
         data = yaml.safe_load(handle) or {}
     if not isinstance(data, dict):
@@ -23,7 +23,7 @@ def load_yaml_config(path: Path) -> dict[str, Any]:
 
 
 def load_shared_models_config() -> dict[str, Any]:
-    """Load the unified cross-domain model catalog."""
+    """Загрузить единый каталог моделей для всех доменов."""
     return load_yaml_config(SHARED_CONFIG_DIR / "models.yaml")
 
 
@@ -40,7 +40,7 @@ def _merge_model_override(base_cfg: dict[str, Any], override_cfg: dict[str, Any]
 
 
 def load_domain_models(capability: str) -> dict[str, Any]:
-    """Return models enabled for a given domain capability."""
+    """Вернуть модели, доступные для указанного доменного флага."""
     if capability not in {"supports_sql", "supports_code"}:
         raise ValueError(f"Unsupported model capability: {capability}")
     domain_key = "sql" if capability == "supports_sql" else "code"

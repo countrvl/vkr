@@ -1,4 +1,4 @@
-"""Run NL2SQL inference over configured benchmarks."""
+"""Запустить NL2SQL-инференс на выбранных benchmark-ах."""
 
 from __future__ import annotations
 
@@ -31,7 +31,7 @@ LOGGER = logging.getLogger(__name__)
 
 
 def _config_defaults(config_dir: Path) -> dict[str, Path]:
-    """Load CLI defaults sourced from experiment.yaml."""
+    """Загрузить значения CLI по умолчанию из experiment.yaml."""
     config_path = config_dir / "experiment.yaml"
     if not config_path.exists():
         return {
@@ -53,15 +53,14 @@ def _load_models_config(config_dir: Path) -> dict[str, Any]:
 
 
 def _resolve_model_keys(model_arg: str, models_cfg: dict[str, Any]) -> list[str]:
-    """Resolve a model selector into an ordered list of model keys.
+    """Преобразовать selector моделей в упорядоченный список ключей.
 
-    Supports:
-    - single model key, e.g. ``m1_deepseek``
-    - ``all`` for every configured model
-    - ``m1`` for all keys starting with ``m1_``
-    - ``m2`` for all keys starting with ``m2_``
-    - comma-separated combinations, e.g. ``m1,m2_defog`` or
-      ``m1_deepseek,m1_chatgpt,m2_defog``
+    Поддерживаются:
+    - один ключ модели, например ``m1_deepseek``
+    - ``all`` для всех настроенных моделей
+    - ``m1`` для всех ключей с префиксом ``m1_``
+    - ``m2`` для всех ключей с префиксом ``m2_``
+    - комбинации через запятую, например ``m1,m2_defog``
     """
     tokens = [token.strip() for token in model_arg.split(",") if token.strip()]
     if not tokens:
@@ -97,7 +96,7 @@ def _resolve_model_keys(model_arg: str, models_cfg: dict[str, Any]) -> list[str]
 
 
 def _build_backend(model_key: str, model_cfg: dict[str, Any]):
-    """Build an inference backend from model configuration."""
+    """Собрать backend инференса из конфигурации модели."""
     backend = model_cfg["backend"]
     base_url = model_cfg["base_url"]
     base_url_env = model_cfg.get("base_url_env")
@@ -138,7 +137,7 @@ def _build_backend(model_key: str, model_cfg: dict[str, Any]):
 
 
 def _resolve_mode_params(mode: str, exp_cfg: dict[str, Any]) -> tuple[float, int, int | None]:
-    """Return (temperature, n, seed) for an inference mode."""
+    """Вернуть `(temperature, n, seed)` для выбранного режима инференса."""
     if mode == "ea":
         return 0.0, 1, exp_cfg.get("seed")
     if mode == "pass_k":
@@ -154,7 +153,7 @@ async def _run(
     n: int,
     seed: int | None,
 ) -> None:
-    """Create backends, load data, and run inference."""
+    """Создать backend-ы, загрузить данные и выполнить инференс."""
     prompt_builder = PromptBuilder()
     benchmark_names = exp_cfg["benchmarks"] if args.benchmark == "all" else [args.benchmark]
     model_keys = _resolve_model_keys(args.model, models_cfg)
@@ -200,7 +199,7 @@ async def _run(
 
 
 def main() -> None:
-    """Parse args, load config, and start the async inference workflow."""
+    """Разобрать аргументы, загрузить конфиг и запустить async-инференс."""
     configure_logging(logging.INFO)
     load_dotenv()
 

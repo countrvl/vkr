@@ -1,4 +1,4 @@
-"""Batch inference orchestration for code-generation benchmarks."""
+"""Пакетная оркестрация инференса для benchmark-ов генерации кода."""
 
 from __future__ import annotations
 
@@ -20,7 +20,7 @@ _FSYNC_EVERY_N = 200
 
 
 class ExperimentRunner:
-    """Run inference over a benchmark split and persist raw generations."""
+    """Запустить инференс по срезу benchmark-а и сохранить raw-генерации."""
 
     def __init__(
         self,

@@ -1,4 +1,4 @@
-"""Aggregate metrics from raw generation JSONL files."""
+"""Собрать метрики из raw JSONL-файлов генерации."""
 
 from __future__ import annotations
 
@@ -60,7 +60,7 @@ def _model_key(record: dict[str, Any]) -> Any:
 
 
 def _config_defaults(config_dir: Path) -> dict[str, Path]:
-    """Load CLI defaults sourced from experiment.yaml."""
+    """Загрузить значения CLI по умолчанию из experiment.yaml."""
     experiment_cfg = load_yaml_config(config_dir / "experiment.yaml")
     return {
         "raw_dir": PROJECT_ROOT / experiment_cfg.get("results_dir", "results/nl2sql/raw"),
@@ -89,7 +89,7 @@ def parse_args() -> argparse.Namespace:
 
 
 def _resolve_db_path(raw_db_path: str, data_dir: Path) -> Path:
-    """Resolve a DB path stored in JSONL, supporting old and new formats."""
+    """Разрешить путь к БД из JSONL с поддержкой старого и нового форматов."""
     db_path = Path(raw_db_path)
     if db_path.is_absolute():
         return db_path
@@ -104,12 +104,12 @@ def _resolve_db_path(raw_db_path: str, data_dir: Path) -> Path:
         if candidate.exists():
             return candidate
 
-    # Keep the most likely new-format path for error reporting downstream.
+    # Сохраняем наиболее вероятный путь нового формата для дальнейших ошибок.
     return data_dir / db_path
 
 
 def _normalize_run_label(record: dict[str, Any]) -> str:
-    """Normalize run labels for new and legacy raw records."""
+    """Нормализовать run label для новых и старых raw-записей."""
     run_label = record.get("run_label")
     if isinstance(run_label, str) and run_label.strip():
         return run_label.strip()
@@ -117,7 +117,7 @@ def _normalize_run_label(record: dict[str, Any]) -> str:
 
 
 def _expected_generation_count(run_label: str, experiment_cfg: dict[str, Any]) -> int | None:
-    """Return the expected generations per sample for a known run label."""
+    """Вернуть ожидаемое число генераций на sample для известного run label."""
     if run_label == "ea":
         return 1
     if run_label == "pass_k":
@@ -126,10 +126,9 @@ def _expected_generation_count(run_label: str, experiment_cfg: dict[str, Any]) -
 
 
 def _load_records(raw_dir: Path) -> dict[tuple[str, str, str], list[dict[str, Any]]]:
-    """Load and group JSONL records by (model_name, benchmark, run_label).
+    """Загрузить и сгруппировать JSONL по `(model_name, benchmark, run_label)`.
 
-    Each record is one sample with a ``generations`` list, as written by
-    :class:`src.inference.runner.ExperimentRunner`.
+    Каждая запись соответствует одному sample и содержит список `generations`.
     """
     grouped: dict[tuple[str, str, str], list[dict[str, Any]]] = defaultdict(list)
     for path in sorted(raw_dir.glob("*.jsonl")):
@@ -155,7 +154,7 @@ def _validate_records(
     experiment_cfg: dict[str, Any],
     data_dir: Path,
 ) -> None:
-    """Raise a clear error before evaluation when raw inputs are incompatible."""
+    """Выбросить понятную ошибку до оценки, если raw-входы несовместимы."""
     errors: list[str] = []
     grouped_by_pair: dict[tuple[str, str], set[str]] = defaultdict(set)
 
@@ -207,7 +206,7 @@ def _validate_records(
 
 
 def _evaluate_record(record: dict[str, Any], data_dir: Path) -> dict[str, Any]:
-    """Evaluate one raw record into sample-level outcomes."""
+    """Оценить одну raw-запись и получить sample-level результаты."""
     gold_sql = record.get("gold_sql", "")
     db_path = _resolve_db_path(record["db_path"], data_dir)
     generations = record.get("generations", [])

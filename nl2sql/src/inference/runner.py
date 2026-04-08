@@ -1,4 +1,4 @@
-"""Batch inference orchestration."""
+"""Пакетная оркестрация инференса."""
 
 from __future__ import annotations
 
@@ -17,13 +17,13 @@ from nl2sql.src.prompt.template import PromptBuilder
 
 LOGGER = logging.getLogger(__name__)
 
-# Flush and fsync to disk every N completed samples.  Writing fsync after
-# every single record serializes I/O significantly on large benchmark runs.
+# Делаем flush и fsync на диск каждые N завершенных sample.
+# fsync после каждой записи заметно сериализует I/O на больших прогонах.
 _FSYNC_EVERY_N = 200
 
 
 class ExperimentRunner:
-    """Run inference over a benchmark split and persist raw generations."""
+    """Запустить инференс по срезу benchmark-а и сохранить raw-генерации."""
 
     def __init__(
         self,
@@ -32,7 +32,7 @@ class ExperimentRunner:
         output_dir: Path,
         data_root: Path | None = None,
     ) -> None:
-        """Initialize a batch experiment runner."""
+        """Инициализировать batch-runner эксперимента."""
         self._backend = backend
         self._prompt_builder = prompt_builder
         self._output_dir = output_dir
@@ -56,7 +56,7 @@ class ExperimentRunner:
         prompt_profile: str = "nl2sql_json",
         progress: ProgressType | None = None,
     ) -> Path:
-        """Run inference over all samples and append to a JSONL file."""
+        """Прогнать инференс по всем sample и дописать результаты в JSONL."""
         output_path = self._resolve_output_path(
             model_name=model_name,
             benchmark=benchmark,
@@ -155,7 +155,7 @@ class ExperimentRunner:
         return output_path
 
     def _serialize_db_path(self, db_path: Path) -> str:
-        """Prefer a data-root-relative DB path for portable result files."""
+        """По возможности сохранить путь к БД относительно data root."""
         if self._data_root is None:
             return str(db_path)
 
@@ -171,7 +171,7 @@ class ExperimentRunner:
         benchmark: str,
         run_label: str | None = None,
     ) -> Path:
-        """Reuse the latest JSONL for a model+benchmark pair or create a new one."""
+        """Переиспользовать последний JSONL для пары model+benchmark или создать новый."""
         parts = [model_name, benchmark]
         if run_label:
             parts.append(run_label)
@@ -187,7 +187,7 @@ class ExperimentRunner:
 
     @staticmethod
     def _load_completed_sample_ids(path: Path) -> set[str]:
-        """Read already completed sample IDs from an existing JSONL file."""
+        """Считать уже завершенные sample ID из существующего JSONL."""
         if not path.exists():
             return set()
 

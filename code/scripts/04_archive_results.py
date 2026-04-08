@@ -1,4 +1,4 @@
-"""Archive code-benchmark artifacts under results/code/archive/."""
+"""Архивировать артефакты code-домена в results/code/archive/."""
 
 from __future__ import annotations
 

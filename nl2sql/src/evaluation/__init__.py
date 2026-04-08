@@ -1,4 +1,4 @@
-"""Evaluation metrics and execution helpers."""
+"""Метрики оценки и вспомогательные компоненты выполнения."""
 
 from .ea import execution_accuracy
 from .executor import ExecutionResult, execute_sql
