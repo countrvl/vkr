@@ -15,11 +15,9 @@
 - `Pass@1`, `Pass@5`, `Pass@10`
 - `Efficiency`: latency, tokens, cost
 
-## Актуальные модели
+## Модели
 
 Модели берутся из [`shared/configs/models.yaml`](/home/count/code/vkr/shared/configs/models.yaml) и фильтруются по `supports_code: true`.
-
-Основной активный набор `M2`:
 
 | Ключ | Отображаемое имя | Класс | Бэкенд |
 | --- | --- | --- | --- |
@@ -29,13 +27,6 @@
 | `m2_qwen2_5_coder` | `Qwen2.5-Coder-7B Instruct Q4_K_M` | `M2` | Ollama |
 | `m2_qwen2_5_coder_14b` | `Qwen2.5-Coder-14B Instruct` | `M2` | Ollama |
 | `m2_deepseek_coder` | `DeepSeek-Coder-V2-Lite 16B Q4_0` | `M2` | Ollama |
-
-Тяжелые кандидаты для отдельных smoke-run:
-
-- `m2_qwen2_5_coder_32b`
-- `m2_qwen3_coder_30b`
-
-Они не входят в default selector `--model m2` и запускаются только по явным ключам.
 
 ## Бенчмарки
 
@@ -51,18 +42,7 @@
 - [`code/configs/metrics.yaml`](/home/count/code/vkr/code/configs/metrics.yaml)
 - [`shared/configs/models.yaml`](/home/count/code/vkr/shared/configs/models.yaml)
 
-Для code-домена prompt profile задается через `domain_overrides.code`.
-
-Для `Claude Sonnet 4.5` batch используется как внутренняя транспортная оптимизация.
-Снаружи команды инференса, raw JSONL и evaluation не меняются.
-
-Текущие профили:
-
-- `m1_deepseek`, `m1_chatgpt` — `codegen_default`
-- `m2_qwen2_5_coder`, `m2_qwen2_5_coder_14b`, `m2_qwen2_5_coder_32b`, `m2_qwen3_coder_30b` — `qwen2_5_coder`
-- `m2_deepseek_coder` — `deepseek_coder`
-
-Кандидаты `Codestral-22B` и `Devstral-24B` пока зафиксированы только в [`plan.md`](/home/count/code/vkr/plan.md).
+Для API-моделей ключи доступа читаются из `.env`. Для локальных моделей должен быть доступен `Ollama`.
 
 ## Подготовка данных
 
@@ -70,9 +50,7 @@
 uv run python code/scripts/01_prepare_benchmarks.py --benchmark all
 ```
 
-Если планируется `Claude`, нужно задать `ANTHROPIC_API_KEY`.
-
-Скрипт подготавливает metadata-артефакты в `data/code/...`.
+Скрипт подготавливает локальные metadata-артефакты в `data/code/...`.
 
 ## Основные команды
 
@@ -83,7 +61,14 @@ uv run python code/scripts/02_run_inference.py --model all --benchmark all --mod
 uv run python code/scripts/02_run_inference.py --model all --benchmark all --mode pass_k
 ```
 
-Совместимый alias:
+Можно запускать и отдельные модели, например:
+
+```bash
+uv run python code/scripts/02_run_inference.py --model m1_claude --benchmark all --mode fc
+uv run python code/scripts/02_run_inference.py --model m2_qwen2_5_coder_14b --benchmark all --mode fc
+```
+
+`ea` поддерживается как alias для `fc`:
 
 ```bash
 uv run python code/scripts/02_run_inference.py --model all --benchmark all --mode ea
@@ -102,16 +87,12 @@ uv run python code/scripts/03_evaluate.py --run-label fc
 uv run python code/scripts/03_evaluate.py --run-label pass_k
 ```
 
+После evaluation итоговые таблицы появляются в `results/code/metrics/<run_label>/`.
+
 ### Ноутбук
 
 ```bash
 jupyter lab code/notebooks/01_report_fc_passk.ipynb
-```
-
-При необходимости можно указать другой каталог результатов:
-
-```bash
-CODE_RESULTS_DIR=/path/to/results/code jupyter lab code/notebooks/01_report_fc_passk.ipynb
 ```
 
 ## Артефакты
@@ -122,12 +103,4 @@ CODE_RESULTS_DIR=/path/to/results/code jupyter lab code/notebooks/01_report_fc_p
 - `results/code/figures/fc/*`
 - `results/code/figures/pass_k/*`
 
-## Архивация
-
-```bash
-.venv/bin/python code/scripts/04_archive_results.py --dry-run
-.venv/bin/python code/scripts/04_archive_results.py --label before_new_run
-.venv/bin/python code/scripts/04_archive_results.py --scope pass_k --label after_passk
-```
-
-Скрипт архивирует текущие `results/code/*` и копирует snapshot code-ноутбука в архив.
+`summary_metrics.csv` содержит агрегированные метрики по моделям, а `sample_metrics.csv` и `candidate_metrics.csv` позволяют разбирать результаты на уровне отдельных задач и генераций.
