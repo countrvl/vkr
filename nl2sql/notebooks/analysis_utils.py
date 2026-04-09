@@ -42,6 +42,14 @@ MODEL_DISPLAY_LOOKUP = {
 }
 
 
+def first_non_null(values: Any, default: Any = None) -> Any:
+    """Return the first non-null item from a Series-like value or a scalar."""
+    if isinstance(values, pd.Series):
+        non_null = values.dropna().tolist()
+        return non_null[0] if non_null else default
+    return default if pd.isna(values) else values
+
+
 def model_display_name(record: dict[str, Any]) -> Any:
     model_name = record.get("model_name")
     return record.get("model_display_name") or MODEL_DISPLAY_LOOKUP.get(model_name, {}).get("display_name") or model_name
@@ -335,13 +343,13 @@ def compute_summary_metrics(run_label: str | None = None) -> pd.DataFrame:
         row = {
             "model_name": model_name,
             "model_display_name": (
-                group["model_display_name"].dropna().iloc[0]
-                if "model_display_name" in group.columns and not group["model_display_name"].dropna().empty
+                first_non_null(group["model_display_name"], model_name)
+                if "model_display_name" in group.columns
                 else model_name
             ),
             "model_version": (
-                group["model_version"].dropna().iloc[0]
-                if "model_version" in group.columns and not group["model_version"].dropna().empty
+                first_non_null(group["model_version"])
+                if "model_version" in group.columns
                 else None
             ),
             "benchmark": benchmark,
