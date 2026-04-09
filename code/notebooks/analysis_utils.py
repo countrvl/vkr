@@ -39,6 +39,14 @@ for key, cfg in load_domain_models("supports_code").items():
             MODEL_DISPLAY_LOOKUP[str(alias)] = lookup_row
 
 
+def first_non_null(values: Any, default: Any = None) -> Any:
+    """Return the first non-null item from a Series-like value or a scalar."""
+    if isinstance(values, pd.Series):
+        non_null = values.dropna().tolist()
+        return non_null[0] if non_null else default
+    return default if pd.isna(values) else values
+
+
 def model_display_name(record: dict[str, Any]) -> Any:
     model_key = record.get("model_key")
     model_name = record.get("model_name")
