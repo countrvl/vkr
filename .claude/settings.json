@@ -1,7 +1,0 @@
-{
-  "permissions": {
-    "allow": [
-      "Bash(python3 -c \"import sys,json; r=json.load\\(sys.stdin\\); print\\(repr\\(r[''''generations''''][0][''''raw_response''''][:500]\\)\\)\")"
-    ]
-  }
-}
