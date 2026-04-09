@@ -4,10 +4,10 @@
 
 ## Назначение
 
-В домене сравниваются два класса моделей:
+Домен предназначен для сравнения двух классов моделей:
 
 - `M1` — крупные general-purpose модели через API
-- `M2` — компактные специализированные code-модели через Ollama
+- `M2` — компактные специализированные модели генерации кода через Ollama
 
 Метрики домена:
 
@@ -17,7 +17,7 @@
 
 ## Модели
 
-Модели берутся из [`shared/configs/models.yaml`](/home/count/code/vkr/shared/configs/models.yaml) и фильтруются по `supports_code: true`.
+Модели берутся из [`shared/configs/models.yaml`](../shared/configs/models.yaml) и фильтруются по `supports_code: true`.
 
 | Ключ | Отображаемое имя | Класс | Бэкенд |
 | --- | --- | --- | --- |
@@ -30,17 +30,17 @@
 
 ## Бенчмарки
 
-- `HumanEval+` — benchmark генерации Python-функций с расширенными тестами
-- `MBPP+` — benchmark прикладных задач программирования с расширенными тестами
+- `HumanEval+` — бенчмарк генерации Python-функций с расширенными тестами
+- `MBPP+` — бенчмарк прикладных задач программирования с расширенными тестами
 
-Оценка выполняется через `EvalPlus`.
+Оценка выполняется с помощью `EvalPlus`.
 
 ## Конфигурация
 
-- [`code/configs/benchmarks.yaml`](/home/count/code/vkr/code/configs/benchmarks.yaml)
-- [`code/configs/experiment.yaml`](/home/count/code/vkr/code/configs/experiment.yaml)
-- [`code/configs/metrics.yaml`](/home/count/code/vkr/code/configs/metrics.yaml)
-- [`shared/configs/models.yaml`](/home/count/code/vkr/shared/configs/models.yaml)
+- [`code/configs/benchmarks.yaml`](configs/benchmarks.yaml)
+- [`code/configs/experiment.yaml`](configs/experiment.yaml)
+- [`code/configs/metrics.yaml`](configs/metrics.yaml)
+- [`shared/configs/models.yaml`](../shared/configs/models.yaml)
 
 Для API-моделей ключи доступа читаются из `.env`. Для локальных моделей должен быть доступен `Ollama`.
 
@@ -51,6 +51,15 @@ uv run python code/scripts/01_prepare_benchmarks.py --benchmark all
 ```
 
 Скрипт подготавливает локальные metadata-артефакты в `data/code/...`.
+
+## Как работать с доменом
+
+Базовый сценарий работы:
+
+1. Подготовить данные бенчмарка.
+2. Запустить inference для выбранных моделей.
+3. Запустить evaluation для нужного `run_label`.
+4. Открыть ноутбук с итоговым отчётом.
 
 ## Основные команды
 
@@ -87,7 +96,7 @@ uv run python code/scripts/03_evaluate.py --run-label fc
 uv run python code/scripts/03_evaluate.py --run-label pass_k
 ```
 
-После evaluation итоговые таблицы появляются в `results/code/metrics/<run_label>/`.
+После evaluation итоговые таблицы сохраняются в `results/code/metrics/<run_label>/`.
 
 ### Ноутбук
 
@@ -103,4 +112,4 @@ jupyter lab code/notebooks/01_report_fc_passk.ipynb
 - `results/code/figures/fc/*`
 - `results/code/figures/pass_k/*`
 
-`summary_metrics.csv` содержит агрегированные метрики по моделям, а `sample_metrics.csv` и `candidate_metrics.csv` позволяют разбирать результаты на уровне отдельных задач и генераций.
+`summary_metrics.csv` содержит агрегированные метрики по моделям, а `sample_metrics.csv` и `candidate_metrics.csv` позволяют анализировать результаты на уровне отдельных задач и генераций.
