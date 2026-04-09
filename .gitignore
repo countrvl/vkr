@@ -1,5 +1,6 @@
 .venv/
 .cache/
+.claude/
 .env
 __pycache__/
 *.pyc

@@ -108,7 +108,7 @@ jupyter lab nl2sql/notebooks/02_report_pass_k.ipynb
 - `results/nl2sql/figures/ea/*`
 - `results/nl2sql/figures/pass_k/*`
 
-`summary_metrics.csv` содержит агрегированные метрики по моделям, а `sample_metrics.csv` используется для анализа результатов на уровне отдельных примеров.
+`summary_metrics.csv` содержит агрегированные метрики по моделям, а `sample_metrics.csv` используется для анализа результатов на уровне отдельных примеров.  
 
 ## Полезные файлы
 
