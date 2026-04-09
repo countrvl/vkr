@@ -2,8 +2,8 @@
 
 Репозиторий для сравнения двух классов моделей в двух независимых прикладных доменах:
 
-- [`nl2sql/`](/home/count/code/vkr/nl2sql) — генерация SQL на `Spider` и `BIRD`
-- [`code/`](/home/count/code/vkr/code) — генерация Python-кода на `HumanEval+` и `MBPP+`
+- [`nl2sql/`](nl2sql/) — генерация SQL на `Spider` и `BIRD`
+- [`code/`](code/) — генерация Python-кода на `HumanEval+` и `MBPP+`
 
 ## Назначение
 
@@ -28,10 +28,10 @@ benchmark-domains/
 
 ## Общие компоненты
 
-- [`shared/configs/models.yaml`](/home/count/code/vkr/shared/configs/models.yaml) — единый каталог моделей
-- [`shared/config.py`](/home/count/code/vkr/shared/config.py) — загрузка конфигурации
-- [`shared/logging_utils.py`](/home/count/code/vkr/shared/logging_utils.py) — логирование и progress bar
-- [`shared/inference/`](/home/count/code/vkr/shared/inference) — общий transport-слой для API и локальных backend-ов
+- [`shared/configs/models.yaml`](shared/configs/models.yaml) — единый каталог моделей
+- [`shared/config.py`](shared/config.py) — загрузка конфигурации
+- [`shared/logging_utils.py`](shared/logging_utils.py) — логирование и индикаторы прогресса
+- [`shared/inference/`](shared/inference/) — общий транспортный слой для API и локальных backend-ов
 
 ## Установка
 
@@ -51,11 +51,11 @@ cp .env.example .env
 
 ## Как работать с проектом
 
-Базовый сценарий одинаков для обоих доменов:
+Базовый сценарий работы одинаков для обоих доменов:
 
-1. Подготовить данные benchmark-а.
+1. Подготовить данные бенчмарка.
 2. Запустить inference для нужных моделей и режима.
-3. Посчитать метрики через evaluation script.
+3. Запустить evaluation и сохранить агрегированные метрики.
 4. Открыть ноутбук с итоговым отчётом.
 
 ## Быстрый старт
@@ -80,11 +80,11 @@ jupyter lab code/notebooks/01_report_fc_passk.ipynb
 
 ## Где смотреть результаты
 
-- raw-генерации сохраняются в `results/<domain>/raw/`
+- raw-результаты сохраняются в `results/<domain>/raw/`
 - агрегированные метрики сохраняются в `results/<domain>/metrics/`
-- графики и figures сохраняются в `results/<domain>/figures/`
+- графики и изображения для отчётов сохраняются в `results/<domain>/figures/`
 
 ## Доменные README
 
-- [`nl2sql/README.md`](/home/count/code/vkr/nl2sql/README.md)
-- [`code/README.md`](/home/count/code/vkr/code/README.md)
+- [`nl2sql/README.md`](nl2sql/README.md)
+- [`code/README.md`](code/README.md)

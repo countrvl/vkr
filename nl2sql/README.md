@@ -4,7 +4,7 @@
 
 ## Назначение
 
-В домене сравниваются два класса моделей:
+Домен предназначен для сравнения двух классов моделей:
 
 - `M1` — крупные general-purpose LLM через OpenAI-compatible API
 - `M2` — компактные специализированные text-to-SQL модели через Ollama
@@ -18,7 +18,7 @@
 
 ## Модели
 
-Модели берутся из [`shared/configs/models.yaml`](/home/count/code/vkr/shared/configs/models.yaml) и фильтруются по `supports_sql: true`.
+Модели берутся из [`shared/configs/models.yaml`](../shared/configs/models.yaml) и фильтруются по `supports_sql: true`.
 
 | Ключ | Отображаемое имя | Класс | Бэкенд |
 | --- | --- | --- | --- |
@@ -32,18 +32,18 @@
 
 ## Бенчмарки
 
-- `Spider` — базовый кросс-доменный benchmark для text-to-SQL
-- `BIRD` — более сложный и более реалистичный benchmark
+- `Spider` — базовый кросс-доменный бенчмарк для text-to-SQL
+- `BIRD` — более сложный и более реалистичный бенчмарк
 
 ## Конфигурация
 
-- [`nl2sql/configs/experiment.yaml`](/home/count/code/vkr/nl2sql/configs/experiment.yaml) — seed, sampling, `k_values`, пути к данным и результатам
-- [`nl2sql/configs/metrics.yaml`](/home/count/code/vkr/nl2sql/configs/metrics.yaml) — веса эффективности и параметры метрик
-- [`shared/configs/models.yaml`](/home/count/code/vkr/shared/configs/models.yaml) — единый каталог моделей
+- [`nl2sql/configs/experiment.yaml`](configs/experiment.yaml) — seed, sampling, `k_values`, пути к данным и результатам
+- [`nl2sql/configs/metrics.yaml`](configs/metrics.yaml) — веса эффективности и параметры метрик
+- [`shared/configs/models.yaml`](../shared/configs/models.yaml) — единый каталог моделей
 
 Для API-моделей ключи доступа читаются из `.env`. Для локальных `M2` требуется запущенный `Ollama` и загруженные модели.
 
-## Быстрый старт
+## Подготовка данных
 
 ```bash
 uv sync
@@ -51,6 +51,15 @@ cp .env.example .env
 ollama serve
 uv run python nl2sql/scripts/01_download_data.py --benchmark all
 ```
+
+## Как работать с доменом
+
+Базовый сценарий работы:
+
+1. Подготовить данные бенчмарка.
+2. Запустить inference для выбранных моделей.
+3. Запустить evaluation для нужного `run_label`.
+4. Открыть ноутбук с итоговым отчётом.
 
 ## Основные команды
 
@@ -82,7 +91,7 @@ uv run python nl2sql/scripts/03_evaluate.py --run-label pass_k
 uv run python nl2sql/scripts/03_evaluate.py --run-label all
 ```
 
-После evaluation итоговые таблицы появляются в `results/nl2sql/metrics/<run_label>/`.
+После evaluation итоговые таблицы сохраняются в `results/nl2sql/metrics/<run_label>/`.
 
 ### Ноутбуки
 
@@ -103,5 +112,5 @@ jupyter lab nl2sql/notebooks/02_report_pass_k.ipynb
 
 ## Полезные файлы
 
-- [`nl2sql/notebooks/01_report_ea.ipynb`](/home/count/code/vkr/nl2sql/notebooks/01_report_ea.ipynb)
-- [`nl2sql/notebooks/02_report_pass_k.ipynb`](/home/count/code/vkr/nl2sql/notebooks/02_report_pass_k.ipynb)
+- [`nl2sql/notebooks/01_report_ea.ipynb`](notebooks/01_report_ea.ipynb)
+- [`nl2sql/notebooks/02_report_pass_k.ipynb`](notebooks/02_report_pass_k.ipynb)
