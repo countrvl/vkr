@@ -11,7 +11,9 @@ htmlcov/
 *.egg-info/
 .ipynb_checkpoints/
 data/
-results/raw/
-results/metrics/
+results/nl2sql/raw/
+results/nl2sql/raw_*/
+results/code/raw/
+results/code/raw_*/
 plan.md
 AGENTS.md

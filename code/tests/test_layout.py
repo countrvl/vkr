@@ -28,9 +28,12 @@ def test_code_domain_configs_load() -> None:
     assert experiment["k_values"] == [1, 5, 10]
     assert "m1_chatgpt" in models["models"]
     assert "m1_claude" in models["models"]
+    assert "m1_qwen3_6_plus" in models["models"]
     assert "m2_qwen2_5_coder" in models["models"]
     assert models["models"]["m1_claude"]["batch_support"] is True
     assert models["models"]["m1_chatgpt"]["batch_support"] is False
+    assert models["models"]["m1_qwen3_6_plus"]["supports_code"] is True
+    assert models["models"]["m1_qwen3_6_plus"]["supports_sql"] is True
     assert models["models"]["m2_qwen2_5_coder"]["supports_code"] is True
     assert models["models"]["m2_qwen2_5_coder"]["supports_sql"] is False
 
@@ -40,10 +43,12 @@ def test_code_domain_model_filter_keeps_only_code_models() -> None:
 
     assert "m1_chatgpt" in models
     assert "m1_claude" in models
+    assert "m1_qwen3_6_plus" in models
     assert "m2_qwen2_5_coder" in models
     assert "m2_defog" not in models
     assert models["m1_chatgpt"]["max_tokens"] == 768
     assert models["m1_chatgpt"]["prompt_profile"] == "codegen_default"
+    assert models["m1_qwen3_6_plus"]["prompt_profile"] == "codegen_default"
     assert models["m2_qwen2_5_coder"]["prompt_profile"] == "qwen2_5_coder"
     assert models["m2_qwen2_5_coder_14b"]["prompt_profile"] == "qwen2_5_coder"
     assert models["m2_deepseek_coder"]["prompt_profile"] == "deepseek_coder"
@@ -51,6 +56,7 @@ def test_code_domain_model_filter_keeps_only_code_models() -> None:
     assert models["m2_qwen3_coder_30b"]["prompt_profile"] == "qwen2_5_coder"
     assert models["m2_qwen2_5_coder_32b"]["active_by_default"] is False
     assert models["m2_qwen3_coder_30b"]["active_by_default"] is False
+    assert models["m1_qwen3_6_plus"]["active_by_default"] is False
     assert "m2_codegemma" not in models
     assert "m2_codellama" not in models
     assert models["m2_qwen2_5_coder"]["parameters"]["num_ctx"] == 8192
@@ -67,8 +73,10 @@ def test_code_model_selector_excludes_heavy_candidates_by_default() -> None:
     spec.loader.exec_module(module)
 
     models = load_domain_models("supports_code")
+    assert "m1_qwen3_6_plus" not in module._resolve_model_keys("m1", models)
     assert "m2_qwen2_5_coder_32b" not in module._resolve_model_keys("m2", models)
     assert "m2_qwen3_coder_30b" not in module._resolve_model_keys("m2", models)
+    assert module._resolve_model_keys("m1_qwen3_6_plus", models) == ["m1_qwen3_6_plus"]
     assert module._resolve_model_keys("m2_qwen2_5_coder_32b", models) == [
         "m2_qwen2_5_coder_32b"
     ]

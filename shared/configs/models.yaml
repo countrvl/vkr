@@ -89,6 +89,36 @@ models:
         max_tokens: 768
         prompt_profile: "codegen_default"
 
+  m1_qwen3_6_plus:
+    name: "Qwen"
+    version: "3.6 Plus"
+    display_name: "Qwen 3.6 Plus"
+    backend: "api"
+    family: "m1"
+    active_by_default: false
+    batch_support: false
+    batch_mode: "none"
+    dispatch_preference: "online"
+    supports_sql: true
+    supports_code: true
+    model_id: "qwen/qwen3.6-plus"
+    model_id_env: "OPENROUTER_MODEL_ID"
+    base_url: "https://openrouter.ai/api/v1"
+    base_url_env: "OPENROUTER_API_URL"
+    env_key: "OPENROUTER_API_KEY"
+    pricing:
+      input_per_1m: 0.325
+      output_per_1m: 1.95
+    parameters: {}
+    domain_overrides:
+      sql:
+        max_tokens: 512
+        prompt_profile: "nl2sql_json"
+        structured_output: true
+      code:
+        max_tokens: 768
+        prompt_profile: "codegen_default"
+
   m2_defog:
     name: "Defog-Llama3-SQLCoder-8B"
     version: "q4_0"

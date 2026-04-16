@@ -6,7 +6,9 @@ import sqlite3
 from pathlib import Path
 from types import SimpleNamespace
 
+import httpx
 import pytest
+from openai import InternalServerError
 
 from nl2sql.src.evaluation import ea as ea_module
 from nl2sql.src.evaluation import executor as executor_module
@@ -282,6 +284,32 @@ def test_validate_records_rejects_wrong_generation_count(tmp_path: Path) -> None
         )
 
 
+def test_validate_records_allows_empty_generations_as_skippable(tmp_path: Path) -> None:
+    db_path = tmp_path / "data" / "spider" / "database" / "db" / "db.sqlite"
+    db_path.parent.mkdir(parents=True)
+    db_path.write_bytes(b"")
+
+    grouped = {
+        ("Demo", "spider", "ea"): [
+            {
+                "sample_id": "s1",
+                "model_name": "Demo",
+                "benchmark": "spider",
+                "run_label": "ea",
+                "db_path": "spider/database/db/db.sqlite",
+                "generations": [],
+                "_source_path": "ea.jsonl",
+            }
+        ]
+    }
+
+    _EVALUATE_MODULE._validate_records(
+        grouped,
+        experiment_cfg={"k_values": [1, 5, 10]},
+        data_dir=tmp_path / "data",
+    )
+
+
 def test_evaluate_writes_sample_metrics_csv(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     raw_dir = tmp_path / "raw"
     raw_dir.mkdir()
@@ -498,6 +526,35 @@ def test_api_backend_requests_structured_output_by_default() -> None:
     assert captured_kwargs["response_format"] == {"type": "json_object"}
 
 
+def test_api_backend_raises_on_empty_choices() -> None:
+    class DummyCompletions:
+        async def create(self, **kwargs):
+            return SimpleNamespace(
+                usage=SimpleNamespace(prompt_tokens=12, completion_tokens=5),
+                choices=[],
+            )
+
+    backend = APIBackend(
+        model_id="demo-model",
+        base_url="https://example.com",
+        api_key="test-key",
+        model_name="Demo",
+    )
+    backend.client = SimpleNamespace(chat=SimpleNamespace(completions=DummyCompletions()))
+
+    with pytest.raises(RuntimeError, match="returned no choices"):
+        asyncio.run(
+            backend._generate_native(
+                prompt="question",
+                n=1,
+                temperature=0.0,
+                max_tokens=32,
+                seed=None,
+                top_p=None,
+            )
+        )
+
+
 def test_api_backend_tops_up_missing_choices_when_provider_ignores_n(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -549,6 +606,53 @@ def test_api_backend_tops_up_missing_choices_when_provider_ignores_n(
 
     assert len(results) == 3
     assert calls == [3, 1, 1]
+
+
+def test_api_backend_retries_internal_server_error(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class FlakyCompletions:
+        def __init__(self) -> None:
+            self.calls = 0
+
+        async def create(self, **kwargs):
+            self.calls += 1
+            if self.calls == 1:
+                request = httpx.Request("POST", "https://example.com/chat/completions")
+                response = httpx.Response(status_code=504, request=request)
+                raise InternalServerError("504 Gateway Time-out", response=response, body=None)
+            return SimpleNamespace(
+                usage=SimpleNamespace(prompt_tokens=12, completion_tokens=5),
+                choices=[SimpleNamespace(message=SimpleNamespace(content='{"sql":"SELECT 1"}'))],
+            )
+
+    async def no_sleep(_: float) -> None:
+        return None
+
+    monkeypatch.setattr("shared.inference.api_transport.asyncio.sleep", no_sleep)
+
+    backend = APIBackend(
+        model_id="demo-model",
+        base_url="https://example.com",
+        api_key="test-key",
+        model_name="Demo",
+    )
+    completions = FlakyCompletions()
+    backend.client = SimpleNamespace(chat=SimpleNamespace(completions=completions))
+
+    results = asyncio.run(
+        backend.generate(
+            prompt="question",
+            n=1,
+            temperature=0.0,
+            max_tokens=32,
+            seed=None,
+            top_p=None,
+        )
+    )
+
+    assert len(results) == 1
+    assert completions.calls == 2
 
 
 def test_ollama_backend_requests_structured_output_schema() -> None:

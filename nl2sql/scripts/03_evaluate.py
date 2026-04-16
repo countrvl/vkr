@@ -167,9 +167,13 @@ def _validate_records(
             source_path = record.get("_source_path", "<unknown>")
             generations = record.get("generations", [])
             if not generations:
-                errors.append(
-                    f"{source_path}: sample {sample_id} has no generations "
-                    f"for {model_name}/{benchmark}/{run_label}"
+                LOGGER.warning(
+                    "%s: sample %s has no generations for %s/%s/%s; skipping during evaluation.",
+                    source_path,
+                    sample_id,
+                    model_name,
+                    benchmark,
+                    run_label,
                 )
                 continue
 

@@ -182,3 +182,21 @@ def test_runner_resume_keeps_single_record_and_reuses_existing_progress(tmp_path
 
     assert output_path == second_output_path
     assert len(output_path.read_text(encoding="utf-8").splitlines()) == 1
+
+
+def test_load_completed_sample_ids_ignores_empty_generation_records(tmp_path: Path) -> None:
+    output_path = tmp_path / "demo.jsonl"
+    output_path.write_text(
+        "\n".join(
+            [
+                json.dumps({"sample_id": "ok", "generations": [{"sql": "SELECT 1"}]}),
+                json.dumps({"sample_id": "empty", "generations": []}),
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+    completed = ExperimentRunner._load_completed_sample_ids(output_path)
+
+    assert completed == {"ok"}
