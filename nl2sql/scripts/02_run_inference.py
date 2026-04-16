@@ -76,13 +76,22 @@ def _resolve_model_keys(model_arg: str, models_cfg: dict[str, Any]) -> list[str]
                 seen.add(key)
                 resolved.append(key)
 
+    def default_keys(prefix: str | None = None) -> list[str]:
+        keys = []
+        for key, cfg in models_cfg.items():
+            if prefix is not None and not key.startswith(prefix):
+                continue
+            if cfg.get("active_by_default", True):
+                keys.append(key)
+        return keys
+
     for token in tokens:
         if token == "all":
-            add_keys(list(models_cfg))
+            add_keys(default_keys())
         elif token == "m1":
-            add_keys([key for key in models_cfg if key.startswith("m1_")])
+            add_keys(default_keys("m1_"))
         elif token == "m2":
-            add_keys([key for key in models_cfg if key.startswith("m2_")])
+            add_keys(default_keys("m2_"))
         elif token in models_cfg:
             add_keys([token])
         else:

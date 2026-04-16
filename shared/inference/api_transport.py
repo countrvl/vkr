@@ -7,7 +7,14 @@ import logging
 import time
 from typing import Any, Callable, TypeVar
 
-from openai import APIConnectionError, APITimeoutError, AsyncOpenAI, BadRequestError, RateLimitError
+from openai import (
+    APIConnectionError,
+    APITimeoutError,
+    AsyncOpenAI,
+    BadRequestError,
+    InternalServerError,
+    RateLimitError,
+)
 
 
 LOGGER = logging.getLogger(__name__)
@@ -178,7 +185,7 @@ class OpenAIChatTransport:
                     seed=seed,
                     top_p=top_p,
                 )
-            except (APIConnectionError, APITimeoutError, RateLimitError) as exc:
+            except (APIConnectionError, APITimeoutError, RateLimitError, InternalServerError) as exc:
                 if attempt > len(RETRY_DELAYS_SECONDS):
                     raise
                 delay = RETRY_DELAYS_SECONDS[attempt - 1]
@@ -248,7 +255,9 @@ class OpenAIChatTransport:
         prompt_tokens = int(getattr(usage, "prompt_tokens", 0) or 0)
         completion_tokens = int(getattr(usage, "completion_tokens", 0) or 0)
         choices = getattr(response, "choices", []) or []
-        n_choices = max(len(choices), 1)
+        if not choices:
+            raise RuntimeError(f"Model {self.model_id} returned no choices.")
+        n_choices = len(choices)
         per_choice_out = [completion_tokens // n_choices] * n_choices
         if per_choice_out:
             per_choice_out[-1] += completion_tokens - sum(per_choice_out)

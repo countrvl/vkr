@@ -115,6 +115,8 @@ class ExperimentRunner:
                             seed=seed,
                             top_p=top_p,
                         )
+                        if not generations:
+                            raise RuntimeError("Backend returned no generations.")
                         record = {
                             "sample_id": sample.id,
                             "benchmark": sample.benchmark,
@@ -342,6 +344,8 @@ class ExperimentRunner:
                     try:
                         if isinstance(result, Exception):
                             raise result
+                        if not result:
+                            raise RuntimeError("Backend returned no generations.")
                         if final_batch_id is None:
                             final_batch_id = next(
                                 (
@@ -549,7 +553,8 @@ class ExperimentRunner:
                     LOGGER.warning("Skipping malformed JSONL line in %s", path)
                     continue
                 sample_id = payload.get("sample_id")
-                if isinstance(sample_id, str) and sample_id:
+                generations = payload.get("generations")
+                if isinstance(sample_id, str) and sample_id and generations:
                     completed.add(sample_id)
         return completed
 

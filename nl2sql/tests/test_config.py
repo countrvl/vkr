@@ -36,6 +36,17 @@ def test_models_config_includes_pricing() -> None:
     assert config["models"]["m1_chatgpt"]["pricing"]["output_per_1m"] == 10.0
     assert config["models"]["m1_chatgpt"]["batch_support"] is False
     assert config["models"]["m1_chatgpt"]["batch_mode"] == "none"
+    assert config["models"]["m1_qwen3_6_plus"]["model_id"] == "qwen/qwen3.6-plus"
+    assert config["models"]["m1_qwen3_6_plus"]["base_url_env"] == "OPENROUTER_API_URL"
+    assert config["models"]["m1_qwen3_6_plus"]["model_id_env"] == "OPENROUTER_MODEL_ID"
+    assert config["models"]["m1_qwen3_6_plus"]["env_key"] == "OPENROUTER_API_KEY"
+    assert config["models"]["m1_qwen3_6_plus"]["name"] == "Qwen"
+    assert config["models"]["m1_qwen3_6_plus"]["version"] == "3.6 Plus"
+    assert config["models"]["m1_qwen3_6_plus"]["display_name"] == "Qwen 3.6 Plus"
+    assert config["models"]["m1_qwen3_6_plus"]["pricing"]["output_per_1m"] == 1.95
+    assert config["models"]["m1_qwen3_6_plus"]["active_by_default"] is False
+    assert config["models"]["m1_qwen3_6_plus"]["batch_support"] is False
+    assert config["models"]["m1_qwen3_6_plus"]["batch_mode"] == "none"
     assert config["models"]["m1_claude"]["backend"] == "anthropic"
     assert config["models"]["m1_claude"]["batch_support"] is True
     assert config["models"]["m1_claude"]["batch_mode"] == "native"
@@ -82,6 +93,7 @@ def test_domain_model_filter_keeps_only_sql_models() -> None:
 
     assert "m1_deepseek" in models
     assert "m1_claude" in models
+    assert "m1_qwen3_6_plus" in models
     assert "m2_defog" in models
     assert "m2_xiyansql_32b" in models
     assert "m2_qwen2_5_coder" not in models
@@ -144,6 +156,7 @@ def test_resolve_model_keys_supports_groups_and_lists() -> None:
     models_cfg = {
         "m1_deepseek": {},
         "m1_chatgpt": {},
+        "m1_qwen3_6_plus": {"active_by_default": False},
         "m2_defog": {},
         "m2_hrida": {},
     }
@@ -166,6 +179,9 @@ def test_resolve_model_keys_supports_groups_and_lists() -> None:
         "m1_deepseek",
         "m1_chatgpt",
         "m2_defog",
+    ]
+    assert _INFERENCE_MODULE._resolve_model_keys("m1_qwen3_6_plus", models_cfg) == [
+        "m1_qwen3_6_plus"
     ]
     assert _INFERENCE_MODULE._resolve_model_keys(
         "m1_deepseek,m2_defog,m1_deepseek",
