@@ -23,6 +23,12 @@ from code_bench.evaluation.functional_correctness import evaluate_code_candidate
 from code_bench.evaluation.pass_at_k import compute_all_pass_at_k
 from code_bench.inference.base import GenerationResult
 from shared.config import load_domain_models, load_yaml_config
+from shared.evaluation.statistics import (
+    bootstrap_interval,
+    bootstrap_quantile_fields,
+    quantile_fields,
+    wilson_interval,
+)
 from shared.logging_utils import configure_logging, create_progress
 
 
@@ -216,12 +222,60 @@ def _evaluate_record(record: dict[str, Any], execution_cfg: dict[str, Any]) -> d
     }
 
 
+def _statistics_config(metrics_cfg: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "confidence_level": float(metrics_cfg.get("statistics", {}).get("confidence_level", 0.95)),
+        "bootstrap_resamples": int(metrics_cfg.get("statistics", {}).get("bootstrap_resamples", 1000)),
+        "bootstrap_seed": int(metrics_cfg.get("statistics", {}).get("bootstrap_seed", 42)),
+        "quantiles": tuple(float(q) for q in metrics_cfg.get("statistics", {}).get("quantiles", (0.05, 0.5, 0.95))),
+    }
+
+
+def _functional_correctness_from_pass_results(pass_results: list[list[bool]]) -> float:
+    if not pass_results:
+        return 0.0
+    return sum(bool(hits[0]) for hits in pass_results) / len(pass_results)
+
+
+def _extract_generation_values(results: list[GenerationResult], field: str) -> list[float]:
+    values: list[float] = []
+    for result in results:
+        if field == "Tinf":
+            values.append(float(result.latency_ms))
+        elif field == "Tok":
+            values.append(float(result.tokens_input + result.tokens_output))
+        elif field == "Cost":
+            backend = result.metadata.get("backend")
+            if backend == "ollama":
+                values.append(0.0)
+            else:
+                cost_usd = result.metadata.get("cost_usd")
+                if cost_usd is not None:
+                    values.append(float(cost_usd))
+                else:
+                    pricing = result.metadata.get("pricing")
+                    if pricing:
+                        input_cost = (result.tokens_input / 1_000_000.0) * float(
+                            pricing.get("input_per_mtok", 0.0)
+                        )
+                        output_cost = (result.tokens_output / 1_000_000.0) * float(
+                            pricing.get("output_per_mtok", 0.0)
+                        )
+                        values.append(input_cost + output_cost)
+        elif field == "Mem":
+            memory = result.metadata.get("memory_mb")
+            if memory is not None:
+                values.append(float(memory))
+    return values
+
+
 def main() -> None:
     configure_logging(logging.INFO)
     args = parse_args()
     metrics_cfg = load_yaml_config(args.config_dir / "metrics.yaml")
     experiment_cfg = load_yaml_config(args.config_dir / "experiment.yaml")
     execution_cfg = metrics_cfg.get("execution", {})
+    stats_cfg = _statistics_config(metrics_cfg)
     args.output_dir.mkdir(parents=True, exist_ok=True)
 
     rows_by_label: dict[str, list[dict[str, Any]]] = defaultdict(list)
@@ -289,13 +343,57 @@ def main() -> None:
                 "benchmark": benchmark,
                 "run_label": run_label,
                 "n_samples": len(pass_results),
-                "functional_correctness": sum(hits[0] for hits in pass_results) / len(pass_results),
+                "functional_correctness": _functional_correctness_from_pass_results(pass_results),
             }
+            fc_ci_low, fc_ci_high = wilson_interval(
+                successes=sum(bool(hits[0]) for hits in pass_results),
+                total=len(pass_results),
+                confidence_level=stats_cfg["confidence_level"],
+            )
+            row["functional_correctness_ci_low"] = fc_ci_low
+            row["functional_correctness_ci_high"] = fc_ci_high
+            row.update(
+                bootstrap_quantile_fields(
+                    pass_results,
+                    _functional_correctness_from_pass_results,
+                    prefix="functional_correctness",
+                    quantiles=stats_cfg["quantiles"],
+                    n_resamples=stats_cfg["bootstrap_resamples"],
+                    seed=stats_cfg["bootstrap_seed"],
+                )
+            )
             for k, value in compute_all_pass_at_k(pass_results, experiment_cfg["k_values"]).items():
+                ci_low, ci_high = bootstrap_interval(
+                    pass_results,
+                    lambda sample, k=k: compute_all_pass_at_k(list(sample), [k])[k],
+                    confidence_level=stats_cfg["confidence_level"],
+                    n_resamples=stats_cfg["bootstrap_resamples"],
+                    seed=stats_cfg["bootstrap_seed"] + k,
+                )
                 row[f"pass@{k}"] = value
+                row[f"pass@{k}_ci_low"] = ci_low
+                row[f"pass@{k}_ci_high"] = ci_high
+                row.update(
+                    bootstrap_quantile_fields(
+                        pass_results,
+                        lambda sample, k=k: compute_all_pass_at_k(list(sample), [k])[k],
+                        prefix=f"pass@{k}",
+                        quantiles=stats_cfg["quantiles"],
+                        n_resamples=stats_cfg["bootstrap_resamples"],
+                        seed=stats_cfg["bootstrap_seed"] + k,
+                    )
+                )
             eff_metrics = compute_efficiency(generation_results, metrics_cfg)
             eff_metrics["_weights"] = metrics_cfg["efficiency_weights"]
             row.update(eff_metrics)
+            for component in ("Tinf", "Tok", "Cost", "Mem"):
+                row.update(
+                    quantile_fields(
+                        _extract_generation_values(generation_results, component),
+                        prefix=component,
+                        quantiles=stats_cfg["quantiles"],
+                    )
+                )
             rows_by_label[run_label].append(row)
             progress.update(groups_task, advance=1)
 

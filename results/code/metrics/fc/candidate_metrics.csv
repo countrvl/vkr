@@ -11943,7 +11943,7 @@ HumanEval/139,m2_deepseek_coder,DeepSeek-Coder-V2-Lite,DeepSeek-Coder-V2-Lite 16
     result = 1
     for i in range(1, n + 1):
         result *= factorial(i)
-    return result",True,False,False,failed_tests,pass,fail,4,4,99,127
+    return result",True,False,False,failed_tests,pass,fail,4,4,98,127
 HumanEval/14,m2_deepseek_coder,DeepSeek-Coder-V2-Lite,DeepSeek-Coder-V2-Lite 16B Q4_0,16B Lite Instruct Q4_0,humaneval_plus,fc,1,all_prefixes,"from typing import List
 
 def all_prefixes(string: str) -> List[str]:
@@ -12368,7 +12368,7 @@ def factorize(n: int) -> List[int]:
             n //= divisor
         else:
             divisor += 1
-    return factors",True,False,False,failed_tests,pass,fail,8,8,122,138
+    return factors",True,False,False,failed_tests,pass,fail,8,8,121,138
 HumanEval/26,m2_deepseek_coder,DeepSeek-Coder-V2-Lite,DeepSeek-Coder-V2-Lite 16B Q4_0,16B Lite Instruct Q4_0,humaneval_plus,fc,1,remove_duplicates,"from typing import List
 
 def remove_duplicates(numbers: List[int]) -> List[int]:
@@ -14695,7 +14695,7 @@ Mbpp/577,m2_deepseek_coder,DeepSeek-Coder-V2-Lite,DeepSeek-Coder-V2-Lite 16B Q4_
             return num * factorial(num - 1)
     
     fact = factorial(n)
-    return int(str(fact)[-1])",True,False,False,failed_tests,pass,fail,3,3,10,105
+    return int(str(fact)[-1])",True,False,False,failed_tests,pass,fail,3,3,9,105
 Mbpp/578,m2_deepseek_coder,DeepSeek-Coder-V2-Lite,DeepSeek-Coder-V2-Lite 16B Q4_0,16B Lite Instruct Q4_0,mbpp_plus,fc,1,interleave_lists,"def interleave_lists(list1, list2, list3):
     result = []
     for i in range(len(list1)):
@@ -15378,7 +15378,7 @@ Mbpp/74,m2_deepseek_coder,DeepSeek-Coder-V2-Lite,DeepSeek-Coder-V2-Lite 16B Q4_0
     return True
 
 # Test case
-assert is_samepatterns([""red"",""green"",""green""], [""a"", ""b"", ""b""]) == True",True,False,False,failed_tests,fail,fail,2,3,70,117
+assert is_samepatterns([""red"",""green"",""green""], [""a"", ""b"", ""b""]) == True",True,False,False,failed_tests,fail,fail,2,3,68,117
 Mbpp/740,m2_deepseek_coder,DeepSeek-Coder-V2-Lite,DeepSeek-Coder-V2-Lite 16B Q4_0,16B Lite Instruct Q4_0,mbpp_plus,fc,1,tuple_to_dict,"def tuple_to_dict(test_tup):
     result = {}
     for i in range(0, len(test_tup), 2):
@@ -22646,7 +22646,7 @@ HumanEval/139,m2_qwen2_5_coder_14b,Qwen2.5-Coder-14B,Qwen2.5-Coder-14B Instruct,
     for i in range(1, n + 1):
         result *= factorial(i)
     
-    return result",True,False,False,failed_tests,pass,fail,4,4,99,127
+    return result",True,False,False,failed_tests,pass,fail,4,4,98,127
 HumanEval/14,m2_qwen2_5_coder_14b,Qwen2.5-Coder-14B,Qwen2.5-Coder-14B Instruct,14B Instruct,humaneval_plus,fc,1,all_prefixes,"from typing import List
 
 
@@ -27180,7 +27180,7 @@ HumanEval/106,m2_qwen2_5_coder,Qwen2.5-Coder-7B,Qwen2.5-Coder-7B Instruct Q4_K_M
         else:
             result.append(sum_to_x(i))
     
-    return result",True,False,False,failed_tests,pass,fail,4,4,101,104
+    return result",True,False,False,failed_tests,pass,fail,4,4,99,104
 HumanEval/107,m2_qwen2_5_coder,Qwen2.5-Coder-7B,Qwen2.5-Coder-7B Instruct Q4_K_M,7B Instruct Q4_K_M,humaneval_plus,fc,1,even_odd_palindrome,"def even_odd_palindrome(n):
     """"""
     Given a positive integer n, return a tuple that has the number of even and odd
