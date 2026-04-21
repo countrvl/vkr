@@ -1,5 +1,11 @@
 import asyncio
+import csv
+import importlib.util
+import json
 from pathlib import Path
+from types import SimpleNamespace
+
+import pandas as pd
 
 from shared.config import load_domain_models, load_yaml_config
 from code_bench.data.prepare import build_metadata_records, prepare_benchmark_artifacts
@@ -13,6 +19,15 @@ from shared.inference.api_transport import OpenAIChatTransport
 from shared.inference.anthropic_transport import AnthropicMessagesTransport
 
 
+_EVALUATE_SPEC = importlib.util.spec_from_file_location(
+    "code_script_03_evaluate",
+    Path(__file__).resolve().parents[1] / "scripts" / "03_evaluate.py",
+)
+assert _EVALUATE_SPEC is not None and _EVALUATE_SPEC.loader is not None
+_EVALUATE_MODULE = importlib.util.module_from_spec(_EVALUATE_SPEC)
+_EVALUATE_SPEC.loader.exec_module(_EVALUATE_MODULE)
+
+
 def test_code_domain_layout_exists() -> None:
     assert Path("code/configs/benchmarks.yaml").exists()
     assert Path("code/scripts/01_prepare_benchmarks.py").exists()
@@ -22,6 +37,7 @@ def test_code_domain_layout_exists() -> None:
 def test_code_domain_configs_load() -> None:
     benchmarks = load_yaml_config(Path("code/configs/benchmarks.yaml"))
     experiment = load_yaml_config(Path("code/configs/experiment.yaml"))
+    metrics = load_yaml_config(Path("code/configs/metrics.yaml"))
     models = load_yaml_config(Path("shared/configs/models.yaml"))
     assert benchmarks["data_dir"] == "data/code"
     assert benchmarks["results_dir"] == "results/code/raw"
@@ -36,6 +52,7 @@ def test_code_domain_configs_load() -> None:
     assert models["models"]["m1_qwen3_6_plus"]["supports_sql"] is True
     assert models["models"]["m2_qwen2_5_coder"]["supports_code"] is True
     assert models["models"]["m2_qwen2_5_coder"]["supports_sql"] is False
+    assert metrics["statistics"]["quantiles"] == [0.05, 0.5, 0.95]
 
 
 def test_code_domain_model_filter_keeps_only_code_models() -> None:
@@ -496,3 +513,180 @@ def test_code_pass_at_k_uses_prefix_semantics() -> None:
     assert metrics[1] == 0.0
     assert metrics[5] == 1.0
     assert metrics[10] == 1.0
+
+
+def test_code_evaluate_writes_summary_statistics(tmp_path, monkeypatch) -> None:
+    raw_dir = tmp_path / "raw"
+    output_dir = tmp_path / "metrics"
+    raw_dir.mkdir()
+
+    record = {
+        "sample_id": "HumanEval/0",
+        "model_key": "m1_demo",
+        "model_name": "Demo",
+        "model_display_name": "Demo",
+        "model_version": "1.0",
+        "benchmark": "humaneval_plus",
+        "run_label": "fc",
+        "entry_point": "has_close_elements",
+        "prompt": "def has_close_elements(numbers, threshold):\n    pass\n",
+        "generations": [
+            {
+                "code": "def has_close_elements(numbers, threshold):\n    sorted_numbers = sorted(numbers)\n    for i in range(len(sorted_numbers) - 1):\n        if sorted_numbers[i + 1] - sorted_numbers[i] < threshold:\n            return True\n    return False\n",
+                "raw_response": "ok",
+                "tokens_input": 20,
+                "tokens_output": 10,
+                "latency_ms": 25.0,
+                "model_name": "Demo",
+                "metadata": {"backend": "ollama"},
+            }
+        ],
+    }
+    (raw_dir / "demo.jsonl").write_text(json.dumps(record) + "\n", encoding="utf-8")
+
+    monkeypatch.setattr(
+        _EVALUATE_MODULE,
+        "parse_args",
+        lambda: SimpleNamespace(
+            config_dir=Path("code/configs"),
+            raw_dir=raw_dir,
+            output_dir=output_dir,
+            run_label="all",
+        ),
+    )
+
+    _EVALUATE_MODULE.main()
+
+    summary_path = output_dir / "fc" / "summary_metrics.csv"
+    assert summary_path.exists()
+    with summary_path.open("r", encoding="utf-8", newline="") as handle:
+        rows = list(csv.DictReader(handle))
+
+    assert len(rows) == 1
+    assert rows[0]["functional_correctness"] == "1.0"
+    assert rows[0]["functional_correctness_ci_low"]
+    assert rows[0]["functional_correctness_ci_high"]
+    assert rows[0]["functional_correctness_q05"] == "1.0"
+    assert rows[0]["functional_correctness_q50"] == "1.0"
+    assert rows[0]["functional_correctness_q95"] == "1.0"
+    assert rows[0]["Tinf_q50"] == "25.0"
+    assert rows[0]["Tok_q50"] == "30.0"
+    assert rows[0]["Cost_q50"] == "0.0"
+    assert rows[0]["pass@1_q05"] == "1.0"
+    assert rows[0]["pass@1_q50"] == "1.0"
+    assert rows[0]["pass@1_q95"] == "1.0"
+    assert rows[0]["pass@1_ci_low"]
+    assert rows[0]["pass@1_ci_high"]
+
+
+def test_code_analysis_filters_main_vs_appendix() -> None:
+    from code_analysis_utils import build_completeness_audit, filter_appendix_rows, filter_main_report_rows
+
+    summary_df = pd.DataFrame(
+        [
+            {
+                "model_key": "m1_chatgpt",
+                "model_name": "ChatGPT",
+                "model_display_name": "ChatGPT 5.2",
+                "benchmark": "humaneval_plus",
+                "run_label": "fc",
+                "n_samples": 164,
+            },
+            {
+                "model_key": "m1_chatgpt",
+                "model_name": "ChatGPT",
+                "model_display_name": "ChatGPT 5.2",
+                "benchmark": "mbpp_plus",
+                "run_label": "fc",
+                "n_samples": 378,
+            },
+            {
+                "model_key": "m1_qwen3_6_plus",
+                "model_name": "Qwen 3.6 Plus",
+                "model_display_name": "Qwen 3.6 Plus",
+                "benchmark": "humaneval_plus",
+                "run_label": "fc",
+                "n_samples": 164,
+            },
+            {
+                "model_key": "m1_qwen3_6_plus",
+                "model_name": "Qwen 3.6 Plus",
+                "model_display_name": "Qwen 3.6 Plus",
+                "benchmark": "mbpp_plus",
+                "run_label": "fc",
+                "n_samples": 378,
+            },
+            {
+                "model_key": "m2_qwen2_5_coder",
+                "model_name": "Qwen2.5-Coder-7B",
+                "model_display_name": "Qwen2.5-Coder-7B Instruct Q4_K_M",
+                "benchmark": "humaneval_plus",
+                "run_label": "fc",
+                "n_samples": 164,
+            },
+        ]
+    )
+
+    audit_df = build_completeness_audit(summary_df, run_label="fc")
+    main_df = filter_main_report_rows(summary_df, run_label="fc", audit_df=audit_df)
+    appendix_df = filter_appendix_rows(summary_df, run_label="fc", audit_df=audit_df)
+
+    assert set(audit_df.loc[audit_df["is_complete_main"], "model_key"]) == {
+        "m1_chatgpt",
+        "m1_qwen3_6_plus",
+    }
+    assert set(main_df["model_key"]) == {"m1_chatgpt"}
+    assert set(appendix_df["model_key"]) == {"m1_qwen3_6_plus", "m2_qwen2_5_coder"}
+
+
+def test_code_analysis_pairwise_fc_deltas() -> None:
+    from code_analysis_utils import compute_pairwise_fc_deltas
+
+    sample_df = pd.DataFrame(
+        [
+            {
+                "sample_id": "Task/1",
+                "model_key": "m1_chatgpt",
+                "model_name": "ChatGPT",
+                "model_display_name": "ChatGPT 5.2",
+                "benchmark": "humaneval_plus",
+                "run_label": "fc",
+                "first_hit": True,
+            },
+            {
+                "sample_id": "Task/2",
+                "model_key": "m1_chatgpt",
+                "model_name": "ChatGPT",
+                "model_display_name": "ChatGPT 5.2",
+                "benchmark": "humaneval_plus",
+                "run_label": "fc",
+                "first_hit": False,
+            },
+            {
+                "sample_id": "Task/1",
+                "model_key": "m2_qwen2_5_coder",
+                "model_name": "Qwen2.5-Coder-7B",
+                "model_display_name": "Qwen2.5-Coder-7B Instruct Q4_K_M",
+                "benchmark": "humaneval_plus",
+                "run_label": "fc",
+                "first_hit": False,
+            },
+            {
+                "sample_id": "Task/2",
+                "model_key": "m2_qwen2_5_coder",
+                "model_name": "Qwen2.5-Coder-7B",
+                "model_display_name": "Qwen2.5-Coder-7B Instruct Q4_K_M",
+                "benchmark": "humaneval_plus",
+                "run_label": "fc",
+                "first_hit": False,
+            },
+        ]
+    )
+
+    deltas = compute_pairwise_fc_deltas(sample_df)
+
+    assert len(deltas) == 1
+    assert deltas.loc[0, "benchmark"] == "humaneval_plus"
+    assert deltas.loc[0, "n_pairs"] == 2
+    assert deltas.loc[0, "delta"] == 0.5
+    assert deltas.loc[0, "delta_q05"] <= deltas.loc[0, "delta_q50"] <= deltas.loc[0, "delta_q95"]

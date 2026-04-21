@@ -9,12 +9,12 @@ from typing import Any
 from nl2sql.src.inference.base import GenerationResult
 
 # Компоненты, которые нормализуются по min-max между моделями.
-_EFF_COMPONENTS = ("Tinf", "Mem", "Tok", "Cost")
+_EFF_COMPONENTS = ("Tinf", "Tok", "Cost")
 
 
 def _validate_weights(weights: dict[str, Any]) -> None:
     """Проверить, что веса эффективности суммируются в `1.0`."""
-    total = sum(weights[k] for k in ("alpha", "beta", "gamma", "delta"))
+    total = sum(weights[k] for k in ("alpha", "beta", "gamma"))
     if abs(total - 1.0) > 1e-9:
         raise ValueError(
             f"efficiency_weights must sum to 1.0 for a valid convex combination; got {total:.6f}"
@@ -24,8 +24,13 @@ def _validate_weights(weights: dict[str, Any]) -> None:
 def compute_efficiency(results: list[GenerationResult], config: dict[str, Any]) -> dict[str, float | None]:
     """Посчитать `Tinf`, `Mem`, `Tok`, `Cost` и агрегированный `Eff`.
 
+    Агрегированная метрика `Eff` определяется как выпуклая комбинация
+    `Tinf`, `Tok` и `Cost`.
+
     Для локальных backend-ов прямые денежные затраты считаются равными нулю.
-    Если нет pricing или замеров памяти, соответствующий компонент получает `None`.
+    Если нет pricing, компонент `Cost` получает `None`. Поле `Mem`
+    сохраняется как диагностическая характеристика, но не участвует
+    в расчете `Eff`.
     """
     if not results:
         return {"Tinf": None, "Mem": None, "Tok": None, "Cost": None, "Eff": None}
@@ -60,14 +65,14 @@ def compute_efficiency(results: list[GenerationResult], config: dict[str, Any]) 
     cost = mean(cost_values) if len(cost_values) == len(results) else None
 
     components = {"Tinf": latency, "Mem": memory, "Tok": tokens, "Cost": cost}
-    if any(value is None for value in components.values()):
+    eff_inputs = {"Tinf": latency, "Tok": tokens, "Cost": cost}
+    if any(value is None for value in eff_inputs.values()):
         eff = None
     else:
         eff = (
-            weights["alpha"] * components["Tinf"]
-            + weights["beta"] * components["Mem"]
-            + weights["gamma"] * components["Tok"]
-            + weights["delta"] * components["Cost"]
+            weights["alpha"] * eff_inputs["Tinf"]
+            + weights["beta"] * eff_inputs["Tok"]
+            + weights["gamma"] * eff_inputs["Cost"]
         )
     return {**components, "Eff": eff}
 
@@ -109,12 +114,11 @@ def normalize_efficiency_rows(rows: list[dict[str, Any]]) -> list[dict[str, Any]
         if any(v is None for v in norms):
             row["Eff_normalized"] = None
         else:
-            tinf_n, mem_n, tok_n, cost_n = norms  # type: ignore[misc]
+            tinf_n, tok_n, cost_n = norms  # type: ignore[misc]
             row["Eff_normalized"] = (
                 weights["alpha"] * tinf_n
-                + weights["beta"] * mem_n
-                + weights["gamma"] * tok_n
-                + weights["delta"] * cost_n
+                + weights["beta"] * tok_n
+                + weights["gamma"] * cost_n
             )
 
     return result

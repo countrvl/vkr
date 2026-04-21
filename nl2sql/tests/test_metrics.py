@@ -7,6 +7,7 @@ from pathlib import Path
 from types import SimpleNamespace
 
 import httpx
+import pandas as pd
 import pytest
 from openai import InternalServerError
 
@@ -20,6 +21,12 @@ from nl2sql.src.evaluation.pass_at_k import compute_all_pass_at_k, pass_at_k
 from nl2sql.src.inference.api_backend import APIBackend
 from nl2sql.src.inference.base import GenerationResult
 from nl2sql.src.inference.ollama_backend import OllamaBackend
+from shared.evaluation.statistics import (
+    bootstrap_interval,
+    bootstrap_quantile_fields,
+    quantile_fields,
+    wilson_interval,
+)
 
 
 _EVALUATE_SPEC = importlib.util.spec_from_file_location(
@@ -165,7 +172,7 @@ def test_compute_efficiency_with_pricing() -> None:
     ]
     metrics = compute_efficiency(
         results,
-        {"efficiency_weights": {"alpha": 0.3, "beta": 0.2, "gamma": 0.2, "delta": 0.3}},
+        {"efficiency_weights": {"alpha": 0.3, "beta": 0.3, "gamma": 0.4}},
     )
     assert metrics["Tinf"] == 50.0
     assert metrics["Mem"] == 1024.0
@@ -363,15 +370,81 @@ def test_evaluate_writes_sample_metrics_csv(tmp_path: Path, monkeypatch: pytest.
     _EVALUATE_MODULE.main()
 
     sample_metrics_path = output_dir / "ea" / "sample_metrics.csv"
+    summary_metrics_path = output_dir / "ea" / "summary_metrics.csv"
+    assert summary_metrics_path.exists()
     assert sample_metrics_path.exists()
+    with summary_metrics_path.open("r", encoding="utf-8", newline="") as handle:
+        summary_rows = list(csv.DictReader(handle))
     with sample_metrics_path.open("r", encoding="utf-8", newline="") as handle:
         rows = list(csv.DictReader(handle))
 
+    assert len(summary_rows) == 1
+    assert summary_rows[0]["execution_accuracy"] == "1.0"
+    assert summary_rows[0]["execution_accuracy_ci_low"]
+    assert summary_rows[0]["execution_accuracy_ci_high"]
+    assert summary_rows[0]["execution_accuracy_q05"] == "1.0"
+    assert summary_rows[0]["execution_accuracy_q50"] == "1.0"
+    assert summary_rows[0]["execution_accuracy_q95"] == "1.0"
+    assert summary_rows[0]["Tinf_q05"] == "12.5"
+    assert summary_rows[0]["Tinf_q50"] == "12.5"
+    assert summary_rows[0]["Tinf_q95"] == "12.5"
+    assert summary_rows[0]["Tok_q50"] == "15.0"
+    assert summary_rows[0]["Cost_q50"] == "0.0"
+    assert summary_rows[0]["pass@1_ci_low"]
+    assert summary_rows[0]["pass@1_ci_high"]
+    assert summary_rows[0]["pass@1_q05"] == "1.0"
+    assert summary_rows[0]["pass@1_q50"] == "1.0"
+    assert summary_rows[0]["pass@1_q95"] == "1.0"
     assert len(rows) == 1
     assert rows[0]["sample_id"] == "s1"
     assert rows[0]["candidate_hits"] == "[true]"
     assert rows[0]["first_hit"] == "True"
     assert rows[0]["first_pred_success"] == "True"
+
+
+def test_wilson_interval_contains_point_estimate() -> None:
+    low, high = wilson_interval(8, 10, confidence_level=0.95)
+
+    assert low is not None and high is not None
+    assert low <= 0.8 <= high
+
+
+def test_quantile_fields_formats_expected_suffixes() -> None:
+    fields = quantile_fields([1.0, 2.0, 10.0], prefix="Tinf", quantiles=[0.05, 0.5, 0.95])
+
+    assert fields["Tinf_q05"] == pytest.approx(1.1)
+    assert fields["Tinf_q50"] == pytest.approx(2.0)
+    assert fields["Tinf_q95"] == pytest.approx(9.2)
+
+
+def test_bootstrap_interval_returns_bounded_pass_at_k_interval() -> None:
+    low, high = bootstrap_interval(
+        [[True], [False], [True], [True]],
+        lambda sample: pass_at_k(list(sample), 1),
+        confidence_level=0.95,
+        n_resamples=200,
+        seed=7,
+    )
+
+    assert low is not None and high is not None
+    assert 0.0 <= low <= high <= 1.0
+
+
+def test_bootstrap_quantile_fields_return_expected_suffixes() -> None:
+    fields = bootstrap_quantile_fields(
+        [1.0, 2.0, 3.0, 4.0],
+        lambda sample: sum(sample) / len(sample),
+        prefix="metric",
+        quantiles=[0.05, 0.5, 0.95],
+        n_resamples=50,
+        seed=13,
+    )
+
+    assert set(fields) == {"metric_q05", "metric_q50", "metric_q95"}
+    assert fields["metric_q05"] is not None
+    assert fields["metric_q50"] is not None
+    assert fields["metric_q95"] is not None
+    assert fields["metric_q05"] <= fields["metric_q50"] <= fields["metric_q95"]
 
 
 def test_archive_results_scope_pass_k_moves_only_matching_artifacts(tmp_path: Path) -> None:
@@ -453,6 +526,145 @@ def test_notebook_helper_loads_persisted_sample_metrics_without_sql_execution(
     assert outcomes_df.iloc[0]["candidate_hits"] == [True, False]
     assert bool(outcomes_df.iloc[0]["first_hit"]) is True
     assert bool(outcomes_df.iloc[0]["first_pred_success"]) is False
+
+
+def test_notebook_helpers_split_main_and_appendix_sets() -> None:
+    analysis_utils_spec = importlib.util.spec_from_file_location(
+        "analysis_utils_under_test_split",
+        Path(__file__).resolve().parents[1] / "notebooks" / "analysis_utils.py",
+    )
+    assert analysis_utils_spec is not None and analysis_utils_spec.loader is not None
+    analysis_utils = importlib.util.module_from_spec(analysis_utils_spec)
+    analysis_utils_spec.loader.exec_module(analysis_utils)
+
+    summary_df = pd.DataFrame(
+        [
+            {
+                "model_name": "DeepSeek",
+                "model_display_name": "DeepSeek V3.2",
+                "model_key": "m1_deepseek",
+                "model_family": "m1",
+                "benchmark": "spider",
+                "run_label": "ea",
+                "n_samples": 1034,
+            },
+            {
+                "model_name": "DeepSeek",
+                "model_display_name": "DeepSeek V3.2",
+                "model_key": "m1_deepseek",
+                "model_family": "m1",
+                "benchmark": "bird",
+                "run_label": "ea",
+                "n_samples": 1534,
+            },
+            {
+                "model_name": "Claude",
+                "model_display_name": "Claude Sonnet 4.5",
+                "model_key": "m1_claude",
+                "model_family": "m1",
+                "benchmark": "spider",
+                "run_label": "ea",
+                "n_samples": 1034,
+            },
+            {
+                "model_name": "Claude",
+                "model_display_name": "Claude Sonnet 4.5",
+                "model_key": "m1_claude",
+                "model_family": "m1",
+                "benchmark": "bird",
+                "run_label": "ea",
+                "n_samples": 1534,
+            },
+            {
+                "model_name": "Qwen",
+                "model_display_name": "Qwen 3.6 Plus",
+                "model_key": "m1_qwen3_6_plus",
+                "model_family": "m1",
+                "benchmark": "spider",
+                "run_label": "ea",
+                "n_samples": 1034,
+            },
+            {
+                "model_name": "Qwen",
+                "model_display_name": "Qwen 3.6 Plus",
+                "model_key": "m1_qwen3_6_plus",
+                "model_family": "m1",
+                "benchmark": "bird",
+                "run_label": "ea",
+                "n_samples": 170,
+            },
+        ]
+    )
+
+    audit_df = analysis_utils.build_completeness_audit("ea", summary_df=summary_df)
+    main_df = analysis_utils.filter_main_report_rows(summary_df, run_label="ea", audit_df=audit_df)
+    appendix_df = analysis_utils.filter_appendix_rows(summary_df, run_label="ea", audit_df=audit_df)
+
+    assert set(audit_df["report_bucket"]) == {"main", "appendix", "excluded"}
+    assert set(main_df["model_name"]) == {"DeepSeek"}
+    assert set(appendix_df["model_name"]) == {"Claude"}
+
+
+def test_notebook_helper_computes_pairwise_ea_deltas() -> None:
+    analysis_utils_spec = importlib.util.spec_from_file_location(
+        "analysis_utils_under_test_deltas",
+        Path(__file__).resolve().parents[1] / "notebooks" / "analysis_utils.py",
+    )
+    assert analysis_utils_spec is not None and analysis_utils_spec.loader is not None
+    analysis_utils = importlib.util.module_from_spec(analysis_utils_spec)
+    analysis_utils_spec.loader.exec_module(analysis_utils)
+
+    outcomes_df = pd.DataFrame(
+        [
+            {
+                "sample_id": "s1",
+                "benchmark": "spider",
+                "run_label": "ea",
+                "model_name": "DeepSeek",
+                "model_display_name": "DeepSeek V3.2",
+                "model_key": "m1_deepseek",
+                "model_family": "m1",
+                "first_hit": True,
+            },
+            {
+                "sample_id": "s1",
+                "benchmark": "spider",
+                "run_label": "ea",
+                "model_name": "ChatGPT",
+                "model_display_name": "ChatGPT 5.2",
+                "model_key": "m1_chatgpt",
+                "model_family": "m1",
+                "first_hit": False,
+            },
+            {
+                "sample_id": "s2",
+                "benchmark": "spider",
+                "run_label": "ea",
+                "model_name": "DeepSeek",
+                "model_display_name": "DeepSeek V3.2",
+                "model_key": "m1_deepseek",
+                "model_family": "m1",
+                "first_hit": True,
+            },
+            {
+                "sample_id": "s2",
+                "benchmark": "spider",
+                "run_label": "ea",
+                "model_name": "ChatGPT",
+                "model_display_name": "ChatGPT 5.2",
+                "model_key": "m1_chatgpt",
+                "model_family": "m1",
+                "first_hit": True,
+            },
+        ]
+    )
+
+    delta_df = analysis_utils.compute_pairwise_ea_deltas("ea", outcomes_df=outcomes_df)
+
+    assert len(delta_df) == 1
+    assert delta_df.iloc[0]["comparison"] == "ChatGPT 5.2 vs DeepSeek V3.2"
+    assert delta_df.iloc[0]["matched_samples"] == 2
+    assert delta_df.iloc[0]["delta_ea_q05"] <= delta_df.iloc[0]["delta_ea_q50"] <= delta_df.iloc[0]["delta_ea_q95"]
 
 
 def test_api_backend_includes_normalized_pricing_metadata() -> None:
@@ -715,7 +927,7 @@ def test_ollama_backend_requests_structured_output_schema() -> None:
 # Efficiency weights validation
 # ---------------------------------------------------------------------------
 
-_VALID_WEIGHTS = {"efficiency_weights": {"alpha": 0.3, "beta": 0.2, "gamma": 0.2, "delta": 0.3}}
+_VALID_WEIGHTS = {"efficiency_weights": {"alpha": 0.3, "beta": 0.3, "gamma": 0.4}}
 _RESULT = GenerationResult(
     sql="SELECT 1",
     raw_response="SELECT 1",
@@ -732,13 +944,13 @@ def test_efficiency_weights_sum_to_one_passes() -> None:
 
 
 def test_efficiency_weights_too_high_raises() -> None:
-    bad = {"efficiency_weights": {"alpha": 0.4, "beta": 0.2, "gamma": 0.2, "delta": 0.3}}
+    bad = {"efficiency_weights": {"alpha": 0.4, "beta": 0.3, "gamma": 0.4}}
     with pytest.raises(ValueError, match="sum to 1.0"):
         compute_efficiency([_RESULT], bad)
 
 
 def test_efficiency_weights_too_low_raises() -> None:
-    bad = {"efficiency_weights": {"alpha": 0.2, "beta": 0.2, "gamma": 0.2, "delta": 0.3}}
+    bad = {"efficiency_weights": {"alpha": 0.2, "beta": 0.3, "gamma": 0.4}}
     with pytest.raises(ValueError, match="sum to 1.0"):
         compute_efficiency([_RESULT], bad)
 
@@ -753,7 +965,7 @@ def _eff_row(tinf: float, tok: float) -> dict:
         "Mem": None,
         "Tok": tok,
         "Cost": 0.0,
-        "_weights": {"alpha": 0.3, "beta": 0.2, "gamma": 0.2, "delta": 0.3},
+        "_weights": {"alpha": 0.3, "beta": 0.3, "gamma": 0.4},
     }
 
 
@@ -774,10 +986,10 @@ def test_normalize_efficiency_span_zero_yields_zero() -> None:
 def test_normalize_efficiency_none_component_stays_none() -> None:
     rows = [_eff_row(100.0, 50.0), _eff_row(200.0, 150.0)]
     result = normalize_efficiency_rows(rows)
-    # Mem is None in both rows
-    assert result[0]["Mem_norm"] is None
-    assert result[1]["Mem_norm"] is None
-    assert result[0]["Eff_normalized"] is None  # can't compute without Mem
+    assert "Mem_norm" not in result[0]
+    assert "Mem_norm" not in result[1]
+    assert result[0]["Eff_normalized"] is not None
+    assert result[1]["Eff_normalized"] is not None
 
 
 def test_normalize_efficiency_does_not_mutate_input() -> None:

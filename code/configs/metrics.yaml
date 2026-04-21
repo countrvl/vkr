@@ -8,3 +8,9 @@ execution:
   fast_check: false
   min_time_limit: 1.0
   gt_time_limit_factor: 4.0
+
+statistics:
+  confidence_level: 0.95
+  bootstrap_resamples: 1000
+  bootstrap_seed: 42
+  quantiles: [0.05, 0.5, 0.95]

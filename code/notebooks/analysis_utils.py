@@ -3,12 +3,14 @@ from __future__ import annotations
 import json
 import os
 from functools import lru_cache
+from itertools import combinations
 from pathlib import Path
 from typing import Any
 
 import pandas as pd
 
 from shared.config import load_domain_models, load_yaml_config
+from shared.evaluation.statistics import bootstrap_quantile_fields
 
 
 def detect_project_root() -> Path:
@@ -33,6 +35,7 @@ for key, cfg in load_domain_models("supports_code").items():
         "version": cfg.get("version"),
         "key": key,
         "family": str(cfg.get("family", "")).upper() or ("M1" if key.startswith("m1_") else "M2"),
+        "active_by_default": bool(cfg.get("active_by_default", True)),
     }
     for alias in {key, cfg.get("name"), cfg.get("display_name")}:
         if alias:
@@ -90,7 +93,23 @@ def ensure_model_label_columns(df: pd.DataFrame) -> pd.DataFrame:
         enriched["model_version"] = enriched.apply(lambda row: model_version(row.to_dict()), axis=1)
     if "family" not in enriched.columns:
         enriched["family"] = enriched["model_key"].map(model_family)
+    if "active_by_default" not in enriched.columns:
+        enriched["active_by_default"] = enriched["model_key"].map(
+            lambda key: bool(MODEL_DISPLAY_LOOKUP.get(str(key), {}).get("active_by_default", True))
+        )
     return enriched
+
+
+EXPECTED_SAMPLE_COUNTS = {
+    "humaneval_plus": 164,
+    "mbpp_plus": 378,
+}
+
+PRIMARY_METRIC_COLUMNS = (
+    "functional_correctness_q05",
+    "functional_correctness_q50",
+    "functional_correctness_q95",
+)
 
 
 def get_results_dir() -> Path:
@@ -261,6 +280,157 @@ def available_run_labels() -> list[str]:
         if (metrics_root / run_label / "summary_metrics.csv").exists():
             labels.append(run_label)
     return labels
+
+
+def get_expected_sample_counts(run_label: str = "fc") -> dict[str, int]:
+    run_label = _normalize_run_label(run_label)
+    if run_label != "fc":
+        return {}
+    return EXPECTED_SAMPLE_COUNTS.copy()
+
+
+def build_completeness_audit(
+    summary_df: pd.DataFrame,
+    *,
+    run_label: str = "fc",
+    expected_counts: dict[str, int] | None = None,
+) -> pd.DataFrame:
+    run_label = _normalize_run_label(run_label)
+    if summary_df.empty:
+        return pd.DataFrame(
+            columns=[
+                "model_key",
+                "model_name",
+                "model_display_name",
+                "family",
+                "active_by_default",
+                "benchmarks_expected",
+                "benchmarks_complete",
+                "is_complete_main",
+                "missing_benchmarks",
+                "missing_details",
+            ]
+        )
+    expected_counts = expected_counts or get_expected_sample_counts(run_label)
+    df = ensure_model_label_columns(summary_df)
+    df = df[df["run_label"].map(_normalize_run_label) == run_label].copy()
+    rows: list[dict[str, Any]] = []
+    for model_key_value, group in df.groupby("model_key", dropna=False):
+        benchmark_map = {str(row["benchmark"]): int(row["n_samples"]) for _, row in group.iterrows()}
+        missing_benchmarks: list[str] = []
+        missing_details: list[str] = []
+        complete_count = 0
+        for benchmark, expected in expected_counts.items():
+            actual = benchmark_map.get(benchmark, 0)
+            if actual == expected:
+                complete_count += 1
+            else:
+                missing_benchmarks.append(benchmark)
+                missing_details.append(f"{benchmark}: {actual}/{expected}")
+        record = group.iloc[0]
+        rows.append(
+            {
+                "model_key": model_key_value,
+                "model_name": first_non_null(record.get("model_name")),
+                "model_display_name": first_non_null(record.get("model_display_name")),
+                "family": first_non_null(record.get("family")),
+                "active_by_default": bool(first_non_null(record.get("active_by_default"), True)),
+                "benchmarks_expected": len(expected_counts),
+                "benchmarks_complete": complete_count,
+                "is_complete_main": complete_count == len(expected_counts),
+                "missing_benchmarks": ", ".join(missing_benchmarks),
+                "missing_details": "; ".join(missing_details),
+            }
+        )
+    return pd.DataFrame(rows).sort_values(["family", "model_display_name"]).reset_index(drop=True)
+
+
+def filter_main_report_rows(
+    summary_df: pd.DataFrame,
+    *,
+    run_label: str = "fc",
+    audit_df: pd.DataFrame | None = None,
+) -> pd.DataFrame:
+    if summary_df.empty:
+        return summary_df.copy()
+    audit_df = audit_df if audit_df is not None else build_completeness_audit(summary_df, run_label=run_label)
+    allowed = set(
+        audit_df.loc[audit_df["is_complete_main"] & audit_df["active_by_default"], "model_key"].astype(str)
+    )
+    df = ensure_model_label_columns(summary_df)
+    return df[df["model_key"].astype(str).isin(allowed)].copy()
+
+
+def filter_appendix_rows(
+    summary_df: pd.DataFrame,
+    *,
+    run_label: str = "fc",
+    audit_df: pd.DataFrame | None = None,
+) -> pd.DataFrame:
+    if summary_df.empty:
+        return summary_df.copy()
+    audit_df = audit_df if audit_df is not None else build_completeness_audit(summary_df, run_label=run_label)
+    appendix = audit_df[
+        (~audit_df["is_complete_main"]) | (~audit_df["active_by_default"])
+    ]["model_key"].astype(str)
+    df = ensure_model_label_columns(summary_df)
+    return df[df["model_key"].astype(str).isin(set(appendix))].copy()
+
+
+def compute_pairwise_fc_deltas(
+    sample_df: pd.DataFrame,
+    *,
+    allowed_models: list[str] | None = None,
+    n_resamples: int | None = None,
+    seed: int | None = None,
+) -> pd.DataFrame:
+    if sample_df.empty or "first_hit" not in sample_df.columns:
+        return pd.DataFrame()
+    stats_cfg = METRICS_CFG.get("statistics", {})
+    n_resamples = int(n_resamples or stats_cfg.get("bootstrap_resamples", 1000))
+    seed = int(seed or stats_cfg.get("bootstrap_seed", 42))
+
+    df = ensure_model_label_columns(sample_df)
+    df = df[df["run_label"].map(_normalize_run_label) == "fc"].copy()
+    if allowed_models is not None:
+        df = df[df["model_display_name"].isin(allowed_models)].copy()
+    if df.empty:
+        return pd.DataFrame()
+
+    rows: list[dict[str, Any]] = []
+    for benchmark, benchmark_df in df.groupby("benchmark"):
+        model_names = sorted(benchmark_df["model_display_name"].dropna().unique().tolist())
+        for left_model, right_model in combinations(model_names, 2):
+            left = benchmark_df[benchmark_df["model_display_name"] == left_model][
+                ["sample_id", "first_hit"]
+            ].rename(columns={"first_hit": "left_hit"})
+            right = benchmark_df[benchmark_df["model_display_name"] == right_model][
+                ["sample_id", "first_hit"]
+            ].rename(columns={"first_hit": "right_hit"})
+            paired = left.merge(right, on="sample_id", how="inner")
+            if paired.empty:
+                continue
+            deltas = (paired["left_hit"].astype(float) - paired["right_hit"].astype(float)).tolist()
+            point_estimate = sum(deltas) / len(deltas)
+            quantiles = bootstrap_quantile_fields(
+                deltas,
+                lambda sample: sum(float(x) for x in sample) / len(sample),
+                prefix="delta",
+                quantiles=stats_cfg.get("quantiles", (0.05, 0.5, 0.95)),
+                n_resamples=n_resamples,
+                seed=seed,
+            )
+            rows.append(
+                {
+                    "benchmark": benchmark,
+                    "left_model": left_model,
+                    "right_model": right_model,
+                    "n_pairs": len(deltas),
+                    "delta": point_estimate,
+                    **quantiles,
+                }
+            )
+    return pd.DataFrame(rows).sort_values(["benchmark", "delta"], ascending=[True, False]).reset_index(drop=True)
 
 
 def pairwise_metric_deltas(summary_df: pd.DataFrame, metric: str) -> pd.DataFrame:

@@ -1,8 +1,7 @@
 efficiency_weights:
   alpha: 0.3
-  beta: 0.2
-  gamma: 0.2
-  delta: 0.3
+  beta: 0.3
+  gamma: 0.4
 
 deepseek_pricing:
   input_per_1m: 0.28
@@ -15,6 +14,12 @@ ollama_pricing:
 
 statistical_tests:
   alpha: 0.05
+
+statistics:
+  confidence_level: 0.95
+  bootstrap_resamples: 1000
+  bootstrap_seed: 42
+  quantiles: [0.05, 0.5, 0.95]
 
 expert_score:
   criteria: ["completeness", "efficiency", "readability"]
