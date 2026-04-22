@@ -5,7 +5,6 @@ from __future__ import annotations
 import argparse
 import asyncio
 import logging
-import os
 import sys
 from pathlib import Path
 from typing import Any
@@ -19,10 +18,8 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 from nl2sql.src.data.loader import load_benchmark
-from nl2sql.src.inference.anthropic_backend import AnthropicBackend
-from nl2sql.src.inference.api_backend import APIBackend
-from nl2sql.src.inference.ollama_backend import OllamaBackend
 from nl2sql.src.inference.runner import ExperimentRunner
+from nl2sql.src.inference.runtime import build_backend
 from shared.config import load_domain_models
 from shared.logging_utils import configure_logging, create_progress
 from nl2sql.src.prompt.template import PromptBuilder
@@ -51,6 +48,11 @@ def _config_defaults(config_dir: Path) -> dict[str, Path]:
 def _load_models_config(config_dir: Path) -> dict[str, Any]:
     _ = config_dir
     return load_domain_models("supports_sql")
+
+
+def _build_backend(model_key: str, model_cfg: dict[str, Any]):
+    """Compatibility wrapper around the shared NL2SQL backend builder."""
+    return build_backend(model_key, model_cfg)
 
 
 def _resolve_model_keys(model_arg: str, models_cfg: dict[str, Any]) -> list[str]:
@@ -103,61 +105,6 @@ def _resolve_model_keys(model_arg: str, models_cfg: dict[str, Any]) -> list[str]
     if not resolved:
         raise ValueError(f"Model selector '{model_arg}' did not resolve to any configured models.")
     return resolved
-
-
-def _build_backend(model_key: str, model_cfg: dict[str, Any]):
-    """Собрать backend инференса из конфигурации модели."""
-    backend = model_cfg["backend"]
-    base_url = model_cfg["base_url"]
-    base_url_env = model_cfg.get("base_url_env")
-    model_id = model_cfg["model_id"]
-    model_id_env = model_cfg.get("model_id_env")
-    if base_url_env:
-        base_url = os.getenv(base_url_env, base_url)
-    if model_id_env:
-        model_id = os.getenv(model_id_env, model_id)
-    structured_output = bool(model_cfg.get("structured_output", True))
-
-    if backend == "api":
-        env_key = model_cfg["env_key"]
-        api_key = os.getenv(env_key)
-        if not api_key:
-            raise RuntimeError(f"Environment variable {env_key} is required for {model_key}")
-        return APIBackend(
-            model_id=model_id,
-            base_url=base_url,
-            api_key=api_key,
-            model_name=model_cfg["name"],
-            parameters=model_cfg.get("parameters", {}),
-            pricing=model_cfg.get("pricing"),
-            structured_output=structured_output,
-        )
-    if backend == "anthropic":
-        env_key = model_cfg["env_key"]
-        api_key = os.getenv(env_key)
-        if not api_key:
-            raise RuntimeError(f"Environment variable {env_key} is required for {model_key}")
-        return AnthropicBackend(
-            model_id=model_id,
-            base_url=base_url,
-            api_key=api_key,
-            model_name=model_cfg["name"],
-            parameters=model_cfg.get("parameters", {}),
-            pricing=model_cfg.get("pricing"),
-            use_batch=bool(model_cfg.get("batch_support")) and model_cfg.get("dispatch_preference") == "batch",
-        )
-    if backend == "ollama":
-        parameters = dict(model_cfg.get("parameters", {}))
-        num_ctx = int(parameters.pop("num_ctx", 4096))
-        return OllamaBackend(
-            model_id=model_id,
-            base_url=base_url,
-            num_ctx=num_ctx,
-            model_name=model_cfg["name"],
-            parameters=parameters,
-            structured_output=structured_output,
-        )
-    raise ValueError(f"Unsupported backend: {backend}")
 
 
 def _resolve_mode_params(mode: str, exp_cfg: dict[str, Any]) -> tuple[float, int, int | None]:
