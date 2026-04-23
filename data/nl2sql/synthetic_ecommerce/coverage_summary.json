@@ -1,0 +1,815 @@
+{
+  "row_counts": {
+    "customers": 420,
+    "categories": 24,
+    "products": 220,
+    "orders": 720,
+    "order_items": 1440,
+    "returns": 180
+  },
+  "query_counts": {
+    "core": 30,
+    "edge_case": 8,
+    "total": 38
+  },
+  "data_quality_summary": {
+    "null_ratio_by_column": {
+      "categories.category_id": 0.0,
+      "categories.category_name": 0.0,
+      "categories.parent_category_id": 0.25,
+      "customers.city": 0.0262,
+      "customers.customer_id": 0.0,
+      "customers.customer_segment": 0.0,
+      "customers.email": 0.0,
+      "customers.first_name": 0.0,
+      "customers.last_name": 0.0,
+      "customers.signup_date": 0.0,
+      "customers.state": 0.1095,
+      "order_items.discount_amount": 0.0382,
+      "order_items.order_id": 0.0,
+      "order_items.order_item_id": 0.0,
+      "order_items.product_id": 0.0,
+      "order_items.quantity": 0.0,
+      "order_items.unit_price": 0.0,
+      "orders.customer_id": 0.0,
+      "orders.order_date": 0.0,
+      "orders.order_id": 0.0,
+      "orders.order_status": 0.0,
+      "orders.payment_method": 0.0,
+      "orders.shipping_country": 0.0,
+      "orders.shipping_state": 0.3333,
+      "orders.total_amount": 0.0,
+      "products.brand": 0.0,
+      "products.category_id": 0.0,
+      "products.is_active": 0.0,
+      "products.launched_at": 0.0682,
+      "products.product_id": 0.0,
+      "products.product_name": 0.0,
+      "products.unit_price": 0.0,
+      "returns.order_item_id": 0.0,
+      "returns.refund_amount": 0.0,
+      "returns.return_date": 0.0,
+      "returns.return_id": 0.0,
+      "returns.return_reason": 0.1222,
+      "returns.return_status": 0.0
+    },
+    "null_ratio_bands": {
+      "gte_0.10": [
+        "categories.parent_category_id",
+        "customers.state",
+        "orders.shipping_state",
+        "returns.return_reason"
+      ],
+      "between_0.05_and_0.10": [
+        "products.launched_at"
+      ],
+      "gt_0_and_lt_0.05": [
+        "customers.city",
+        "order_items.discount_amount"
+      ]
+    },
+    "unusual_value_checks": {
+      "products.brand:Brand-X/Legacy": 7,
+      "orders.payment_method:crypto": 36,
+      "returns.return_reason:empty_string": 14
+    }
+  },
+  "table_usage": {
+    "categories": 3,
+    "customers": 15,
+    "order_items": 17,
+    "orders": 20,
+    "products": 15,
+    "returns": 8
+  },
+  "column_usage": {
+    "categories.category_id": 3,
+    "categories.category_name": 3,
+    "categories.parent_category_id": 1,
+    "customers.city": 1,
+    "customers.customer_id": 15,
+    "customers.customer_segment": 5,
+    "customers.email": 4,
+    "customers.first_name": 7,
+    "customers.last_name": 7,
+    "customers.signup_date": 2,
+    "customers.state": 2,
+    "order_items.discount_amount": 5,
+    "order_items.order_id": 8,
+    "order_items.order_item_id": 8,
+    "order_items.product_id": 11,
+    "order_items.quantity": 6,
+    "order_items.unit_price": 4,
+    "orders.customer_id": 13,
+    "orders.order_date": 1,
+    "orders.order_id": 14,
+    "orders.order_status": 4,
+    "orders.payment_method": 4,
+    "orders.shipping_country": 3,
+    "orders.shipping_state": 3,
+    "orders.total_amount": 8,
+    "products.brand": 5,
+    "products.category_id": 7,
+    "products.is_active": 1,
+    "products.launched_at": 1,
+    "products.product_id": 15,
+    "products.product_name": 7,
+    "products.unit_price": 3,
+    "returns.order_item_id": 8,
+    "returns.refund_amount": 3,
+    "returns.return_date": 1,
+    "returns.return_id": 4,
+    "returns.return_reason": 2,
+    "returns.return_status": 4
+  },
+  "unused_tables": [],
+  "unused_columns": [],
+  "low_usage_columns": [
+    "categories.parent_category_id",
+    "customers.city",
+    "orders.order_date",
+    "products.is_active",
+    "products.launched_at",
+    "returns.return_date"
+  ],
+  "intent_distribution": {
+    "aggregation": 21,
+    "comparison": 12,
+    "filtering": 23,
+    "ranking": 5,
+    "segmentation": 20
+  },
+  "selectivity_distribution": {
+    "non_selective": 12,
+    "selective": 26
+  },
+  "edge_type_distribution": {
+    "aggregation_edge": 2,
+    "anti_join": 2,
+    "empty_result": 2,
+    "null_handling": 2
+  },
+  "result_distribution": {
+    "zero_rows_queries": 1,
+    "one_row_queries": 1,
+    "multi_row_queries": 36,
+    "zero_or_one_ratio": 0.0526,
+    "is_skewed_to_zero_or_one": false
+  },
+  "duplicate_like_queries": [],
+  "query_results": [
+    {
+      "index": 1,
+      "group": "core",
+      "difficulty": "easy",
+      "edge_type": null,
+      "rows_returned": 46,
+      "execution_time_ms": 1.2293,
+      "tables": [
+        "customers"
+      ],
+      "intents": [
+        "filtering"
+      ],
+      "selectivity": "selective"
+    },
+    {
+      "index": 2,
+      "group": "core",
+      "difficulty": "easy",
+      "edge_type": null,
+      "rows_returned": 5,
+      "execution_time_ms": 0.337,
+      "tables": [
+        "customers"
+      ],
+      "intents": [
+        "ranking"
+      ],
+      "selectivity": "selective"
+    },
+    {
+      "index": 3,
+      "group": "core",
+      "difficulty": "easy",
+      "edge_type": null,
+      "rows_returned": 36,
+      "execution_time_ms": 0.1798,
+      "tables": [
+        "customers"
+      ],
+      "intents": [
+        "filtering"
+      ],
+      "selectivity": "selective"
+    },
+    {
+      "index": 4,
+      "group": "core",
+      "difficulty": "easy",
+      "edge_type": null,
+      "rows_returned": 42,
+      "execution_time_ms": 0.4145,
+      "tables": [
+        "customers"
+      ],
+      "intents": [
+        "filtering"
+      ],
+      "selectivity": "selective"
+    },
+    {
+      "index": 5,
+      "group": "core",
+      "difficulty": "easy",
+      "edge_type": null,
+      "rows_returned": 10,
+      "execution_time_ms": 0.2398,
+      "tables": [
+        "products"
+      ],
+      "intents": [
+        "filtering",
+        "ranking"
+      ],
+      "selectivity": "selective"
+    },
+    {
+      "index": 6,
+      "group": "core",
+      "difficulty": "easy",
+      "edge_type": null,
+      "rows_returned": 6,
+      "execution_time_ms": 0.143,
+      "tables": [
+        "products"
+      ],
+      "intents": [
+        "filtering"
+      ],
+      "selectivity": "selective"
+    },
+    {
+      "index": 7,
+      "group": "core",
+      "difficulty": "easy",
+      "edge_type": null,
+      "rows_returned": 47,
+      "execution_time_ms": 0.1641,
+      "tables": [
+        "products"
+      ],
+      "intents": [
+        "filtering"
+      ],
+      "selectivity": "selective"
+    },
+    {
+      "index": 8,
+      "group": "core",
+      "difficulty": "easy",
+      "edge_type": null,
+      "rows_returned": 10,
+      "execution_time_ms": 0.2402,
+      "tables": [
+        "orders"
+      ],
+      "intents": [
+        "filtering",
+        "ranking"
+      ],
+      "selectivity": "selective"
+    },
+    {
+      "index": 9,
+      "group": "core",
+      "difficulty": "easy",
+      "edge_type": null,
+      "rows_returned": 379,
+      "execution_time_ms": 0.7297,
+      "tables": [
+        "orders"
+      ],
+      "intents": [
+        "filtering"
+      ],
+      "selectivity": "selective"
+    },
+    {
+      "index": 10,
+      "group": "core",
+      "difficulty": "easy",
+      "edge_type": null,
+      "rows_returned": 30,
+      "execution_time_ms": 0.0975,
+      "tables": [
+        "orders"
+      ],
+      "intents": [
+        "filtering"
+      ],
+      "selectivity": "selective"
+    },
+    {
+      "index": 11,
+      "group": "core",
+      "difficulty": "medium",
+      "edge_type": null,
+      "rows_returned": 5,
+      "execution_time_ms": 0.2703,
+      "tables": [
+        "customers",
+        "orders"
+      ],
+      "intents": [
+        "aggregation",
+        "segmentation"
+      ],
+      "selectivity": "non_selective"
+    },
+    {
+      "index": 12,
+      "group": "core",
+      "difficulty": "medium",
+      "edge_type": null,
+      "rows_returned": 9,
+      "execution_time_ms": 0.1662,
+      "tables": [
+        "customers",
+        "orders"
+      ],
+      "intents": [
+        "filtering",
+        "aggregation",
+        "segmentation"
+      ],
+      "selectivity": "selective"
+    },
+    {
+      "index": 13,
+      "group": "core",
+      "difficulty": "medium",
+      "edge_type": null,
+      "rows_returned": 5,
+      "execution_time_ms": 0.2572,
+      "tables": [
+        "customers",
+        "orders"
+      ],
+      "intents": [
+        "ranking",
+        "aggregation",
+        "segmentation"
+      ],
+      "selectivity": "selective"
+    },
+    {
+      "index": 14,
+      "group": "core",
+      "difficulty": "medium",
+      "edge_type": null,
+      "rows_returned": 5,
+      "execution_time_ms": 0.1518,
+      "tables": [
+        "customers",
+        "orders"
+      ],
+      "intents": [
+        "filtering",
+        "aggregation",
+        "segmentation"
+      ],
+      "selectivity": "selective"
+    },
+    {
+      "index": 15,
+      "group": "core",
+      "difficulty": "medium",
+      "edge_type": null,
+      "rows_returned": 9,
+      "execution_time_ms": 0.4441,
+      "tables": [
+        "products",
+        "order_items"
+      ],
+      "intents": [
+        "aggregation",
+        "segmentation"
+      ],
+      "selectivity": "non_selective"
+    },
+    {
+      "index": 16,
+      "group": "core",
+      "difficulty": "medium",
+      "edge_type": null,
+      "rows_returned": 18,
+      "execution_time_ms": 0.3559,
+      "tables": [
+        "products",
+        "order_items"
+      ],
+      "intents": [
+        "aggregation",
+        "segmentation"
+      ],
+      "selectivity": "non_selective"
+    },
+    {
+      "index": 17,
+      "group": "core",
+      "difficulty": "medium",
+      "edge_type": null,
+      "rows_returned": 5,
+      "execution_time_ms": 0.5467,
+      "tables": [
+        "products",
+        "order_items"
+      ],
+      "intents": [
+        "ranking",
+        "aggregation",
+        "segmentation"
+      ],
+      "selectivity": "selective"
+    },
+    {
+      "index": 18,
+      "group": "core",
+      "difficulty": "medium",
+      "edge_type": null,
+      "rows_returned": 3,
+      "execution_time_ms": 0.2711,
+      "tables": [
+        "returns",
+        "order_items",
+        "orders"
+      ],
+      "intents": [
+        "aggregation",
+        "segmentation"
+      ],
+      "selectivity": "non_selective"
+    },
+    {
+      "index": 19,
+      "group": "core",
+      "difficulty": "medium",
+      "edge_type": null,
+      "rows_returned": 7,
+      "execution_time_ms": 0.2726,
+      "tables": [
+        "returns",
+        "order_items",
+        "orders"
+      ],
+      "intents": [
+        "filtering",
+        "aggregation",
+        "segmentation"
+      ],
+      "selectivity": "selective"
+    },
+    {
+      "index": 20,
+      "group": "core",
+      "difficulty": "medium",
+      "edge_type": null,
+      "rows_returned": 2,
+      "execution_time_ms": 0.2047,
+      "tables": [
+        "orders",
+        "order_items",
+        "returns"
+      ],
+      "intents": [
+        "filtering",
+        "aggregation",
+        "segmentation"
+      ],
+      "selectivity": "selective"
+    },
+    {
+      "index": 21,
+      "group": "core",
+      "difficulty": "hard",
+      "edge_type": null,
+      "rows_returned": 6,
+      "execution_time_ms": 0.7738,
+      "tables": [
+        "categories",
+        "products",
+        "order_items"
+      ],
+      "intents": [
+        "aggregation",
+        "segmentation",
+        "comparison"
+      ],
+      "selectivity": "non_selective"
+    },
+    {
+      "index": 22,
+      "group": "core",
+      "difficulty": "hard",
+      "edge_type": null,
+      "rows_returned": 165,
+      "execution_time_ms": 0.8343,
+      "tables": [
+        "customers",
+        "orders"
+      ],
+      "intents": [
+        "aggregation",
+        "segmentation",
+        "comparison"
+      ],
+      "selectivity": "non_selective"
+    },
+    {
+      "index": 23,
+      "group": "core",
+      "difficulty": "hard",
+      "edge_type": null,
+      "rows_returned": 214,
+      "execution_time_ms": 4.771,
+      "tables": [
+        "products",
+        "order_items",
+        "returns"
+      ],
+      "intents": [
+        "filtering",
+        "comparison"
+      ],
+      "selectivity": "selective"
+    },
+    {
+      "index": 24,
+      "group": "core",
+      "difficulty": "hard",
+      "edge_type": null,
+      "rows_returned": 0,
+      "execution_time_ms": 0.7468,
+      "tables": [
+        "customers",
+        "orders",
+        "order_items",
+        "products"
+      ],
+      "intents": [
+        "aggregation",
+        "segmentation",
+        "comparison"
+      ],
+      "selectivity": "non_selective"
+    },
+    {
+      "index": 25,
+      "group": "core",
+      "difficulty": "hard",
+      "edge_type": null,
+      "rows_returned": 3,
+      "execution_time_ms": 0.4013,
+      "tables": [
+        "products",
+        "order_items"
+      ],
+      "intents": [
+        "aggregation",
+        "segmentation",
+        "comparison"
+      ],
+      "selectivity": "non_selective"
+    },
+    {
+      "index": 26,
+      "group": "core",
+      "difficulty": "hard",
+      "edge_type": null,
+      "rows_returned": 697,
+      "execution_time_ms": 1.1999,
+      "tables": [
+        "orders",
+        "order_items"
+      ],
+      "intents": [
+        "aggregation",
+        "segmentation",
+        "comparison"
+      ],
+      "selectivity": "non_selective"
+    },
+    {
+      "index": 27,
+      "group": "core",
+      "difficulty": "hard",
+      "edge_type": null,
+      "rows_returned": 1,
+      "execution_time_ms": 0.6351,
+      "tables": [
+        "customers",
+        "orders",
+        "order_items",
+        "returns"
+      ],
+      "intents": [
+        "aggregation",
+        "segmentation",
+        "comparison"
+      ],
+      "selectivity": "non_selective"
+    },
+    {
+      "index": 28,
+      "group": "core",
+      "difficulty": "hard",
+      "edge_type": null,
+      "rows_returned": 16,
+      "execution_time_ms": 5.9774,
+      "tables": [
+        "products",
+        "order_items"
+      ],
+      "intents": [
+        "filtering",
+        "aggregation"
+      ],
+      "selectivity": "selective"
+    },
+    {
+      "index": 29,
+      "group": "core",
+      "difficulty": "hard",
+      "edge_type": null,
+      "rows_returned": 264,
+      "execution_time_ms": 15.2394,
+      "tables": [
+        "customers",
+        "orders",
+        "order_items",
+        "returns"
+      ],
+      "intents": [
+        "filtering",
+        "comparison"
+      ],
+      "selectivity": "selective"
+    },
+    {
+      "index": 30,
+      "group": "core",
+      "difficulty": "hard",
+      "edge_type": null,
+      "rows_returned": 39,
+      "execution_time_ms": 0.8889,
+      "tables": [
+        "orders",
+        "order_items",
+        "products",
+        "categories"
+      ],
+      "intents": [
+        "aggregation",
+        "segmentation",
+        "comparison"
+      ],
+      "selectivity": "non_selective"
+    },
+    {
+      "index": 31,
+      "group": "edge_case",
+      "difficulty": "edge_case",
+      "edge_type": "anti_join",
+      "rows_returned": 6,
+      "execution_time_ms": 0.0965,
+      "tables": [
+        "categories",
+        "products"
+      ],
+      "intents": [
+        "filtering"
+      ],
+      "selectivity": "selective"
+    },
+    {
+      "index": 32,
+      "group": "edge_case",
+      "difficulty": "edge_case",
+      "edge_type": "anti_join",
+      "rows_returned": 90,
+      "execution_time_ms": 0.2225,
+      "tables": [
+        "customers",
+        "orders"
+      ],
+      "intents": [
+        "filtering"
+      ],
+      "selectivity": "selective"
+    },
+    {
+      "index": 33,
+      "group": "edge_case",
+      "difficulty": "edge_case",
+      "edge_type": "null_handling",
+      "rows_returned": 36,
+      "execution_time_ms": 0.0829,
+      "tables": [
+        "returns"
+      ],
+      "intents": [
+        "filtering"
+      ],
+      "selectivity": "selective"
+    },
+    {
+      "index": 34,
+      "group": "edge_case",
+      "difficulty": "edge_case",
+      "edge_type": "empty_result",
+      "rows_returned": 190,
+      "execution_time_ms": 0.4003,
+      "tables": [
+        "products",
+        "order_items"
+      ],
+      "intents": [
+        "filtering"
+      ],
+      "selectivity": "selective"
+    },
+    {
+      "index": 35,
+      "group": "edge_case",
+      "difficulty": "edge_case",
+      "edge_type": "null_handling",
+      "rows_returned": 2,
+      "execution_time_ms": 0.0924,
+      "tables": [
+        "orders"
+      ],
+      "intents": [
+        "filtering",
+        "aggregation",
+        "segmentation"
+      ],
+      "selectivity": "selective"
+    },
+    {
+      "index": 36,
+      "group": "edge_case",
+      "difficulty": "edge_case",
+      "edge_type": "aggregation_edge",
+      "rows_returned": 5,
+      "execution_time_ms": 0.1435,
+      "tables": [
+        "customers",
+        "orders"
+      ],
+      "intents": [
+        "filtering",
+        "aggregation",
+        "segmentation",
+        "comparison"
+      ],
+      "selectivity": "selective"
+    },
+    {
+      "index": 37,
+      "group": "edge_case",
+      "difficulty": "edge_case",
+      "edge_type": "aggregation_edge",
+      "rows_returned": 2,
+      "execution_time_ms": 0.4114,
+      "tables": [
+        "products",
+        "order_items",
+        "returns"
+      ],
+      "intents": [
+        "aggregation",
+        "segmentation",
+        "comparison"
+      ],
+      "selectivity": "non_selective"
+    },
+    {
+      "index": 38,
+      "group": "edge_case",
+      "difficulty": "edge_case",
+      "edge_type": "empty_result",
+      "rows_returned": 8,
+      "execution_time_ms": 4.4142,
+      "tables": [
+        "customers",
+        "orders"
+      ],
+      "intents": [
+        "filtering",
+        "comparison"
+      ],
+      "selectivity": "selective"
+    }
+  ]
+}

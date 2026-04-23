@@ -5,6 +5,11 @@
 - [`nl2sql/`](nl2sql/) — генерация SQL на `Spider` и `BIRD`
 - [`code/`](code/) — генерация Python-кода на `HumanEval+` и `MBPP+`
 
+Для `nl2sql` теперь есть два независимых контура:
+
+- benchmark-style evaluation на `Spider`/`BIRD`
+- strategy bench для production-like NL2SQL на реальной БД с маршрутами `generate_only`, `generate_validate_retry`, `routing`
+
 ## Назначение
 
 Проект сравнивает:
@@ -69,6 +74,19 @@ uv run python nl2sql/scripts/03_evaluate.py --run-label ea
 jupyter lab nl2sql/notebooks/01_report_ea.ipynb
 ```
 
+### NL2SQL Strategy Bench
+
+```bash
+uv run python -m nl2sql.src.strategy_bench.cli \
+  --dataset path/to/cases.yaml \
+  --db-dsn-env NL2SQL_STRATEGY_DB_DSN \
+  --model m1_chatgpt \
+  --strategy all \
+  --catalog-path path/to/catalog.yaml
+```
+
+`strategy_bench` рассчитан на read-only доступ к production PostgreSQL и отдельный dataset в JSON/JSONL/YAML.
+
 ### Code
 
 ```bash
@@ -83,6 +101,7 @@ jupyter lab code/notebooks/01_report_fc_passk.ipynb
 - raw-результаты сохраняются в `results/<domain>/raw/`
 - агрегированные метрики сохраняются в `results/<domain>/metrics/`
 - графики и изображения для отчётов сохраняются в `results/<domain>/figures/`
+- strategy-bench логи и summary сохраняются в `results/nl2sql/strategy_bench/`
 
 ## Доменные README
 

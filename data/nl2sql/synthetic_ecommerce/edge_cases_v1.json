@@ -1,0 +1,52 @@
+{
+  "queries": [
+    {
+      "sql": "SELECT c.category_id, c.category_name FROM categories AS c LEFT JOIN products AS p ON p.category_id = c.category_id WHERE p.product_id IS NULL;",
+      "difficulty": "edge_case",
+      "group": "edge_case",
+      "edge_type": "anti_join"
+    },
+    {
+      "sql": "SELECT c.customer_id, c.first_name, c.last_name FROM customers AS c LEFT JOIN orders AS o ON o.customer_id = c.customer_id WHERE o.order_id IS NULL;",
+      "difficulty": "edge_case",
+      "group": "edge_case",
+      "edge_type": "anti_join"
+    },
+    {
+      "sql": "SELECT r.return_id, r.order_item_id, COALESCE(r.return_reason, 'unspecified') AS normalized_reason FROM returns AS r WHERE r.return_reason IS NULL OR r.return_reason = '';",
+      "difficulty": "edge_case",
+      "group": "edge_case",
+      "edge_type": "null_handling"
+    },
+    {
+      "sql": "SELECT p.product_id, p.product_name FROM products AS p LEFT JOIN order_items AS oi ON oi.product_id = p.product_id WHERE oi.order_item_id IS NULL;",
+      "difficulty": "edge_case",
+      "group": "edge_case",
+      "edge_type": "empty_result"
+    },
+    {
+      "sql": "SELECT o.shipping_country, COUNT(*) AS null_state_orders FROM orders AS o WHERE o.shipping_state IS NULL GROUP BY o.shipping_country;",
+      "difficulty": "edge_case",
+      "group": "edge_case",
+      "edge_type": "null_handling"
+    },
+    {
+      "sql": "SELECT c.customer_segment, AVG(o.total_amount) AS avg_cancelled_amount FROM customers AS c JOIN orders AS o ON o.customer_id = c.customer_id WHERE o.order_status = 'cancelled' GROUP BY c.customer_segment HAVING COUNT(o.order_id) > 0;",
+      "difficulty": "edge_case",
+      "group": "edge_case",
+      "edge_type": "aggregation_edge"
+    },
+    {
+      "sql": "SELECT p.brand, COUNT(r.return_id) AS rejected_returns FROM products AS p JOIN order_items AS oi ON oi.product_id = p.product_id LEFT JOIN returns AS r ON r.order_item_id = oi.order_item_id AND r.return_status = 'rejected' GROUP BY p.brand HAVING COUNT(r.return_id) > 0;",
+      "difficulty": "edge_case",
+      "group": "edge_case",
+      "edge_type": "aggregation_edge"
+    },
+    {
+      "sql": "SELECT c.customer_id, c.email FROM customers AS c WHERE EXISTS (SELECT 1 FROM orders AS o WHERE o.customer_id = c.customer_id AND o.total_amount = 0);",
+      "difficulty": "edge_case",
+      "group": "edge_case",
+      "edge_type": "empty_result"
+    }
+  ]
+}
