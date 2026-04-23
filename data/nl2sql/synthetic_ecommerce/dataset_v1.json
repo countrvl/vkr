@@ -1,0 +1,134 @@
+{
+  "schema": {
+    "tables": [
+      "customers(customer_id INT PRIMARY KEY, first_name VARCHAR, last_name VARCHAR, email VARCHAR, city VARCHAR, state VARCHAR, signup_date DATE, customer_segment VARCHAR)",
+      "categories(category_id INT PRIMARY KEY, category_name VARCHAR, parent_category_id INT, FOREIGN KEY (parent_category_id) REFERENCES categories(category_id))",
+      "products(product_id INT PRIMARY KEY, product_name VARCHAR, category_id INT, brand VARCHAR, unit_price DECIMAL(10,2), is_active BOOLEAN, launched_at DATE, FOREIGN KEY (category_id) REFERENCES categories(category_id))",
+      "orders(order_id INT PRIMARY KEY, customer_id INT, order_date TIMESTAMP, order_status VARCHAR, payment_method VARCHAR, shipping_country VARCHAR, shipping_state VARCHAR, total_amount DECIMAL(12,2), FOREIGN KEY (customer_id) REFERENCES customers(customer_id))",
+      "order_items(order_item_id INT PRIMARY KEY, order_id INT, product_id INT, quantity INT, unit_price DECIMAL(10,2), discount_amount DECIMAL(10,2), FOREIGN KEY (order_id) REFERENCES orders(order_id), FOREIGN KEY (product_id) REFERENCES products(product_id))",
+      "returns(return_id INT PRIMARY KEY, order_item_id INT, return_date DATE, return_reason VARCHAR, refund_amount DECIMAL(10,2), return_status VARCHAR, FOREIGN KEY (order_item_id) REFERENCES order_items(order_item_id))"
+    ]
+  },
+  "queries": [
+    {
+      "sql": "SELECT customer_id, first_name, last_name, email FROM customers WHERE state = 'CA';",
+      "difficulty": "easy"
+    },
+    {
+      "sql": "SELECT customer_id, first_name, last_name, signup_date FROM customers ORDER BY signup_date DESC LIMIT 5;",
+      "difficulty": "easy"
+    },
+    {
+      "sql": "SELECT customer_id, email, customer_segment FROM customers WHERE signup_date >= '2024-01-01' AND customer_segment = 'VIP';",
+      "difficulty": "easy"
+    },
+    {
+      "sql": "SELECT customer_id, first_name, last_name, city FROM customers WHERE city = 'Seattle' ORDER BY last_name, first_name;",
+      "difficulty": "easy"
+    },
+    {
+      "sql": "SELECT product_id, product_name, brand, unit_price FROM products WHERE is_active = 1 ORDER BY unit_price DESC LIMIT 10;",
+      "difficulty": "easy"
+    },
+    {
+      "sql": "SELECT product_id, product_name, launched_at FROM products WHERE category_id = 3 AND launched_at >= '2023-01-01';",
+      "difficulty": "easy"
+    },
+    {
+      "sql": "SELECT product_id, product_name, brand FROM products WHERE unit_price BETWEEN 50 AND 100 ORDER BY unit_price, product_name;",
+      "difficulty": "easy"
+    },
+    {
+      "sql": "SELECT order_id, customer_id, order_date, total_amount FROM orders WHERE order_status = 'shipped' ORDER BY order_date DESC LIMIT 10;",
+      "difficulty": "easy"
+    },
+    {
+      "sql": "SELECT order_id, payment_method, shipping_state, total_amount FROM orders WHERE shipping_country = 'USA' AND total_amount > 200;",
+      "difficulty": "easy"
+    },
+    {
+      "sql": "SELECT order_id, customer_id, order_status FROM orders WHERE payment_method = 'paypal' AND shipping_state = 'TX';",
+      "difficulty": "easy"
+    },
+    {
+      "sql": "SELECT c.customer_segment, COUNT(o.order_id) AS order_count FROM customers AS c JOIN orders AS o ON o.customer_id = c.customer_id GROUP BY c.customer_segment;",
+      "difficulty": "medium"
+    },
+    {
+      "sql": "SELECT c.state, AVG(o.total_amount) AS avg_order_amount FROM customers AS c JOIN orders AS o ON o.customer_id = c.customer_id WHERE o.order_status = 'shipped' GROUP BY c.state;",
+      "difficulty": "medium"
+    },
+    {
+      "sql": "SELECT c.customer_id, c.first_name, c.last_name, SUM(o.total_amount) AS total_spent FROM customers AS c JOIN orders AS o ON o.customer_id = c.customer_id GROUP BY c.customer_id, c.first_name, c.last_name ORDER BY total_spent DESC LIMIT 5;",
+      "difficulty": "medium"
+    },
+    {
+      "sql": "SELECT c.customer_segment, COUNT(DISTINCT c.customer_id) AS customer_count FROM customers AS c JOIN orders AS o ON o.customer_id = c.customer_id WHERE o.payment_method = 'credit_card' GROUP BY c.customer_segment;",
+      "difficulty": "medium"
+    },
+    {
+      "sql": "SELECT p.brand, SUM(oi.quantity * oi.unit_price - oi.discount_amount) AS net_sales FROM products AS p JOIN order_items AS oi ON oi.product_id = p.product_id GROUP BY p.brand ORDER BY net_sales DESC;",
+      "difficulty": "medium"
+    },
+    {
+      "sql": "SELECT p.category_id, AVG(oi.quantity) AS avg_quantity_per_line FROM products AS p JOIN order_items AS oi ON oi.product_id = p.product_id GROUP BY p.category_id;",
+      "difficulty": "medium"
+    },
+    {
+      "sql": "SELECT p.product_id, p.product_name, SUM(oi.quantity) AS units_sold FROM products AS p JOIN order_items AS oi ON oi.product_id = p.product_id GROUP BY p.product_id, p.product_name ORDER BY units_sold DESC LIMIT 5;",
+      "difficulty": "medium"
+    },
+    {
+      "sql": "SELECT r.return_status, SUM(r.refund_amount) AS total_refund_amount FROM returns AS r JOIN order_items AS oi ON oi.order_item_id = r.order_item_id JOIN orders AS o ON o.order_id = oi.order_id GROUP BY r.return_status;",
+      "difficulty": "medium"
+    },
+    {
+      "sql": "SELECT r.return_reason, AVG(r.refund_amount) AS avg_refund_amount FROM returns AS r JOIN order_items AS oi ON oi.order_item_id = r.order_item_id JOIN orders AS o ON o.order_id = oi.order_id WHERE r.return_date >= '2024-01-01' GROUP BY r.return_reason;",
+      "difficulty": "medium"
+    },
+    {
+      "sql": "SELECT o.shipping_country, COUNT(r.return_id) AS returned_line_count FROM orders AS o JOIN order_items AS oi ON oi.order_id = o.order_id JOIN returns AS r ON r.order_item_id = oi.order_item_id WHERE r.return_status = 'approved' GROUP BY o.shipping_country;",
+      "difficulty": "medium"
+    },
+    {
+      "sql": "SELECT COALESCE(pc.category_name, c.category_name) AS top_category_name, SUM(oi.quantity * oi.unit_price - oi.discount_amount) AS gross_sales FROM categories AS c LEFT JOIN categories AS pc ON pc.category_id = c.parent_category_id JOIN products AS p ON p.category_id = c.category_id JOIN order_items AS oi ON oi.product_id = p.product_id GROUP BY COALESCE(pc.category_name, c.category_name) HAVING SUM(oi.quantity * oi.unit_price - oi.discount_amount) > 1000;",
+      "difficulty": "hard"
+    },
+    {
+      "sql": "SELECT c.customer_id, c.first_name, c.last_name, SUM(o.total_amount) AS total_spent FROM customers AS c JOIN orders AS o ON o.customer_id = c.customer_id GROUP BY c.customer_id, c.first_name, c.last_name HAVING SUM(o.total_amount) > (SELECT AVG(customer_total) FROM (SELECT SUM(o2.total_amount) AS customer_total FROM orders AS o2 GROUP BY o2.customer_id) AS t);",
+      "difficulty": "hard"
+    },
+    {
+      "sql": "SELECT p.product_id, p.product_name FROM products AS p WHERE NOT EXISTS (SELECT 1 FROM order_items AS oi JOIN returns AS r ON r.order_item_id = oi.order_item_id WHERE oi.product_id = p.product_id);",
+      "difficulty": "hard"
+    },
+    {
+      "sql": "SELECT c.customer_id, c.email, COUNT(DISTINCT p.category_id) AS category_count FROM customers AS c JOIN orders AS o ON o.customer_id = c.customer_id JOIN order_items AS oi ON oi.order_id = o.order_id JOIN products AS p ON p.product_id = oi.product_id GROUP BY c.customer_id, c.email HAVING COUNT(DISTINCT p.category_id) >= 2;",
+      "difficulty": "hard"
+    },
+    {
+      "sql": "SELECT p.brand, AVG(oi.discount_amount) AS avg_discount_amount FROM products AS p JOIN order_items AS oi ON oi.product_id = p.product_id GROUP BY p.brand HAVING AVG(oi.discount_amount) > (SELECT AVG(oi2.discount_amount) FROM order_items AS oi2);",
+      "difficulty": "hard"
+    },
+    {
+      "sql": "SELECT o.order_id, o.total_amount, SUM(oi.quantity * oi.unit_price - oi.discount_amount) AS computed_line_total FROM orders AS o JOIN order_items AS oi ON oi.order_id = o.order_id GROUP BY o.order_id, o.total_amount HAVING SUM(oi.quantity * oi.unit_price - oi.discount_amount) <> o.total_amount;",
+      "difficulty": "hard"
+    },
+    {
+      "sql": "SELECT c.customer_segment, SUM(CASE WHEN r.return_id IS NOT NULL THEN 1 ELSE 0 END) * 1.0 / COUNT(oi.order_item_id) AS return_rate, SUM(CASE WHEN r.return_status = 'approved' THEN r.refund_amount ELSE 0 END) AS approved_refund_amount FROM customers AS c JOIN orders AS o ON o.customer_id = c.customer_id JOIN order_items AS oi ON oi.order_id = o.order_id LEFT JOIN returns AS r ON r.order_item_id = oi.order_item_id GROUP BY c.customer_segment HAVING SUM(CASE WHEN r.return_id IS NOT NULL THEN 1 ELSE 0 END) * 1.0 / COUNT(oi.order_item_id) > 0.10;",
+      "difficulty": "hard"
+    },
+    {
+      "sql": "SELECT DISTINCT p.product_id, p.product_name, p.unit_price FROM products AS p JOIN order_items AS oi ON oi.product_id = p.product_id WHERE p.unit_price > (SELECT AVG(p2.unit_price) FROM products AS p2 WHERE p2.category_id = p.category_id);",
+      "difficulty": "hard"
+    },
+    {
+      "sql": "SELECT c.customer_id, c.first_name, c.last_name FROM customers AS c WHERE EXISTS (SELECT 1 FROM orders AS o WHERE o.customer_id = c.customer_id) AND NOT EXISTS (SELECT 1 FROM orders AS o JOIN order_items AS oi ON oi.order_id = o.order_id JOIN returns AS r ON r.order_item_id = oi.order_item_id WHERE o.customer_id = c.customer_id);",
+      "difficulty": "hard"
+    },
+    {
+      "sql": "SELECT o.payment_method, c.category_name, AVG(oi.quantity * oi.unit_price - oi.discount_amount) AS avg_line_revenue FROM orders AS o JOIN order_items AS oi ON oi.order_id = o.order_id JOIN products AS p ON p.product_id = oi.product_id JOIN categories AS c ON c.category_id = p.category_id GROUP BY o.payment_method, c.category_name HAVING AVG(oi.quantity * oi.unit_price - oi.discount_amount) > 50;",
+      "difficulty": "hard"
+    }
+  ]
+}

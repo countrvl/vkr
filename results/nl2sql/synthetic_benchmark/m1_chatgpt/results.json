@@ -1,0 +1,20 @@
+{
+  "overall": {
+    "execution_accuracy": 0.7,
+    "valid_sql_rate": 0.8333333333333334
+  },
+  "by_difficulty": {
+    "easy": {
+      "execution_accuracy": 0.8,
+      "valid_sql_rate": 0.8
+    },
+    "medium": {
+      "execution_accuracy": 0.7,
+      "valid_sql_rate": 0.9
+    },
+    "hard": {
+      "execution_accuracy": 0.6,
+      "valid_sql_rate": 0.8
+    }
+  }
+}

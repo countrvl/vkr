@@ -1,0 +1,1502 @@
+[
+  {
+    "question": "find customer_id, first_name, last_name, and email from the customers table where state is CA",
+    "sql_gt": "SELECT customer_id, first_name, last_name, email FROM customers WHERE state = 'CA';",
+    "sql_pred": "SELECT c.customer_id, c.first_name, c.last_name, c.email FROM customers c WHERE LOWER(c.state) = 'ca'",
+    "valid": true,
+    "execution_match": true,
+    "difficulty": "easy",
+    "inference_error": null,
+    "prediction_error": null,
+    "ground_truth_error": null,
+    "sql_candidates": [
+      "SELECT c.customer_id, c.first_name, c.last_name, c.email FROM customers c WHERE LOWER(c.state) = 'ca'",
+      "SELECT c.customer_id, c.first_name, c.last_name, c.email FROM customers c WHERE c.state = 'CA'",
+      "SELECT c.customer_id, c.first_name, c.last_name, c.email FROM customers c WHERE LOWER(c.state) = 'ca' ORDER BY c.customer_id NULLS LAST",
+      "SELECT c.customer_id, c.first_name, c.last_name, c.email FROM customers c WHERE LOWER(c.state) = 'ca'",
+      "SELECT c.customer_id, c.first_name, c.last_name, c.email FROM customers c WHERE c.state = 'CA' ORDER BY customer_id NULLS LAST"
+    ],
+    "candidate_results": [
+      {
+        "sql": "SELECT c.customer_id, c.first_name, c.last_name, c.email FROM customers c WHERE LOWER(c.state) = 'ca'",
+        "valid": true,
+        "execution_match": true,
+        "error": null
+      },
+      {
+        "sql": "SELECT c.customer_id, c.first_name, c.last_name, c.email FROM customers c WHERE c.state = 'CA'",
+        "valid": true,
+        "execution_match": true,
+        "error": null
+      },
+      {
+        "sql": "SELECT c.customer_id, c.first_name, c.last_name, c.email FROM customers c WHERE LOWER(c.state) = 'ca' ORDER BY c.customer_id NULLS LAST",
+        "valid": true,
+        "execution_match": true,
+        "error": null
+      },
+      {
+        "sql": "SELECT c.customer_id, c.first_name, c.last_name, c.email FROM customers c WHERE LOWER(c.state) = 'ca'",
+        "valid": true,
+        "execution_match": true,
+        "error": null
+      },
+      {
+        "sql": "SELECT c.customer_id, c.first_name, c.last_name, c.email FROM customers c WHERE c.state = 'CA' ORDER BY customer_id NULLS LAST",
+        "valid": true,
+        "execution_match": true,
+        "error": null
+      }
+    ]
+  },
+  {
+    "question": "find customer_id, first_name, last_name, and signup_date from the customers table ordered by signup_date descending limit 5",
+    "sql_gt": "SELECT customer_id, first_name, last_name, signup_date FROM customers ORDER BY signup_date DESC LIMIT 5;",
+    "sql_pred": "SELECT c.customer_id, c.first_name, c.last_name, c.signup_date FROM customers c ORDER BY signup_date DESC LIMIT 5",
+    "valid": true,
+    "execution_match": true,
+    "difficulty": "easy",
+    "inference_error": null,
+    "prediction_error": null,
+    "ground_truth_error": null,
+    "sql_candidates": [
+      "SELECT c.customer_id, c.first_name, c.last_name, c.signup_date FROM customers c ORDER BY signup_date DESC LIMIT 5",
+      "SELECT c.customer_id, c.first_name, c.last_name, c.signup_date FROM customers c ORDER BY signup_date DESC LIMIT 5",
+      "SELECT c.customer_id, c.first_name, c.last_name, c.signup_date FROM customers c ORDER BY c.signup_date DESC NULLS LAST LIMIT 5",
+      "SELECT c.customer_id, c.first_name, c.last_name, c.signup_date FROM customers c ORDER BY signup_date DESC LIMIT 5",
+      "SELECT c.customer_id, c.first_name, c.last_name, c.signup_date FROM customers c ORDER BY signup_date DESC LIMIT 5"
+    ],
+    "candidate_results": [
+      {
+        "sql": "SELECT c.customer_id, c.first_name, c.last_name, c.signup_date FROM customers c ORDER BY signup_date DESC LIMIT 5",
+        "valid": true,
+        "execution_match": true,
+        "error": null
+      },
+      {
+        "sql": "SELECT c.customer_id, c.first_name, c.last_name, c.signup_date FROM customers c ORDER BY signup_date DESC LIMIT 5",
+        "valid": true,
+        "execution_match": true,
+        "error": null
+      },
+      {
+        "sql": "SELECT c.customer_id, c.first_name, c.last_name, c.signup_date FROM customers c ORDER BY c.signup_date DESC NULLS LAST LIMIT 5",
+        "valid": true,
+        "execution_match": true,
+        "error": null
+      },
+      {
+        "sql": "SELECT c.customer_id, c.first_name, c.last_name, c.signup_date FROM customers c ORDER BY signup_date DESC LIMIT 5",
+        "valid": true,
+        "execution_match": true,
+        "error": null
+      },
+      {
+        "sql": "SELECT c.customer_id, c.first_name, c.last_name, c.signup_date FROM customers c ORDER BY signup_date DESC LIMIT 5",
+        "valid": true,
+        "execution_match": true,
+        "error": null
+      }
+    ]
+  },
+  {
+    "question": "find customer_id, email, and customer_segment from the customers table where signup_date is at least 2024-01-01 and customer_segment is VIP",
+    "sql_gt": "SELECT customer_id, email, customer_segment FROM customers WHERE signup_date >= '2024-01-01' AND customer_segment = 'VIP';",
+    "sql_pred": "SELECT c.customer_id, c.email, c.customer_segment FROM customers c WHERE c.signup_date >= '2024-01-01' AND LOWER(c.customer_segment) = 'vip'",
+    "valid": true,
+    "execution_match": true,
+    "difficulty": "easy",
+    "inference_error": null,
+    "prediction_error": null,
+    "ground_truth_error": null,
+    "sql_candidates": [
+      "SELECT c.customer_id, c.email, c.customer_segment FROM customers c WHERE c.signup_date >= '2024-01-01' AND LOWER(c.customer_segment) = 'vip'",
+      "SELECT c.customer_id, c.email, c.customer_segment FROM customers c WHERE c.signup_date >= '2024-01-01' AND c.customer_segment = 'VIP' ORDER BY c.customer_id NULLS LAST",
+      "SELECT c.customer_id, c.email, c.customer_segment FROM customers c WHERE c.signup_date >= '2024-01-01' AND c.customer_segment = 'VIP'",
+      "SELECT c.customer_id, c.email, c.customer_segment FROM customers c WHERE c.signup_date >= '2024-01-01' AND LOWER(c.customer_segment) = 'vip'",
+      "SELECT c.customer_id, c.email, c.customer_segment FROM customers c WHERE c.signup_date >= '2024-01-01' AND LOWER(c.customer_segment) = 'vip'"
+    ],
+    "candidate_results": [
+      {
+        "sql": "SELECT c.customer_id, c.email, c.customer_segment FROM customers c WHERE c.signup_date >= '2024-01-01' AND LOWER(c.customer_segment) = 'vip'",
+        "valid": true,
+        "execution_match": true,
+        "error": null
+      },
+      {
+        "sql": "SELECT c.customer_id, c.email, c.customer_segment FROM customers c WHERE c.signup_date >= '2024-01-01' AND c.customer_segment = 'VIP' ORDER BY c.customer_id NULLS LAST",
+        "valid": true,
+        "execution_match": true,
+        "error": null
+      },
+      {
+        "sql": "SELECT c.customer_id, c.email, c.customer_segment FROM customers c WHERE c.signup_date >= '2024-01-01' AND c.customer_segment = 'VIP'",
+        "valid": true,
+        "execution_match": true,
+        "error": null
+      },
+      {
+        "sql": "SELECT c.customer_id, c.email, c.customer_segment FROM customers c WHERE c.signup_date >= '2024-01-01' AND LOWER(c.customer_segment) = 'vip'",
+        "valid": true,
+        "execution_match": true,
+        "error": null
+      },
+      {
+        "sql": "SELECT c.customer_id, c.email, c.customer_segment FROM customers c WHERE c.signup_date >= '2024-01-01' AND LOWER(c.customer_segment) = 'vip'",
+        "valid": true,
+        "execution_match": true,
+        "error": null
+      }
+    ]
+  },
+  {
+    "question": "find customer_id, first_name, last_name, and city from the customers table where city is Seattle",
+    "sql_gt": "SELECT customer_id, first_name, last_name, city FROM customers WHERE city = 'Seattle' ORDER BY last_name, first_name;",
+    "sql_pred": "SELECT c.customer_id, c.first_name, c.last_name, c.city FROM customers c WHERE LOWER(c.city) = 'seattle'",
+    "valid": true,
+    "execution_match": true,
+    "difficulty": "easy",
+    "inference_error": null,
+    "prediction_error": null,
+    "ground_truth_error": null,
+    "sql_candidates": [
+      "SELECT c.customer_id, c.first_name, c.last_name, c.city FROM customers c WHERE LOWER(c.city) = 'seattle'",
+      "SELECT c.customer_id, c.first_name, c.last_name, c.city FROM customers c WHERE LOWER(c.city) = 'seattle' ORDER BY NULLIF(c.first_name, ''), NULLIF(c.last_name, '')",
+      "SELECT customer_id, first_name, last_name, city FROM customers WHERE city = 'Seattle' ORDER BY customer_id",
+      "SELECT c.customer_id, c.first_name, c.last_name, c.city FROM customers c WHERE LOWER(c.city) = 'seattle'",
+      "SELECT c.customer_id, c.first_name, c.last_name, c.city FROM customers c WHERE LOWER(c.city) = 'seattle'"
+    ],
+    "candidate_results": [
+      {
+        "sql": "SELECT c.customer_id, c.first_name, c.last_name, c.city FROM customers c WHERE LOWER(c.city) = 'seattle'",
+        "valid": true,
+        "execution_match": true,
+        "error": null
+      },
+      {
+        "sql": "SELECT c.customer_id, c.first_name, c.last_name, c.city FROM customers c WHERE LOWER(c.city) = 'seattle' ORDER BY NULLIF(c.first_name, ''), NULLIF(c.last_name, '')",
+        "valid": true,
+        "execution_match": true,
+        "error": null
+      },
+      {
+        "sql": "SELECT customer_id, first_name, last_name, city FROM customers WHERE city = 'Seattle' ORDER BY customer_id",
+        "valid": true,
+        "execution_match": true,
+        "error": null
+      },
+      {
+        "sql": "SELECT c.customer_id, c.first_name, c.last_name, c.city FROM customers c WHERE LOWER(c.city) = 'seattle'",
+        "valid": true,
+        "execution_match": true,
+        "error": null
+      },
+      {
+        "sql": "SELECT c.customer_id, c.first_name, c.last_name, c.city FROM customers c WHERE LOWER(c.city) = 'seattle'",
+        "valid": true,
+        "execution_match": true,
+        "error": null
+      }
+    ]
+  },
+  {
+    "question": "find product_id, product_name, brand, and unit_price from the products table where is_active is 1 ordered by unit_price descending limit 10",
+    "sql_gt": "SELECT product_id, product_name, brand, unit_price FROM products WHERE is_active = 1 ORDER BY unit_price DESC LIMIT 10;",
+    "sql_pred": "SELECT p.product_id, p.product_name, p.brand, p.unit_price FROM products p WHERE p.is_active = 1 ORDER BY p.unit_price DESC LIMIT 10",
+    "valid": true,
+    "execution_match": true,
+    "difficulty": "easy",
+    "inference_error": null,
+    "prediction_error": null,
+    "ground_truth_error": null,
+    "sql_candidates": [
+      "SELECT p.product_id, p.product_name, p.brand, p.unit_price FROM products p WHERE p.is_active = 1 ORDER BY p.unit_price DESC LIMIT 10",
+      "SELECT p.product_id, p.product_name, p.brand, p.unit_price FROM products p WHERE p.is_active = 1 ORDER BY p.unit_price DESC LIMIT 10",
+      "SELECT p.product_id, p.product_name, p.brand, p.unit_price FROM products p WHERE p.is_active = 1 ORDER BY p.unit_price DESC LIMIT 10; ```",
+      "SELECT p.product_id, p.product_name, p.brand, p.unit_price FROM products p WHERE p.is_active = 1 ORDER BY p.unit_price DESC LIMIT 10",
+      "SELECT p.product_id, p.product_name, p.brand, p.unit_price FROM products p WHERE p.is_active = 1 ORDER BY p.unit_price DESC LIMIT 10"
+    ],
+    "candidate_results": [
+      {
+        "sql": "SELECT p.product_id, p.product_name, p.brand, p.unit_price FROM products p WHERE p.is_active = 1 ORDER BY p.unit_price DESC LIMIT 10",
+        "valid": true,
+        "execution_match": true,
+        "error": null
+      },
+      {
+        "sql": "SELECT p.product_id, p.product_name, p.brand, p.unit_price FROM products p WHERE p.is_active = 1 ORDER BY p.unit_price DESC LIMIT 10",
+        "valid": true,
+        "execution_match": true,
+        "error": null
+      },
+      {
+        "sql": "SELECT p.product_id, p.product_name, p.brand, p.unit_price FROM products p WHERE p.is_active = 1 ORDER BY p.unit_price DESC LIMIT 10; ```",
+        "valid": false,
+        "execution_match": false,
+        "error": "You can only execute one statement at a time."
+      },
+      {
+        "sql": "SELECT p.product_id, p.product_name, p.brand, p.unit_price FROM products p WHERE p.is_active = 1 ORDER BY p.unit_price DESC LIMIT 10",
+        "valid": true,
+        "execution_match": true,
+        "error": null
+      },
+      {
+        "sql": "SELECT p.product_id, p.product_name, p.brand, p.unit_price FROM products p WHERE p.is_active = 1 ORDER BY p.unit_price DESC LIMIT 10",
+        "valid": true,
+        "execution_match": true,
+        "error": null
+      }
+    ]
+  },
+  {
+    "question": "find product_id, product_name, and launched_at from the products table where category_id is 3 and launched_at is at least 2023-01-01",
+    "sql_gt": "SELECT product_id, product_name, launched_at FROM products WHERE category_id = 3 AND launched_at >= '2023-01-01';",
+    "sql_pred": "SELECT p.product_id, p.product_name, p.launched_at FROM products p WHERE p.category_id = 3 AND p.launched_at >= '2023-01-01' ORDER BY p.launched_at ASC NULLS LAST",
+    "valid": true,
+    "execution_match": true,
+    "difficulty": "easy",
+    "inference_error": null,
+    "prediction_error": null,
+    "ground_truth_error": null,
+    "sql_candidates": [
+      "SELECT p.product_id, p.product_name, p.launched_at FROM products p WHERE p.category_id = 3 AND p.launched_at >= '2023-01-01' ORDER BY p.launched_at ASC NULLS LAST",
+      "SELECT p.product_id, p.product_name, p.launched_at FROM products p WHERE p.category_id = 3 AND p.launched_at >= '2023-01-01'",
+      "SELECT p.product_id, p.product_name, p.launched_at FROM products p WHERE p.category_id = 3 AND p.launched_at >= '2023-01-01' ORDER BY p.product_name",
+      "SELECT product_id, product_name, launched_at FROM products WHERE category_id = 3 AND launched_at >= '2023-01-01'",
+      "SELECT p.product_id, p.product_name, p.launched_at FROM products p WHERE p.category_id = 3 AND p.launched_at >= '2023-01-01' ORDER BY p.product_name NULLS LAST"
+    ],
+    "candidate_results": [
+      {
+        "sql": "SELECT p.product_id, p.product_name, p.launched_at FROM products p WHERE p.category_id = 3 AND p.launched_at >= '2023-01-01' ORDER BY p.launched_at ASC NULLS LAST",
+        "valid": true,
+        "execution_match": true,
+        "error": null
+      },
+      {
+        "sql": "SELECT p.product_id, p.product_name, p.launched_at FROM products p WHERE p.category_id = 3 AND p.launched_at >= '2023-01-01'",
+        "valid": true,
+        "execution_match": true,
+        "error": null
+      },
+      {
+        "sql": "SELECT p.product_id, p.product_name, p.launched_at FROM products p WHERE p.category_id = 3 AND p.launched_at >= '2023-01-01' ORDER BY p.product_name",
+        "valid": true,
+        "execution_match": true,
+        "error": null
+      },
+      {
+        "sql": "SELECT product_id, product_name, launched_at FROM products WHERE category_id = 3 AND launched_at >= '2023-01-01'",
+        "valid": true,
+        "execution_match": true,
+        "error": null
+      },
+      {
+        "sql": "SELECT p.product_id, p.product_name, p.launched_at FROM products p WHERE p.category_id = 3 AND p.launched_at >= '2023-01-01' ORDER BY p.product_name NULLS LAST",
+        "valid": true,
+        "execution_match": true,
+        "error": null
+      }
+    ]
+  },
+  {
+    "question": "find product_id, product_name, and brand from the products table where unit_price is between 50 and 100",
+    "sql_gt": "SELECT product_id, product_name, brand FROM products WHERE unit_price BETWEEN 50 AND 100 ORDER BY unit_price, product_name;",
+    "sql_pred": "SELECT p.product_id, p.product_name, p.brand FROM products p WHERE p.unit_price BETWEEN 50 AND 100 ORDER BY p.product_name NULLS LAST",
+    "valid": true,
+    "execution_match": true,
+    "difficulty": "easy",
+    "inference_error": null,
+    "prediction_error": null,
+    "ground_truth_error": null,
+    "sql_candidates": [
+      "SELECT p.product_id, p.product_name, p.brand FROM products p WHERE p.unit_price BETWEEN 50 AND 100 ORDER BY p.product_name NULLS LAST",
+      "SELECT p.product_id, p.product_name, p.brand FROM products p WHERE p.unit_price BETWEEN 50 AND 100 ORDER BY p.product_id NULLS LAST",
+      "SELECT p.product_id, p.product_name, p.brand FROM products p WHERE p.unit_price BETWEEN 50 AND 100",
+      "SELECT p.product_id, p.product_name, p.brand FROM products p WHERE p.unit_price BETWEEN 50 AND 100",
+      "SELECT p.product_id, p.product_name, p.brand FROM products p WHERE p.unit_price BETWEEN 50 AND 100"
+    ],
+    "candidate_results": [
+      {
+        "sql": "SELECT p.product_id, p.product_name, p.brand FROM products p WHERE p.unit_price BETWEEN 50 AND 100 ORDER BY p.product_name NULLS LAST",
+        "valid": true,
+        "execution_match": true,
+        "error": null
+      },
+      {
+        "sql": "SELECT p.product_id, p.product_name, p.brand FROM products p WHERE p.unit_price BETWEEN 50 AND 100 ORDER BY p.product_id NULLS LAST",
+        "valid": true,
+        "execution_match": true,
+        "error": null
+      },
+      {
+        "sql": "SELECT p.product_id, p.product_name, p.brand FROM products p WHERE p.unit_price BETWEEN 50 AND 100",
+        "valid": true,
+        "execution_match": true,
+        "error": null
+      },
+      {
+        "sql": "SELECT p.product_id, p.product_name, p.brand FROM products p WHERE p.unit_price BETWEEN 50 AND 100",
+        "valid": true,
+        "execution_match": true,
+        "error": null
+      },
+      {
+        "sql": "SELECT p.product_id, p.product_name, p.brand FROM products p WHERE p.unit_price BETWEEN 50 AND 100",
+        "valid": true,
+        "execution_match": true,
+        "error": null
+      }
+    ]
+  },
+  {
+    "question": "find order_id, customer_id, order_date, and total_amount from the orders table where order_status is shipped ordered by order_date descending limit 10",
+    "sql_gt": "SELECT order_id, customer_id, order_date, total_amount FROM orders WHERE order_status = 'shipped' ORDER BY order_date DESC LIMIT 10;",
+    "sql_pred": "SELECT o.order_id, c.customer_id, o.order_date, o.total_amount FROM orders o JOIN customers c ON o.customer_id = c.customer_id WHERE order_status IS 'shipped' ORDER BY order_date DESC LIMIT 10",
+    "valid": true,
+    "execution_match": true,
+    "difficulty": "easy",
+    "inference_error": null,
+    "prediction_error": null,
+    "ground_truth_error": null,
+    "sql_candidates": [
+      "SELECT o.order_id, c.customer_id, o.order_date, o.total_amount FROM orders o JOIN customers c ON o.customer_id = c.customer_id WHERE order_status IS 'shipped' ORDER BY order_date DESC LIMIT 10",
+      "SELECT o.order_id, c.customer_id, o.order_date, o.total_amount FROM orders o JOIN customers c ON o.customer_id = c.customer_id WHERE order_status = 'shipped' ORDER BY o.order_date DESC LIMIT 10",
+      "SELECT o.order_id, c.customer_id, o.order_date, o.total_amount FROM orders o JOIN customers c ON o.customer_id = c.customer_id WHERE o.order_status = 'shipped' ORDER BY o.order_date DESC LIMIT 10",
+      "SELECT o.order_id, c.customer_id, o.order_date, o.total_amount FROM orders o JOIN customers c ON o.customer_id = c.customer_id WHERE order_status='shipped' ORDER BY order_date DESC LIMIT 10",
+      "SELECT o.order_id, c.customer_id, o.order_date, SUM(i.unit_price) AS total_amount FROM orders o JOIN customers c ON o.customer_id = c.customer_id LEFT JOIN order_items i ON i.order_item_id = 1 GROUP BY o.order_id, c.customer_id, o.order_date ORDER BY o.order_date DESC NULLS LAST LIMIT 10"
+    ],
+    "candidate_results": [
+      {
+        "sql": "SELECT o.order_id, c.customer_id, o.order_date, o.total_amount FROM orders o JOIN customers c ON o.customer_id = c.customer_id WHERE order_status IS 'shipped' ORDER BY order_date DESC LIMIT 10",
+        "valid": true,
+        "execution_match": true,
+        "error": null
+      },
+      {
+        "sql": "SELECT o.order_id, c.customer_id, o.order_date, o.total_amount FROM orders o JOIN customers c ON o.customer_id = c.customer_id WHERE order_status = 'shipped' ORDER BY o.order_date DESC LIMIT 10",
+        "valid": true,
+        "execution_match": true,
+        "error": null
+      },
+      {
+        "sql": "SELECT o.order_id, c.customer_id, o.order_date, o.total_amount FROM orders o JOIN customers c ON o.customer_id = c.customer_id WHERE o.order_status = 'shipped' ORDER BY o.order_date DESC LIMIT 10",
+        "valid": true,
+        "execution_match": true,
+        "error": null
+      },
+      {
+        "sql": "SELECT o.order_id, c.customer_id, o.order_date, o.total_amount FROM orders o JOIN customers c ON o.customer_id = c.customer_id WHERE order_status='shipped' ORDER BY order_date DESC LIMIT 10",
+        "valid": true,
+        "execution_match": true,
+        "error": null
+      },
+      {
+        "sql": "SELECT o.order_id, c.customer_id, o.order_date, SUM(i.unit_price) AS total_amount FROM orders o JOIN customers c ON o.customer_id = c.customer_id LEFT JOIN order_items i ON i.order_item_id = 1 GROUP BY o.order_id, c.customer_id, o.order_date ORDER BY o.order_date DESC NULLS LAST LIMIT 10",
+        "valid": true,
+        "execution_match": false,
+        "error": null
+      }
+    ]
+  },
+  {
+    "question": "find order_id, payment_method, shipping_state, and total_amount from the orders table where shipping_country is USA and total_amount is greater than 200",
+    "sql_gt": "SELECT order_id, payment_method, shipping_state, total_amount FROM orders WHERE shipping_country = 'USA' AND total_amount > 200;",
+    "sql_pred": "SELECT o.order_id, o.payment_method, o.shipping_state, SUM(o.total_amount) AS total_amount FROM orders o WHERE o.shipping_country = 'USA' AND o.total_amount > 200 GROUP BY o.order_id, o.payment_method, o.shipping_state",
+    "valid": true,
+    "execution_match": true,
+    "difficulty": "easy",
+    "inference_error": null,
+    "prediction_error": null,
+    "ground_truth_error": null,
+    "sql_candidates": [
+      "SELECT o.order_id, o.payment_method, o.shipping_state, SUM(o.total_amount) AS total_amount FROM orders o WHERE o.shipping_country = 'USA' AND o.total_amount > 200 GROUP BY o.order_id, o.payment_method, o.shipping_state",
+      "SELECT o.order_id, o.payment_method, o.shipping_state, o.total_amount FROM orders o WHERE LOWER(o.shipping_country) = 'usa' AND o.total_amount > 200",
+      "SELECT o.order_id, o.payment_method, o.shipping_state, SUM(o.total_amount) AS total_order_amount FROM orders o WHERE LOWER(o.shipping_country) = 'usa' AND o.total_amount > 200 GROUP BY o.order_id, o.payment_method, o.shipping_state ORDER BY o.total_amount DESC NULLS LAST",
+      "SELECT o.order_id, o.payment_method, o.shipping_state, o.total_amount FROM orders o WHERE o.shipping_country = 'USA' AND o.total_amount > 200",
+      "SELECT o.order_id, o.payment_method, o.shipping_state, o.total_amount FROM orders o WHERE LOWER(o.shipping_country) = 'usa' AND o.total_amount > 200"
+    ],
+    "candidate_results": [
+      {
+        "sql": "SELECT o.order_id, o.payment_method, o.shipping_state, SUM(o.total_amount) AS total_amount FROM orders o WHERE o.shipping_country = 'USA' AND o.total_amount > 200 GROUP BY o.order_id, o.payment_method, o.shipping_state",
+        "valid": true,
+        "execution_match": true,
+        "error": null
+      },
+      {
+        "sql": "SELECT o.order_id, o.payment_method, o.shipping_state, o.total_amount FROM orders o WHERE LOWER(o.shipping_country) = 'usa' AND o.total_amount > 200",
+        "valid": true,
+        "execution_match": true,
+        "error": null
+      },
+      {
+        "sql": "SELECT o.order_id, o.payment_method, o.shipping_state, SUM(o.total_amount) AS total_order_amount FROM orders o WHERE LOWER(o.shipping_country) = 'usa' AND o.total_amount > 200 GROUP BY o.order_id, o.payment_method, o.shipping_state ORDER BY o.total_amount DESC NULLS LAST",
+        "valid": true,
+        "execution_match": true,
+        "error": null
+      },
+      {
+        "sql": "SELECT o.order_id, o.payment_method, o.shipping_state, o.total_amount FROM orders o WHERE o.shipping_country = 'USA' AND o.total_amount > 200",
+        "valid": true,
+        "execution_match": true,
+        "error": null
+      },
+      {
+        "sql": "SELECT o.order_id, o.payment_method, o.shipping_state, o.total_amount FROM orders o WHERE LOWER(o.shipping_country) = 'usa' AND o.total_amount > 200",
+        "valid": true,
+        "execution_match": true,
+        "error": null
+      }
+    ]
+  },
+  {
+    "question": "find order_id, customer_id, and order_status from the orders table where payment_method is paypal and shipping_state is TX",
+    "sql_gt": "SELECT order_id, customer_id, order_status FROM orders WHERE payment_method = 'paypal' AND shipping_state = 'TX';",
+    "sql_pred": "SELECT o.order_id, o.customer_id, o.order_status FROM orders o WHERE LOWER(o.payment_method) = 'paypal' AND LOWER(o.shipping_state) = 'tx'",
+    "valid": true,
+    "execution_match": true,
+    "difficulty": "easy",
+    "inference_error": null,
+    "prediction_error": null,
+    "ground_truth_error": null,
+    "sql_candidates": [
+      "SELECT o.order_id, o.customer_id, o.order_status FROM orders o WHERE LOWER(o.payment_method) = 'paypal' AND LOWER(o.shipping_state) = 'tx'",
+      "SELECT o.order_id, c.customer_id, o.order_status FROM orders o JOIN customers c ON o.customer_id = c.customer_id WHERE payment_method = 'paypal' AND shipping_state = 'TX'",
+      "SELECT o.order_id, c.customer_id, o.order_status FROM orders o JOIN customers c ON o.customer_id = c.customer_id WHERE o.payment_method = 'paypal' AND o.shipping_state = 'TX'",
+      "SELECT o.order_id, c.customer_id, o.order_status FROM orders o JOIN customers c ON o.customer_id = c.customer_id WHERE o.payment_method ilike '%paypal%' AND LOWER(o.shipping_state) = 'tx' ORDER BY o.order_id NULLS LAST",
+      "SELECT o.order_id, c.customer_id, o.order_status FROM orders o JOIN customers c ON o.customer_id = c.customer_id WHERE o.payment_method LIKE '%paypal%' AND LOWER(o.shipping_state) = 'tx'"
+    ],
+    "candidate_results": [
+      {
+        "sql": "SELECT o.order_id, o.customer_id, o.order_status FROM orders o WHERE LOWER(o.payment_method) = 'paypal' AND LOWER(o.shipping_state) = 'tx'",
+        "valid": true,
+        "execution_match": true,
+        "error": null
+      },
+      {
+        "sql": "SELECT o.order_id, c.customer_id, o.order_status FROM orders o JOIN customers c ON o.customer_id = c.customer_id WHERE payment_method = 'paypal' AND shipping_state = 'TX'",
+        "valid": true,
+        "execution_match": true,
+        "error": null
+      },
+      {
+        "sql": "SELECT o.order_id, c.customer_id, o.order_status FROM orders o JOIN customers c ON o.customer_id = c.customer_id WHERE o.payment_method = 'paypal' AND o.shipping_state = 'TX'",
+        "valid": true,
+        "execution_match": true,
+        "error": null
+      },
+      {
+        "sql": "SELECT o.order_id, c.customer_id, o.order_status FROM orders o JOIN customers c ON o.customer_id = c.customer_id WHERE o.payment_method ilike '%paypal%' AND LOWER(o.shipping_state) = 'tx' ORDER BY o.order_id NULLS LAST",
+        "valid": false,
+        "execution_match": false,
+        "error": "near \"ilike\": syntax error"
+      },
+      {
+        "sql": "SELECT o.order_id, c.customer_id, o.order_status FROM orders o JOIN customers c ON o.customer_id = c.customer_id WHERE o.payment_method LIKE '%paypal%' AND LOWER(o.shipping_state) = 'tx'",
+        "valid": true,
+        "execution_match": true,
+        "error": null
+      }
+    ]
+  },
+  {
+    "question": "for each customer_segment, compute count of order_id by joining customers and orders",
+    "sql_gt": "SELECT c.customer_segment, COUNT(o.order_id) AS order_count FROM customers AS c JOIN orders AS o ON o.customer_id = c.customer_id GROUP BY c.customer_segment;",
+    "sql_pred": "SELECT c.customer_segment, COUNT(o.order_id) AS num_orders FROM customers c JOIN orders o ON c.customer_id = o.customer_id GROUP BY c.customer_segment ORDER BY c.customer_segment NULLS LAST",
+    "valid": true,
+    "execution_match": true,
+    "difficulty": "medium",
+    "inference_error": null,
+    "prediction_error": null,
+    "ground_truth_error": null,
+    "sql_candidates": [
+      "SELECT c.customer_segment, COUNT(o.order_id) AS num_orders FROM customers c JOIN orders o ON c.customer_id = o.customer_id GROUP BY c.customer_segment ORDER BY c.customer_segment NULLS LAST",
+      "SELECT c.customer_segment, COUNT(o.order_id) AS total_orders FROM customers c JOIN orders o ON c.customer_id = o.customer_id GROUP BY c.customer_segment ORDER BY c.customer_segment NULLS LAST",
+      "SELECT c.customer_segment, COUNT(o.order_id) AS total_orders FROM customers c JOIN orders o ON c.customer_id = o.customer_id GROUP BY c.customer_segment ORDER BY total_orders DESC NULLS LAST",
+      "SELECT c.customer_segment, COUNT(o.order_id) AS number_of_orders FROM customers c JOIN orders o ON c.customer_id = o.customer_id GROUP BY c.customer_segment",
+      "SELECT c.customer_segment, COUNT(o.order_id) AS total_orders FROM customers c JOIN orders o ON c.customer_id = o.customer_id GROUP BY c.customer_segment"
+    ],
+    "candidate_results": [
+      {
+        "sql": "SELECT c.customer_segment, COUNT(o.order_id) AS num_orders FROM customers c JOIN orders o ON c.customer_id = o.customer_id GROUP BY c.customer_segment ORDER BY c.customer_segment NULLS LAST",
+        "valid": true,
+        "execution_match": true,
+        "error": null
+      },
+      {
+        "sql": "SELECT c.customer_segment, COUNT(o.order_id) AS total_orders FROM customers c JOIN orders o ON c.customer_id = o.customer_id GROUP BY c.customer_segment ORDER BY c.customer_segment NULLS LAST",
+        "valid": true,
+        "execution_match": true,
+        "error": null
+      },
+      {
+        "sql": "SELECT c.customer_segment, COUNT(o.order_id) AS total_orders FROM customers c JOIN orders o ON c.customer_id = o.customer_id GROUP BY c.customer_segment ORDER BY total_orders DESC NULLS LAST",
+        "valid": true,
+        "execution_match": true,
+        "error": null
+      },
+      {
+        "sql": "SELECT c.customer_segment, COUNT(o.order_id) AS number_of_orders FROM customers c JOIN orders o ON c.customer_id = o.customer_id GROUP BY c.customer_segment",
+        "valid": true,
+        "execution_match": true,
+        "error": null
+      },
+      {
+        "sql": "SELECT c.customer_segment, COUNT(o.order_id) AS total_orders FROM customers c JOIN orders o ON c.customer_id = o.customer_id GROUP BY c.customer_segment",
+        "valid": true,
+        "execution_match": true,
+        "error": null
+      }
+    ]
+  },
+  {
+    "question": "for each state, compute average of total_amount by joining customers and orders where order_status is shipped",
+    "sql_gt": "SELECT c.state, AVG(o.total_amount) AS avg_order_amount FROM customers AS c JOIN orders AS o ON o.customer_id = c.customer_id WHERE o.order_status = 'shipped' GROUP BY c.state;",
+    "sql_pred": "SELECT c.state, AVG(o.total_amount) AS average_order_amount FROM customers c JOIN orders o ON c.customer_id = o.customer_id WHERE o.order_status = 'shipped' GROUP BY c.state ORDER BY c.state",
+    "valid": true,
+    "execution_match": true,
+    "difficulty": "medium",
+    "inference_error": null,
+    "prediction_error": null,
+    "ground_truth_error": null,
+    "sql_candidates": [
+      "SELECT c.state, AVG(o.total_amount) AS average_order_amount FROM customers c JOIN orders o ON c.customer_id = o.customer_id WHERE o.order_status = 'shipped' GROUP BY c.state ORDER BY c.state",
+      "SELECT c.state, AVG(o.total_amount) AS average_total_amount FROM customers c JOIN orders o ON c.customer_id = o.customer_id WHERE o.order_status = 'shipped' GROUP BY c.state ORDER BY average_total_amount DESC NULLS LAST",
+      "SELECT c.state, AVG(o.total_amount) AS average_total_amount FROM customers c JOIN orders o ON c.customer_id = o.customer_id WHERE LOWER(o.order_status) = 'shipped' GROUP BY c.state ORDER BY average_total_amount DESC NULLS LAST",
+      "SELECT c.state, AVG(o.total_amount) AS average_total_amount FROM customers c JOIN orders o ON c.customer_id = o.customer_id WHERE o.order_status = 'shipped' GROUP BY c.state ORDER BY c.state",
+      "SELECT c.state, AVG(o.total_amount) AS avg_total_amount FROM customers c JOIN orders o ON c.customer_id = o.customer_id WHERE LOWER(o.order_status) = 'shipped' GROUP BY c.state ORDER BY c.state NULLS LAST"
+    ],
+    "candidate_results": [
+      {
+        "sql": "SELECT c.state, AVG(o.total_amount) AS average_order_amount FROM customers c JOIN orders o ON c.customer_id = o.customer_id WHERE o.order_status = 'shipped' GROUP BY c.state ORDER BY c.state",
+        "valid": true,
+        "execution_match": true,
+        "error": null
+      },
+      {
+        "sql": "SELECT c.state, AVG(o.total_amount) AS average_total_amount FROM customers c JOIN orders o ON c.customer_id = o.customer_id WHERE o.order_status = 'shipped' GROUP BY c.state ORDER BY average_total_amount DESC NULLS LAST",
+        "valid": true,
+        "execution_match": true,
+        "error": null
+      },
+      {
+        "sql": "SELECT c.state, AVG(o.total_amount) AS average_total_amount FROM customers c JOIN orders o ON c.customer_id = o.customer_id WHERE LOWER(o.order_status) = 'shipped' GROUP BY c.state ORDER BY average_total_amount DESC NULLS LAST",
+        "valid": true,
+        "execution_match": true,
+        "error": null
+      },
+      {
+        "sql": "SELECT c.state, AVG(o.total_amount) AS average_total_amount FROM customers c JOIN orders o ON c.customer_id = o.customer_id WHERE o.order_status = 'shipped' GROUP BY c.state ORDER BY c.state",
+        "valid": true,
+        "execution_match": true,
+        "error": null
+      },
+      {
+        "sql": "SELECT c.state, AVG(o.total_amount) AS avg_total_amount FROM customers c JOIN orders o ON c.customer_id = o.customer_id WHERE LOWER(o.order_status) = 'shipped' GROUP BY c.state ORDER BY c.state NULLS LAST",
+        "valid": true,
+        "execution_match": true,
+        "error": null
+      }
+    ]
+  },
+  {
+    "question": "for each customer_id, first_name, and last_name, compute sum of total_amount by joining customers and orders",
+    "sql_gt": "SELECT c.customer_id, c.first_name, c.last_name, SUM(o.total_amount) AS total_spent FROM customers AS c JOIN orders AS o ON o.customer_id = c.customer_id GROUP BY c.customer_id, c.first_name, c.last_name ORDER BY total_spent DESC LIMIT 5;",
+    "sql_pred": "SELECT c.customer_id, c.first_name, c.last_name, SUM(o.total_amount) AS total_spent FROM customers c JOIN orders o ON c.customer_id = o.customer_id GROUP BY 1, 2, 3",
+    "valid": true,
+    "execution_match": false,
+    "difficulty": "medium",
+    "inference_error": null,
+    "prediction_error": null,
+    "ground_truth_error": null,
+    "sql_candidates": [
+      "SELECT c.customer_id, c.first_name, c.last_name, SUM(o.total_amount) AS total_spent FROM customers c JOIN orders o ON c.customer_id = o.customer_id GROUP BY 1, 2, 3",
+      "WITH customer_order_totals AS (SELECT c.customer_id, c.first_name, c.last_name, SUM(o.total_amount) AS total_spent FROM customers c JOIN orders o ON c.customer_id = o.customer_id GROUP BY 1, 2, 3) SELECT * FROM customer_order_totals",
+      "SELECT c.customer_id, c.first_name, c.last_name, SUM(o.total_amount) AS total_spent FROM customers c JOIN orders o ON c.customer_id = o.customer_id GROUP BY c.customer_id, c.first_name, c.last_name",
+      "SELECT c.customer_id, c.first_name, c.last_name, SUM(o.total_amount) AS total_spent FROM customers c JOIN orders o ON c.customer_id = o.customer_id GROUP BY c.customer_id, c.first_name, c.last_name",
+      "SELECT c.customer_id, c.first_name, c.last_name, SUM(o.total_amount) AS total_spent FROM customers c JOIN orders o ON c.customer_id = o.customer_id GROUP BY 1, 2, 3"
+    ],
+    "candidate_results": [
+      {
+        "sql": "SELECT c.customer_id, c.first_name, c.last_name, SUM(o.total_amount) AS total_spent FROM customers c JOIN orders o ON c.customer_id = o.customer_id GROUP BY 1, 2, 3",
+        "valid": true,
+        "execution_match": false,
+        "error": null
+      },
+      {
+        "sql": "WITH customer_order_totals AS (SELECT c.customer_id, c.first_name, c.last_name, SUM(o.total_amount) AS total_spent FROM customers c JOIN orders o ON c.customer_id = o.customer_id GROUP BY 1, 2, 3) SELECT * FROM customer_order_totals",
+        "valid": true,
+        "execution_match": false,
+        "error": null
+      },
+      {
+        "sql": "SELECT c.customer_id, c.first_name, c.last_name, SUM(o.total_amount) AS total_spent FROM customers c JOIN orders o ON c.customer_id = o.customer_id GROUP BY c.customer_id, c.first_name, c.last_name",
+        "valid": true,
+        "execution_match": false,
+        "error": null
+      },
+      {
+        "sql": "SELECT c.customer_id, c.first_name, c.last_name, SUM(o.total_amount) AS total_spent FROM customers c JOIN orders o ON c.customer_id = o.customer_id GROUP BY c.customer_id, c.first_name, c.last_name",
+        "valid": true,
+        "execution_match": false,
+        "error": null
+      },
+      {
+        "sql": "SELECT c.customer_id, c.first_name, c.last_name, SUM(o.total_amount) AS total_spent FROM customers c JOIN orders o ON c.customer_id = o.customer_id GROUP BY 1, 2, 3",
+        "valid": true,
+        "execution_match": false,
+        "error": null
+      }
+    ]
+  },
+  {
+    "question": "for each customer_segment, compute count of distinct customer_id by joining customers and orders where payment_method is credit_card",
+    "sql_gt": "SELECT c.customer_segment, COUNT(DISTINCT c.customer_id) AS customer_count FROM customers AS c JOIN orders AS o ON o.customer_id = c.customer_id WHERE o.payment_method = 'credit_card' GROUP BY c.customer_segment;",
+    "sql_pred": "SELECT c.customer_segment, COUNT(DISTINCT o.customer_id) AS customer_count FROM customers c JOIN orders o ON c.customer_id = o.customer_id WHERE o.payment_method = 'credit_card' GROUP BY c.customer_segment",
+    "valid": true,
+    "execution_match": true,
+    "difficulty": "medium",
+    "inference_error": null,
+    "prediction_error": null,
+    "ground_truth_error": null,
+    "sql_candidates": [
+      "SELECT c.customer_segment, COUNT(DISTINCT o.customer_id) AS customer_count FROM customers c JOIN orders o ON c.customer_id = o.customer_id WHERE o.payment_method = 'credit_card' GROUP BY c.customer_segment",
+      "SELECT c.customer_segment, COUNT(DISTINCT o.customer_id) AS customer_count FROM customers c JOIN orders o ON c.customer_id = o.customer_id WHERE LOWER(o.payment_method) = 'credit_card' GROUP BY c.customer_segment",
+      "SELECT c.customer_segment, COUNT(DISTINCT o.order_id) AS number_of_orders FROM customers c JOIN orders o ON c.customer_id = o.customer_id WHERE LOWER(o.payment_method) = 'credit_card' GROUP BY c.customer_segment ORDER BY number_of_orders DESC NULLS LAST",
+      "SELECT c.customer_segment, COUNT(DISTINCT o.customer_id) AS num_customers FROM customers c JOIN orders o ON c.customer_id = o.customer_id WHERE LOWER(o.payment_method) = 'credit_card' GROUP BY c.customer_segment ORDER BY num_customers DESC NULLS LAST",
+      "SELECT c.customer_segment, COUNT(DISTINCT o.customer_id) FROM customers c JOIN orders o ON c.customer_id = o.customer_id WHERE o.payment_method = 'credit_card' GROUP BY c.customer_segment ORDER BY COUNT(DISTINCT o.customer_id) DESC NULLS LAST"
+    ],
+    "candidate_results": [
+      {
+        "sql": "SELECT c.customer_segment, COUNT(DISTINCT o.customer_id) AS customer_count FROM customers c JOIN orders o ON c.customer_id = o.customer_id WHERE o.payment_method = 'credit_card' GROUP BY c.customer_segment",
+        "valid": true,
+        "execution_match": true,
+        "error": null
+      },
+      {
+        "sql": "SELECT c.customer_segment, COUNT(DISTINCT o.customer_id) AS customer_count FROM customers c JOIN orders o ON c.customer_id = o.customer_id WHERE LOWER(o.payment_method) = 'credit_card' GROUP BY c.customer_segment",
+        "valid": true,
+        "execution_match": true,
+        "error": null
+      },
+      {
+        "sql": "SELECT c.customer_segment, COUNT(DISTINCT o.order_id) AS number_of_orders FROM customers c JOIN orders o ON c.customer_id = o.customer_id WHERE LOWER(o.payment_method) = 'credit_card' GROUP BY c.customer_segment ORDER BY number_of_orders DESC NULLS LAST",
+        "valid": true,
+        "execution_match": false,
+        "error": null
+      },
+      {
+        "sql": "SELECT c.customer_segment, COUNT(DISTINCT o.customer_id) AS num_customers FROM customers c JOIN orders o ON c.customer_id = o.customer_id WHERE LOWER(o.payment_method) = 'credit_card' GROUP BY c.customer_segment ORDER BY num_customers DESC NULLS LAST",
+        "valid": true,
+        "execution_match": true,
+        "error": null
+      },
+      {
+        "sql": "SELECT c.customer_segment, COUNT(DISTINCT o.customer_id) FROM customers c JOIN orders o ON c.customer_id = o.customer_id WHERE o.payment_method = 'credit_card' GROUP BY c.customer_segment ORDER BY COUNT(DISTINCT o.customer_id) DESC NULLS LAST",
+        "valid": true,
+        "execution_match": true,
+        "error": null
+      }
+    ]
+  },
+  {
+    "question": "for each brand, compute sum of quantity times unit_price - discount_amount by joining products and order_items",
+    "sql_gt": "SELECT p.brand, SUM(oi.quantity * oi.unit_price - oi.discount_amount) AS net_sales FROM products AS p JOIN order_items AS oi ON oi.product_id = p.product_id GROUP BY p.brand ORDER BY net_sales DESC;",
+    "sql_pred": "SELECT p.brand, SUM(p.unit_price * oi.quantity - oi.discount_amount) AS total_revenue FROM products p JOIN order_items oi ON p.product_id = oi.product_id GROUP BY p.brand ORDER BY total_revenue DESC NULLS LAST",
+    "valid": true,
+    "execution_match": false,
+    "difficulty": "medium",
+    "inference_error": null,
+    "prediction_error": null,
+    "ground_truth_error": null,
+    "sql_candidates": [
+      "SELECT p.brand, SUM(p.unit_price * oi.quantity - oi.discount_amount) AS total_revenue FROM products p JOIN order_items oi ON p.product_id = oi.product_id GROUP BY p.brand ORDER BY total_revenue DESC NULLS LAST",
+      "SELECT p.brand, SUM(p.unit_price*p.quantity - oi.discount_amount) AS total_revenue FROM products p JOIN order_items oi ON p.product_id = oi.product_id GROUP BY p.brand ORDER BY total_revenue DESC NULLS LAST",
+      "SELECT p.brand, SUM(o.quantity * p.unit_price - o.discount_amount) AS total_revenue FROM products p JOIN order_items o ON p.product_id = o.product_id GROUP BY p.brand",
+      "SELECT p.brand, SUM(p.unit_price * oi.quantity - oi.discount_amount) AS total_revenue FROM products p JOIN order_items oi ON p.product_id = oi.product_id GROUP BY p.brand ORDER BY total_revenue DESC NULLS LAST",
+      "SELECT p.brand, SUM(p.unit_price * oi.quantity - oi.discount_amount) AS total_value FROM products p JOIN order_items oi ON p.product_id = oi.product_id GROUP BY p.brand ORDER BY total_value DESC NULLS LAST"
+    ],
+    "candidate_results": [
+      {
+        "sql": "SELECT p.brand, SUM(p.unit_price * oi.quantity - oi.discount_amount) AS total_revenue FROM products p JOIN order_items oi ON p.product_id = oi.product_id GROUP BY p.brand ORDER BY total_revenue DESC NULLS LAST",
+        "valid": true,
+        "execution_match": false,
+        "error": null
+      },
+      {
+        "sql": "SELECT p.brand, SUM(p.unit_price*p.quantity - oi.discount_amount) AS total_revenue FROM products p JOIN order_items oi ON p.product_id = oi.product_id GROUP BY p.brand ORDER BY total_revenue DESC NULLS LAST",
+        "valid": false,
+        "execution_match": false,
+        "error": "no such column: p.quantity"
+      },
+      {
+        "sql": "SELECT p.brand, SUM(o.quantity * p.unit_price - o.discount_amount) AS total_revenue FROM products p JOIN order_items o ON p.product_id = o.product_id GROUP BY p.brand",
+        "valid": true,
+        "execution_match": false,
+        "error": null
+      },
+      {
+        "sql": "SELECT p.brand, SUM(p.unit_price * oi.quantity - oi.discount_amount) AS total_revenue FROM products p JOIN order_items oi ON p.product_id = oi.product_id GROUP BY p.brand ORDER BY total_revenue DESC NULLS LAST",
+        "valid": true,
+        "execution_match": false,
+        "error": null
+      },
+      {
+        "sql": "SELECT p.brand, SUM(p.unit_price * oi.quantity - oi.discount_amount) AS total_value FROM products p JOIN order_items oi ON p.product_id = oi.product_id GROUP BY p.brand ORDER BY total_value DESC NULLS LAST",
+        "valid": true,
+        "execution_match": false,
+        "error": null
+      }
+    ]
+  },
+  {
+    "question": "for each category_id, compute average of quantity by joining products and order_items",
+    "sql_gt": "SELECT p.category_id, AVG(oi.quantity) AS avg_quantity_per_line FROM products AS p JOIN order_items AS oi ON oi.product_id = p.product_id GROUP BY p.category_id;",
+    "sql_pred": "SELECT c.category_name, AVG(oi.quantity) AS average_quantity FROM products p JOIN categories c ON p.category_id = c.category_id JOIN order_items oi ON p.product_id = oi.product_id GROUP BY c.category_name ORDER BY average_quantity DESC NULLS LAST",
+    "valid": true,
+    "execution_match": false,
+    "difficulty": "medium",
+    "inference_error": null,
+    "prediction_error": null,
+    "ground_truth_error": null,
+    "sql_candidates": [
+      "SELECT c.category_name, AVG(oi.quantity) AS average_quantity FROM products p JOIN categories c ON p.category_id = c.category_id JOIN order_items oi ON p.product_id = oi.product_id GROUP BY c.category_name ORDER BY average_quantity DESC NULLS LAST",
+      "SELECT p.category_id, AVG(o.quantity) AS average_quantity FROM products p JOIN order_items o ON p.product_id = o.product_id GROUP BY p.category_id ORDER BY category_id",
+      "SELECT p.category_id, AVG(oi.quantity) AS average_quantity FROM products p JOIN order_items oi ON p.product_id = oi.product_id GROUP BY p.category_id ORDER BY p.category_id NULLS LAST",
+      "SELECT c.category_name, AVG(oi.quantity) AS average_quantity FROM products p JOIN categories c ON p.category_id = c.category_id JOIN order_items oi ON p.product_id = oi.product_id GROUP BY c.category_name ORDER BY average_quantity DESC NULLS LAST",
+      "SELECT p.category_id, AVG(oi.quantity) AS average_quantity FROM products p JOIN product_categories pc ON p.product_id = pc.product_id JOIN order_items oi ON p.product_id = oi.product_id GROUP BY p.category_id ORDER BY p.category_id NULLS LAST"
+    ],
+    "candidate_results": [
+      {
+        "sql": "SELECT c.category_name, AVG(oi.quantity) AS average_quantity FROM products p JOIN categories c ON p.category_id = c.category_id JOIN order_items oi ON p.product_id = oi.product_id GROUP BY c.category_name ORDER BY average_quantity DESC NULLS LAST",
+        "valid": true,
+        "execution_match": false,
+        "error": null
+      },
+      {
+        "sql": "SELECT p.category_id, AVG(o.quantity) AS average_quantity FROM products p JOIN order_items o ON p.product_id = o.product_id GROUP BY p.category_id ORDER BY category_id",
+        "valid": true,
+        "execution_match": true,
+        "error": null
+      },
+      {
+        "sql": "SELECT p.category_id, AVG(oi.quantity) AS average_quantity FROM products p JOIN order_items oi ON p.product_id = oi.product_id GROUP BY p.category_id ORDER BY p.category_id NULLS LAST",
+        "valid": true,
+        "execution_match": true,
+        "error": null
+      },
+      {
+        "sql": "SELECT c.category_name, AVG(oi.quantity) AS average_quantity FROM products p JOIN categories c ON p.category_id = c.category_id JOIN order_items oi ON p.product_id = oi.product_id GROUP BY c.category_name ORDER BY average_quantity DESC NULLS LAST",
+        "valid": true,
+        "execution_match": false,
+        "error": null
+      },
+      {
+        "sql": "SELECT p.category_id, AVG(oi.quantity) AS average_quantity FROM products p JOIN product_categories pc ON p.product_id = pc.product_id JOIN order_items oi ON p.product_id = oi.product_id GROUP BY p.category_id ORDER BY p.category_id NULLS LAST",
+        "valid": false,
+        "execution_match": false,
+        "error": "no such table: product_categories"
+      }
+    ]
+  },
+  {
+    "question": "for each product_id and product_name, compute sum of quantity by joining products and order_items",
+    "sql_gt": "SELECT p.product_id, p.product_name, SUM(oi.quantity) AS units_sold FROM products AS p JOIN order_items AS oi ON oi.product_id = p.product_id GROUP BY p.product_id, p.product_name ORDER BY units_sold DESC LIMIT 5;",
+    "sql_pred": "SELECT p.product_name, SUM(oi.quantity) AS total_quantity FROM products p JOIN order_items oi ON p.product_id = oi.product_id GROUP BY p.product_name ORDER BY total_quantity DESC NULLS LAST",
+    "valid": true,
+    "execution_match": false,
+    "difficulty": "medium",
+    "inference_error": null,
+    "prediction_error": null,
+    "ground_truth_error": null,
+    "sql_candidates": [
+      "SELECT p.product_name, SUM(oi.quantity) AS total_quantity FROM products p JOIN order_items oi ON p.product_id = oi.product_id GROUP BY p.product_name ORDER BY total_quantity DESC NULLS LAST",
+      "SELECT p.product_id, p.product_name, SUM(oi.quantity) AS total_quantity FROM products p JOIN order_items oi ON p.product_id = oi.product_id GROUP BY p.product_id, p.product_name",
+      "SELECT p.product_name, SUM(oi.quantity) AS total_quantity FROM products p JOIN order_items oi ON p.product_id = oi.product_id GROUP BY p.product_name ORDER BY total_quantity DESC",
+      "SELECT p.product_name, SUM(oi.quantity) AS total_quantity FROM products p JOIN order_items oi ON p.product_id = oi.product_id GROUP BY p.product_name ORDER BY total_quantity DESC NULLS LAST",
+      "SELECT p.product_name, SUM(oi.quantity) AS total_quantity FROM products p JOIN order_items oi ON p.product_id = oi.product_id GROUP BY p.product_name"
+    ],
+    "candidate_results": [
+      {
+        "sql": "SELECT p.product_name, SUM(oi.quantity) AS total_quantity FROM products p JOIN order_items oi ON p.product_id = oi.product_id GROUP BY p.product_name ORDER BY total_quantity DESC NULLS LAST",
+        "valid": true,
+        "execution_match": false,
+        "error": null
+      },
+      {
+        "sql": "SELECT p.product_id, p.product_name, SUM(oi.quantity) AS total_quantity FROM products p JOIN order_items oi ON p.product_id = oi.product_id GROUP BY p.product_id, p.product_name",
+        "valid": true,
+        "execution_match": false,
+        "error": null
+      },
+      {
+        "sql": "SELECT p.product_name, SUM(oi.quantity) AS total_quantity FROM products p JOIN order_items oi ON p.product_id = oi.product_id GROUP BY p.product_name ORDER BY total_quantity DESC",
+        "valid": true,
+        "execution_match": false,
+        "error": null
+      },
+      {
+        "sql": "SELECT p.product_name, SUM(oi.quantity) AS total_quantity FROM products p JOIN order_items oi ON p.product_id = oi.product_id GROUP BY p.product_name ORDER BY total_quantity DESC NULLS LAST",
+        "valid": true,
+        "execution_match": false,
+        "error": null
+      },
+      {
+        "sql": "SELECT p.product_name, SUM(oi.quantity) AS total_quantity FROM products p JOIN order_items oi ON p.product_id = oi.product_id GROUP BY p.product_name",
+        "valid": true,
+        "execution_match": false,
+        "error": null
+      }
+    ]
+  },
+  {
+    "question": "for each return_status, compute sum of refund_amount by joining returns, order_items, and orders",
+    "sql_gt": "SELECT r.return_status, SUM(r.refund_amount) AS total_refund_amount FROM returns AS r JOIN order_items AS oi ON oi.order_item_id = r.order_item_id JOIN orders AS o ON o.order_id = oi.order_id GROUP BY r.return_status;",
+    "sql_pred": "SELECT r.return_status, SUM(r.refund_amount) AS total_refund FROM returns r JOIN order_items oi ON r.order_item_id = oi.order_item_id GROUP BY r.return_status ORDER BY r.return_status NULLS LAST",
+    "valid": true,
+    "execution_match": true,
+    "difficulty": "medium",
+    "inference_error": null,
+    "prediction_error": null,
+    "ground_truth_error": null,
+    "sql_candidates": [
+      "SELECT r.return_status, SUM(r.refund_amount) AS total_refund FROM returns r JOIN order_items oi ON r.order_item_id = oi.order_item_id GROUP BY r.return_status ORDER BY r.return_status NULLS LAST",
+      "SELECT r.return_status, SUM(r.refund_amount) AS total_refund FROM returns r JOIN order_items oi ON r.order_item_id = oi.order_item_id JOIN orders o ON oi.order_id = o.order_id GROUP BY r.return_status ORDER BY r.return_status NULLS LAST",
+      "SELECT r.return_status, SUM(r.refund_amount) AS total_refund FROM returns r JOIN order_items oi ON r.order_item_id = oi.order_item_id GROUP BY r.return_status ORDER BY total_refund DESC",
+      "SELECT r.return_status, SUM(r.refund_amount) AS total_refund FROM returns r JOIN order_items oi ON r.order_item_id = oi.order_item_id GROUP BY r.return_status ORDER BY r.return_status NULLS LAST",
+      "SELECT r.return_status, SUM(r.refund_amount) AS total_refund FROM returns r JOIN order_items oi ON r.order_item_id = oi.order_item_id GROUP BY r.return_status ORDER BY r.return_status NULLS LAST"
+    ],
+    "candidate_results": [
+      {
+        "sql": "SELECT r.return_status, SUM(r.refund_amount) AS total_refund FROM returns r JOIN order_items oi ON r.order_item_id = oi.order_item_id GROUP BY r.return_status ORDER BY r.return_status NULLS LAST",
+        "valid": true,
+        "execution_match": true,
+        "error": null
+      },
+      {
+        "sql": "SELECT r.return_status, SUM(r.refund_amount) AS total_refund FROM returns r JOIN order_items oi ON r.order_item_id = oi.order_item_id JOIN orders o ON oi.order_id = o.order_id GROUP BY r.return_status ORDER BY r.return_status NULLS LAST",
+        "valid": true,
+        "execution_match": true,
+        "error": null
+      },
+      {
+        "sql": "SELECT r.return_status, SUM(r.refund_amount) AS total_refund FROM returns r JOIN order_items oi ON r.order_item_id = oi.order_item_id GROUP BY r.return_status ORDER BY total_refund DESC",
+        "valid": true,
+        "execution_match": true,
+        "error": null
+      },
+      {
+        "sql": "SELECT r.return_status, SUM(r.refund_amount) AS total_refund FROM returns r JOIN order_items oi ON r.order_item_id = oi.order_item_id GROUP BY r.return_status ORDER BY r.return_status NULLS LAST",
+        "valid": true,
+        "execution_match": true,
+        "error": null
+      },
+      {
+        "sql": "SELECT r.return_status, SUM(r.refund_amount) AS total_refund FROM returns r JOIN order_items oi ON r.order_item_id = oi.order_item_id GROUP BY r.return_status ORDER BY r.return_status NULLS LAST",
+        "valid": true,
+        "execution_match": true,
+        "error": null
+      }
+    ]
+  },
+  {
+    "question": "for each return_reason, compute average of refund_amount by joining returns, order_items, and orders where return_date is at least 2024-01-01",
+    "sql_gt": "SELECT r.return_reason, AVG(r.refund_amount) AS avg_refund_amount FROM returns AS r JOIN order_items AS oi ON oi.order_item_id = r.order_item_id JOIN orders AS o ON o.order_id = oi.order_id WHERE r.return_date >= '2024-01-01' GROUP BY r.return_reason;",
+    "sql_pred": "SELECT r.return_reason, AVG(r.refund_amount) AS average_refund FROM returns r JOIN order_items oi ON r.order_item_id = oi.order_item_id JOIN orders o ON oi.order_id = o.order_id WHERE r.return_date >= '2024-01-01' GROUP BY r.return_reason ORDER BY r.return_reason NULLS LAST",
+    "valid": true,
+    "execution_match": true,
+    "difficulty": "medium",
+    "inference_error": null,
+    "prediction_error": null,
+    "ground_truth_error": null,
+    "sql_candidates": [
+      "SELECT r.return_reason, AVG(r.refund_amount) AS average_refund FROM returns r JOIN order_items oi ON r.order_item_id = oi.order_item_id JOIN orders o ON oi.order_id = o.order_id WHERE r.return_date >= '2024-01-01' GROUP BY r.return_reason ORDER BY r.return_reason NULLS LAST",
+      "SELECT r.return_reason, AVG(r.refund_amount) AS average_refund_amount FROM returns r JOIN order_items oi ON r.order_item_id = oi.order_item_id JOIN orders o ON oi.order_id = o.order_id WHERE o.order_date >= '2024-01-01' GROUP BY r.return_reason ORDER BY average_refund_amount DESC NULLS LAST",
+      "WITH r AS (SELECT ri.order_item_id, ri.return_date, ri.refund_amount, o.order_status FROM returns ri JOIN order_items oi ON ri.order_item_id = oi.order_item_id JOIN orders o ON oi.order_id = o.order_id) SELECT r.return_reason, AVG(r.refund_amount) AS avg_refund_amount FROM r WHERE r.return_date >= '2024-01-01' GROUP BY r.return_reason ORDER BY r.return_reason NULLS LAST",
+      "SELECT r.return_reason, AVG(r.refund_amount) AS average_refund FROM returns r JOIN order_items oi ON r.order_item_id = oi.order_item_id JOIN orders o ON oi.order_id = o.order_id WHERE r.return_date >= '2024-01-01' GROUP BY r.return_reason ORDER BY average_refund DESC NULLS LAST",
+      "SELECT r.return_reason, AVG(r.refund_amount) AS average_refund_amount FROM returns r JOIN order_items oi ON r.order_item_id = oi.order_item_id AND TO_CHAR(r.return_date, 'YYYY-MM-DD') >= '2024-01-01' GROUP BY r.return_reason"
+    ],
+    "candidate_results": [
+      {
+        "sql": "SELECT r.return_reason, AVG(r.refund_amount) AS average_refund FROM returns r JOIN order_items oi ON r.order_item_id = oi.order_item_id JOIN orders o ON oi.order_id = o.order_id WHERE r.return_date >= '2024-01-01' GROUP BY r.return_reason ORDER BY r.return_reason NULLS LAST",
+        "valid": true,
+        "execution_match": true,
+        "error": null
+      },
+      {
+        "sql": "SELECT r.return_reason, AVG(r.refund_amount) AS average_refund_amount FROM returns r JOIN order_items oi ON r.order_item_id = oi.order_item_id JOIN orders o ON oi.order_id = o.order_id WHERE o.order_date >= '2024-01-01' GROUP BY r.return_reason ORDER BY average_refund_amount DESC NULLS LAST",
+        "valid": true,
+        "execution_match": false,
+        "error": null
+      },
+      {
+        "sql": "WITH r AS (SELECT ri.order_item_id, ri.return_date, ri.refund_amount, o.order_status FROM returns ri JOIN order_items oi ON ri.order_item_id = oi.order_item_id JOIN orders o ON oi.order_id = o.order_id) SELECT r.return_reason, AVG(r.refund_amount) AS avg_refund_amount FROM r WHERE r.return_date >= '2024-01-01' GROUP BY r.return_reason ORDER BY r.return_reason NULLS LAST",
+        "valid": false,
+        "execution_match": false,
+        "error": "no such column: r.return_reason"
+      },
+      {
+        "sql": "SELECT r.return_reason, AVG(r.refund_amount) AS average_refund FROM returns r JOIN order_items oi ON r.order_item_id = oi.order_item_id JOIN orders o ON oi.order_id = o.order_id WHERE r.return_date >= '2024-01-01' GROUP BY r.return_reason ORDER BY average_refund DESC NULLS LAST",
+        "valid": true,
+        "execution_match": true,
+        "error": null
+      },
+      {
+        "sql": "SELECT r.return_reason, AVG(r.refund_amount) AS average_refund_amount FROM returns r JOIN order_items oi ON r.order_item_id = oi.order_item_id AND TO_CHAR(r.return_date, 'YYYY-MM-DD') >= '2024-01-01' GROUP BY r.return_reason",
+        "valid": false,
+        "execution_match": false,
+        "error": "no such function: TO_CHAR"
+      }
+    ]
+  },
+  {
+    "question": "for each shipping_country, compute count of return_id by joining orders, order_items, and returns where return_status is approved",
+    "sql_gt": "SELECT o.shipping_country, COUNT(r.return_id) AS returned_line_count FROM orders AS o JOIN order_items AS oi ON oi.order_id = o.order_id JOIN returns AS r ON r.order_item_id = oi.order_item_id WHERE r.return_status = 'approved' GROUP BY o.shipping_country;",
+    "sql_pred": "SELECT o.shipping_country, COUNT(r.return_id) AS return_count FROM orders o JOIN order_items oi ON o.order_id = oi.order_id JOIN returns r ON oi.order_item_id = r.order_item_id WHERE LOWER(r.return_status) = 'approved' GROUP BY o.shipping_country ORDER BY return_count DESC NULLS LAST",
+    "valid": true,
+    "execution_match": true,
+    "difficulty": "medium",
+    "inference_error": null,
+    "prediction_error": null,
+    "ground_truth_error": null,
+    "sql_candidates": [
+      "SELECT o.shipping_country, COUNT(r.return_id) AS return_count FROM orders o JOIN order_items oi ON o.order_id = oi.order_id JOIN returns r ON oi.order_item_id = r.order_item_id WHERE LOWER(r.return_status) = 'approved' GROUP BY o.shipping_country ORDER BY return_count DESC NULLS LAST",
+      "SELECT o.shipping_country, COUNT(r.return_id) AS total_returns FROM orders o JOIN order_items oi ON o.order_id = oi.order_id JOIN returns r ON oi.order_item_id = r.order_item_id WHERE r.return_status = 'approved' GROUP BY o.shipping_country",
+      "SELECT o.shipping_country, COUNT(r.return_id) AS return_count FROM orders o JOIN order_items oi ON o.order_id = oi.order_id JOIN returns r ON oi.order_item_id = r.order_item_id WHERE LOWER(r.return_status) = 'approved' GROUP BY o.shipping_country ORDER BY return_count DESC NULLS LAST",
+      "SELECT o.shipping_country, COUNT(r.return_id) FROM orders o JOIN returns r ON o.order_id = r.order_item_id WHERE LOWER(r.return_status) = 'approved' GROUP BY o.shipping_country ORDER BY o.shipping_country NULLS LAST",
+      "SELECT o.shipping_country, COUNT(r.return_id) AS return_count FROM orders o JOIN order_items oi ON o.order_id = oi.order_id JOIN returns r ON oi.order_item_id = r.order_item_id WHERE LOWER(o.shipping_country) LIKE '%applied%' GROUP BY o.shipping_country ORDER BY return_count DESC"
+    ],
+    "candidate_results": [
+      {
+        "sql": "SELECT o.shipping_country, COUNT(r.return_id) AS return_count FROM orders o JOIN order_items oi ON o.order_id = oi.order_id JOIN returns r ON oi.order_item_id = r.order_item_id WHERE LOWER(r.return_status) = 'approved' GROUP BY o.shipping_country ORDER BY return_count DESC NULLS LAST",
+        "valid": true,
+        "execution_match": true,
+        "error": null
+      },
+      {
+        "sql": "SELECT o.shipping_country, COUNT(r.return_id) AS total_returns FROM orders o JOIN order_items oi ON o.order_id = oi.order_id JOIN returns r ON oi.order_item_id = r.order_item_id WHERE r.return_status = 'approved' GROUP BY o.shipping_country",
+        "valid": true,
+        "execution_match": true,
+        "error": null
+      },
+      {
+        "sql": "SELECT o.shipping_country, COUNT(r.return_id) AS return_count FROM orders o JOIN order_items oi ON o.order_id = oi.order_id JOIN returns r ON oi.order_item_id = r.order_item_id WHERE LOWER(r.return_status) = 'approved' GROUP BY o.shipping_country ORDER BY return_count DESC NULLS LAST",
+        "valid": true,
+        "execution_match": true,
+        "error": null
+      },
+      {
+        "sql": "SELECT o.shipping_country, COUNT(r.return_id) FROM orders o JOIN returns r ON o.order_id = r.order_item_id WHERE LOWER(r.return_status) = 'approved' GROUP BY o.shipping_country ORDER BY o.shipping_country NULLS LAST",
+        "valid": true,
+        "execution_match": false,
+        "error": null
+      },
+      {
+        "sql": "SELECT o.shipping_country, COUNT(r.return_id) AS return_count FROM orders o JOIN order_items oi ON o.order_id = oi.order_id JOIN returns r ON oi.order_item_id = r.order_item_id WHERE LOWER(o.shipping_country) LIKE '%applied%' GROUP BY o.shipping_country ORDER BY return_count DESC",
+        "valid": true,
+        "execution_match": false,
+        "error": null
+      }
+    ]
+  },
+  {
+    "question": "for each COALESCE(category_name, category_name), compute sum of quantity times unit_price - discount_amount by joining categories, products, and order_items where SUM(quantity * unit_price - discount_amount) is greater than 1000",
+    "sql_gt": "SELECT COALESCE(pc.category_name, c.category_name) AS top_category_name, SUM(oi.quantity * oi.unit_price - oi.discount_amount) AS gross_sales FROM categories AS c LEFT JOIN categories AS pc ON pc.category_id = c.parent_category_id JOIN products AS p ON p.category_id = c.category_id JOIN order_items AS oi ON oi.product_id = p.product_id GROUP BY COALESCE(pc.category_name, c.category_name) HAVING SUM(oi.quantity * oi.unit_price - oi.discount_amount) > 1000;",
+    "sql_pred": "WITH category_product AS (SELECT p.product_name, COALESCE(c.category_name, 'N/A') AS category_name FROM products p LEFT JOIN categories c ON p.category_id = c.category_id) SELECT cp.category_name, SUM(oi.quantity * p.unit_price - oi.discount_amount) AS total_revenue FROM category_product cp JOIN order_items oi ON cp.product_name = oi.product_id JOIN products p ON cp.product_name = p.product_name GROUP BY cp.category_name HAVING SUM(oi.quantity * p.unit_price - oi.discount_amount) > 1000",
+    "valid": true,
+    "execution_match": false,
+    "difficulty": "hard",
+    "inference_error": null,
+    "prediction_error": null,
+    "ground_truth_error": null,
+    "sql_candidates": [
+      "WITH category_product AS (SELECT p.product_name, COALESCE(c.category_name, 'N/A') AS category_name FROM products p LEFT JOIN categories c ON p.category_id = c.category_id) SELECT cp.category_name, SUM(oi.quantity * p.unit_price - oi.discount_amount) AS total_revenue FROM category_product cp JOIN order_items oi ON cp.product_name = oi.product_id JOIN products p ON cp.product_name = p.product_name GROUP BY cp.category_name HAVING SUM(oi.quantity * p.unit_price - oi.discount_amount) > 1000",
+      "SELECT COALESCE(c.category_name, p.product_name), SUM(oi.quantity * p.unit_price - oi.discount_amount) AS total_spend FROM order_items oi JOIN products p ON oi.product_id = p.product_id LEFT JOIN categories c ON p.category_id = c.category_id WHERE SUM(oi.quantity * p.unit_price - oi.discount_amount) > 1000 GROUP BY COALESCE(c.category_name, p.product_name)",
+      "SELECT COALESCE(categories.category_name, products.product_name), SUM(products.quantity * products.unit_price - order_items.discount_amount) AS total_spend FROM categories JOIN products ON categories.category_id = products.category_id JOIN order_items ON products.product_id = order_items.product_id GROUP BY COALESCE(categories.category_name, products.product_name) HAVING SUM(quantity * unit_price - discount_amount) > 1000",
+      "SELECT COALESCE(c.category_name, p.product_name), SUM(oi.quantity * p.unit_price - oi.discount_amount) AS total_revenue FROM categories c LEFT JOIN products p ON c.category_id = p.category_id INNER JOIN order_items oi ON oi.product_id = p.product_id GROUP BY COALESCE(c.category_name, p.product_name) HAVING SUM(oi.quantity * p.unit_price - oi.discount_amount) > 1000",
+      "SELECT c.category_name, SUM(o.quantity * p.unit_price - o.discount_amount) AS total_value FROM categories c JOIN products p ON c.category_id = p.category_id JOIN order_items o ON p.product_id = o.product_id GROUP BY c.category_name HAVING SUM(o.quantity * p.unit_price - o.discount_amount) > 1000"
+    ],
+    "candidate_results": [
+      {
+        "sql": "WITH category_product AS (SELECT p.product_name, COALESCE(c.category_name, 'N/A') AS category_name FROM products p LEFT JOIN categories c ON p.category_id = c.category_id) SELECT cp.category_name, SUM(oi.quantity * p.unit_price - oi.discount_amount) AS total_revenue FROM category_product cp JOIN order_items oi ON cp.product_name = oi.product_id JOIN products p ON cp.product_name = p.product_name GROUP BY cp.category_name HAVING SUM(oi.quantity * p.unit_price - oi.discount_amount) > 1000",
+        "valid": true,
+        "execution_match": false,
+        "error": null
+      },
+      {
+        "sql": "SELECT COALESCE(c.category_name, p.product_name), SUM(oi.quantity * p.unit_price - oi.discount_amount) AS total_spend FROM order_items oi JOIN products p ON oi.product_id = p.product_id LEFT JOIN categories c ON p.category_id = c.category_id WHERE SUM(oi.quantity * p.unit_price - oi.discount_amount) > 1000 GROUP BY COALESCE(c.category_name, p.product_name)",
+        "valid": false,
+        "execution_match": false,
+        "error": "misuse of aggregate: SUM()"
+      },
+      {
+        "sql": "SELECT COALESCE(categories.category_name, products.product_name), SUM(products.quantity * products.unit_price - order_items.discount_amount) AS total_spend FROM categories JOIN products ON categories.category_id = products.category_id JOIN order_items ON products.product_id = order_items.product_id GROUP BY COALESCE(categories.category_name, products.product_name) HAVING SUM(quantity * unit_price - discount_amount) > 1000",
+        "valid": false,
+        "execution_match": false,
+        "error": "no such column: products.quantity"
+      },
+      {
+        "sql": "SELECT COALESCE(c.category_name, p.product_name), SUM(oi.quantity * p.unit_price - oi.discount_amount) AS total_revenue FROM categories c LEFT JOIN products p ON c.category_id = p.category_id INNER JOIN order_items oi ON oi.product_id = p.product_id GROUP BY COALESCE(c.category_name, p.product_name) HAVING SUM(oi.quantity * p.unit_price - oi.discount_amount) > 1000",
+        "valid": true,
+        "execution_match": false,
+        "error": null
+      },
+      {
+        "sql": "SELECT c.category_name, SUM(o.quantity * p.unit_price - o.discount_amount) AS total_value FROM categories c JOIN products p ON c.category_id = p.category_id JOIN order_items o ON p.product_id = o.product_id GROUP BY c.category_name HAVING SUM(o.quantity * p.unit_price - o.discount_amount) > 1000",
+        "valid": true,
+        "execution_match": false,
+        "error": null
+      }
+    ]
+  },
+  {
+    "question": "for each customer_id, first_name, and last_name, compute sum of total_amount by joining customers and orders where SUM(total_amount) is greater than (SELECT AVG(customer_total) FROM (SELECT SUM(total_amount) AS customer_total FROM orders AS o2 GROUP BY customer_id) AS t)",
+    "sql_gt": "SELECT c.customer_id, c.first_name, c.last_name, SUM(o.total_amount) AS total_spent FROM customers AS c JOIN orders AS o ON o.customer_id = c.customer_id GROUP BY c.customer_id, c.first_name, c.last_name HAVING SUM(o.total_amount) > (SELECT AVG(customer_total) FROM (SELECT SUM(o2.total_amount) AS customer_total FROM orders AS o2 GROUP BY o2.customer_id) AS t);",
+    "sql_pred": "SELECT c.customer_id, c.first_name, c.last_name, SUM(o.total_amount) AS total_spent FROM customers c JOIN orders o ON c.customer_id = o.customer_id WHERE SUM(o.total_amount) > (SELECT AVG(customer_total) FROM (SELECT SUM(total_amount) AS customer_total FROM orders AS o2 GROUP BY customer_id) AS t) GROUP BY 1, 2, 3",
+    "valid": false,
+    "execution_match": false,
+    "difficulty": "hard",
+    "inference_error": null,
+    "prediction_error": "misuse of aggregate: SUM()",
+    "ground_truth_error": null,
+    "sql_candidates": [
+      "SELECT c.customer_id, c.first_name, c.last_name, SUM(o.total_amount) AS total_spent FROM customers c JOIN orders o ON c.customer_id = o.customer_id WHERE SUM(o.total_amount) > (SELECT AVG(customer_total) FROM (SELECT SUM(total_amount) AS customer_total FROM orders AS o2 GROUP BY customer_id) AS t) GROUP BY 1, 2, 3",
+      "SELECT c.customer_id, c.first_name, c.last_name, SUM(o.total_amount) AS total_spent FROM customers AS c JOIN orders AS o ON c.customer_id = o.customer_id GROUP BY c.customer_id, c.first_name, c.last_name HAVING SUM(o.total_amount) > (SELECT AVG(customer_total) FROM (SELECT SUM(total_amount) AS customer_total FROM orders AS o2 GROUP BY customer_id) AS t) ORDER BY total_spent DESC NULLS LAST",
+      "SELECT c.customer_id, c.first_name, c.last_name, SUM(o.total_amount) AS total_spent FROM customers c JOIN orders o ON c.customer_id = o.customer_id WHERE SUM(o.total_amount) > (SELECT AVG(customer_total) FROM (SELECT SUM(total_amount) AS customer_total FROM orders GROUP BY customer_id) AS t) GROUP BY 1, 2, 3",
+      "SELECT c.customer_id, c.first_name, c.last_name, SUM(o.total_amount) OVER (PARTITION BY c.customer_id ORDER BY o.order_date ROWS BETWEEN UNBOUNDED FOLLOWING AND CURRENT ROW) AS total_amount FROM customers c JOIN orders o ON c.customer_id = o.customer_id WHERE SUM(total_amount) > (SELECT AVG(customer_total) FROM (SELECT SUM(total_amount) AS customer_total FROM orders AS o2 GROUP BY o2.customer_id) AS t)",
+      "SELECT c.customer_id, c.first_name, c.last_name, SUM(o.total_amount) AS customer_total FROM customers AS c JOIN orders AS o ON c.customer_id = o.customer_id GROUP BY 1,2,3 HAVING SUM(o.total_amount) > (SELECT AVG(customer_total) FROM (SELECT SUM(total_amount) AS customer_total FROM orders AS o2 GROUP BY customer_id) AS t) ORDER BY customer_id NULLS LAST"
+    ],
+    "candidate_results": [
+      {
+        "sql": "SELECT c.customer_id, c.first_name, c.last_name, SUM(o.total_amount) AS total_spent FROM customers c JOIN orders o ON c.customer_id = o.customer_id WHERE SUM(o.total_amount) > (SELECT AVG(customer_total) FROM (SELECT SUM(total_amount) AS customer_total FROM orders AS o2 GROUP BY customer_id) AS t) GROUP BY 1, 2, 3",
+        "valid": false,
+        "execution_match": false,
+        "error": "misuse of aggregate: SUM()"
+      },
+      {
+        "sql": "SELECT c.customer_id, c.first_name, c.last_name, SUM(o.total_amount) AS total_spent FROM customers AS c JOIN orders AS o ON c.customer_id = o.customer_id GROUP BY c.customer_id, c.first_name, c.last_name HAVING SUM(o.total_amount) > (SELECT AVG(customer_total) FROM (SELECT SUM(total_amount) AS customer_total FROM orders AS o2 GROUP BY customer_id) AS t) ORDER BY total_spent DESC NULLS LAST",
+        "valid": true,
+        "execution_match": true,
+        "error": null
+      },
+      {
+        "sql": "SELECT c.customer_id, c.first_name, c.last_name, SUM(o.total_amount) AS total_spent FROM customers c JOIN orders o ON c.customer_id = o.customer_id WHERE SUM(o.total_amount) > (SELECT AVG(customer_total) FROM (SELECT SUM(total_amount) AS customer_total FROM orders GROUP BY customer_id) AS t) GROUP BY 1, 2, 3",
+        "valid": false,
+        "execution_match": false,
+        "error": "misuse of aggregate: SUM()"
+      },
+      {
+        "sql": "SELECT c.customer_id, c.first_name, c.last_name, SUM(o.total_amount) OVER (PARTITION BY c.customer_id ORDER BY o.order_date ROWS BETWEEN UNBOUNDED FOLLOWING AND CURRENT ROW) AS total_amount FROM customers c JOIN orders o ON c.customer_id = o.customer_id WHERE SUM(total_amount) > (SELECT AVG(customer_total) FROM (SELECT SUM(total_amount) AS customer_total FROM orders AS o2 GROUP BY o2.customer_id) AS t)",
+        "valid": false,
+        "execution_match": false,
+        "error": "near \"FOLLOWING\": syntax error"
+      },
+      {
+        "sql": "SELECT c.customer_id, c.first_name, c.last_name, SUM(o.total_amount) AS customer_total FROM customers AS c JOIN orders AS o ON c.customer_id = o.customer_id GROUP BY 1,2,3 HAVING SUM(o.total_amount) > (SELECT AVG(customer_total) FROM (SELECT SUM(total_amount) AS customer_total FROM orders AS o2 GROUP BY customer_id) AS t) ORDER BY customer_id NULLS LAST",
+        "valid": false,
+        "execution_match": false,
+        "error": "ambiguous column name: customer_id"
+      }
+    ]
+  },
+  {
+    "question": "find product_id and product_name from the products table that do not have returned order items",
+    "sql_gt": "SELECT p.product_id, p.product_name FROM products AS p WHERE NOT EXISTS (SELECT 1 FROM order_items AS oi JOIN returns AS r ON r.order_item_id = oi.order_item_id WHERE oi.product_id = p.product_id);",
+    "sql_pred": "SELECT p.product_name, p.product_id FROM products p LEFT JOIN order_items oi ON p.product_id = oi.product_id WHERE oi.product_id IS NULL",
+    "valid": true,
+    "execution_match": false,
+    "difficulty": "hard",
+    "inference_error": null,
+    "prediction_error": null,
+    "ground_truth_error": null,
+    "sql_candidates": [
+      "SELECT p.product_name, p.product_id FROM products p LEFT JOIN order_items oi ON p.product_id = oi.product_id WHERE oi.product_id IS NULL",
+      "SELECT p.product_id, p.product_name FROM products p LEFT JOIN returns r ON p.product_id = r.order_item_id WHERE r.return_id IS NULL",
+      "SELECT p.product_id, p.product_name FROM products p WHERE NOT EXISTS (SELECT 1 FROM order_items oi JOIN returns r ON oi.order_item_id = r.order_id WHERE oi.product_id = p.product_id)",
+      "SELECT p.product_id, p.product_name FROM products p WHERE NOT EXISTS (SELECT 1 FROM returns r WHERE r.order_item_id IN (SELECT order_item_id FROM order_items oi WHERE oi.product_id = p.product_id)) ORDER BY p.product_name NULLS LAST",
+      "SELECT p.product_id, p.product_name FROM products p WHERE NOT EXISTS (SELECT 1 FROM order_items oi JOIN returns r ON oi.order_item_id = r.order_item_id WHERE p.product_id = oi.product_id)"
+    ],
+    "candidate_results": [
+      {
+        "sql": "SELECT p.product_name, p.product_id FROM products p LEFT JOIN order_items oi ON p.product_id = oi.product_id WHERE oi.product_id IS NULL",
+        "valid": true,
+        "execution_match": false,
+        "error": null
+      },
+      {
+        "sql": "SELECT p.product_id, p.product_name FROM products p LEFT JOIN returns r ON p.product_id = r.order_item_id WHERE r.return_id IS NULL",
+        "valid": true,
+        "execution_match": false,
+        "error": null
+      },
+      {
+        "sql": "SELECT p.product_id, p.product_name FROM products p WHERE NOT EXISTS (SELECT 1 FROM order_items oi JOIN returns r ON oi.order_item_id = r.order_id WHERE oi.product_id = p.product_id)",
+        "valid": false,
+        "execution_match": false,
+        "error": "no such column: r.order_id"
+      },
+      {
+        "sql": "SELECT p.product_id, p.product_name FROM products p WHERE NOT EXISTS (SELECT 1 FROM returns r WHERE r.order_item_id IN (SELECT order_item_id FROM order_items oi WHERE oi.product_id = p.product_id)) ORDER BY p.product_name NULLS LAST",
+        "valid": true,
+        "execution_match": true,
+        "error": null
+      },
+      {
+        "sql": "SELECT p.product_id, p.product_name FROM products p WHERE NOT EXISTS (SELECT 1 FROM order_items oi JOIN returns r ON oi.order_item_id = r.order_item_id WHERE p.product_id = oi.product_id)",
+        "valid": true,
+        "execution_match": true,
+        "error": null
+      }
+    ]
+  },
+  {
+    "question": "for each customer_id and email, compute count of distinct category_id by joining customers, orders, order_items, and products where COUNT(DISTINCT category_id) is at least 2",
+    "sql_gt": "SELECT c.customer_id, c.email, COUNT(DISTINCT p.category_id) AS category_count FROM customers AS c JOIN orders AS o ON o.customer_id = c.customer_id JOIN order_items AS oi ON oi.order_id = o.order_id JOIN products AS p ON p.product_id = oi.product_id GROUP BY c.customer_id, c.email HAVING COUNT(DISTINCT p.category_id) >= 2;",
+    "sql_pred": "SELECT c.customer_id, c.email, COUNT(DISTINCT p.category_id) AS category_count FROM customers c JOIN orders o ON c.customer_id = o.customer_id JOIN order_items oi ON o.order_id = oi.order_id JOIN products p ON oi.product_id = p.product_id WHERE category_count >= 2 GROUP BY 1, 2",
+    "valid": false,
+    "execution_match": false,
+    "difficulty": "hard",
+    "inference_error": null,
+    "prediction_error": "misuse of aggregate: COUNT()",
+    "ground_truth_error": null,
+    "sql_candidates": [
+      "SELECT c.customer_id, c.email, COUNT(DISTINCT p.category_id) AS category_count FROM customers c JOIN orders o ON c.customer_id = o.customer_id JOIN order_items oi ON o.order_id = oi.order_id JOIN products p ON oi.product_id = p.product_id WHERE category_count >= 2 GROUP BY 1, 2",
+      "SELECT c.customer_id, c.email, COUNT(DISTINCT p.category_id) AS distinct_category_count FROM customers c JOIN orders o ON c.customer_id = o.customer_id JOIN order_items oi ON o.order_id = oi.order_id JOIN products p ON oi.product_id = p.product_id GROUP BY c.customer_id, c.email HAVING COUNT(DISTINCT p.category_id) >= 2",
+      "SELECT c.customer_id, c.email, COUNT(DISTINCT oi.category_id) AS category_count FROM customers c JOIN orders o ON c.customer_id = o.customer_id JOIN order_items oi ON o.order_id = oi.order_id GROUP BY c.customer_id, c.email HAVING COUNT(DISTINCT oi.category_id) >= 2 ORDER BY category_count DESC NULLS LAST",
+      "SELECT c.customer_id, c.email, COUNT(DISTINCT o.order_id) AS num_orders FROM customers c JOIN orders o ON c.customer_id = o.customer_id JOIN order_items oi ON o.order_id = oi.order_id JOIN products p ON oi.product_id = p.product_id WHERE COUNT(DISTINCT p.category_id) >= 2 GROUP BY c.customer_id, c.email ORDER BY num_orders DESC NULLS LAST",
+      "SELECT c.customer_id, c.email, COUNT(DISTINCT oi.category_id) AS category_count FROM customers c JOIN orders o ON c.customer_id = o.customer_id JOIN order_items oi ON o.order_id = oi.order_id GROUP BY c.customer_id, c.email HAVING COUNT(DISTINCT oi.category_id) >= 2 ORDER BY category_count DESC NULLS LAST"
+    ],
+    "candidate_results": [
+      {
+        "sql": "SELECT c.customer_id, c.email, COUNT(DISTINCT p.category_id) AS category_count FROM customers c JOIN orders o ON c.customer_id = o.customer_id JOIN order_items oi ON o.order_id = oi.order_id JOIN products p ON oi.product_id = p.product_id WHERE category_count >= 2 GROUP BY 1, 2",
+        "valid": false,
+        "execution_match": false,
+        "error": "misuse of aggregate: COUNT()"
+      },
+      {
+        "sql": "SELECT c.customer_id, c.email, COUNT(DISTINCT p.category_id) AS distinct_category_count FROM customers c JOIN orders o ON c.customer_id = o.customer_id JOIN order_items oi ON o.order_id = oi.order_id JOIN products p ON oi.product_id = p.product_id GROUP BY c.customer_id, c.email HAVING COUNT(DISTINCT p.category_id) >= 2",
+        "valid": true,
+        "execution_match": true,
+        "error": null
+      },
+      {
+        "sql": "SELECT c.customer_id, c.email, COUNT(DISTINCT oi.category_id) AS category_count FROM customers c JOIN orders o ON c.customer_id = o.customer_id JOIN order_items oi ON o.order_id = oi.order_id GROUP BY c.customer_id, c.email HAVING COUNT(DISTINCT oi.category_id) >= 2 ORDER BY category_count DESC NULLS LAST",
+        "valid": false,
+        "execution_match": false,
+        "error": "no such column: oi.category_id"
+      },
+      {
+        "sql": "SELECT c.customer_id, c.email, COUNT(DISTINCT o.order_id) AS num_orders FROM customers c JOIN orders o ON c.customer_id = o.customer_id JOIN order_items oi ON o.order_id = oi.order_id JOIN products p ON oi.product_id = p.product_id WHERE COUNT(DISTINCT p.category_id) >= 2 GROUP BY c.customer_id, c.email ORDER BY num_orders DESC NULLS LAST",
+        "valid": false,
+        "execution_match": false,
+        "error": "misuse of aggregate: COUNT()"
+      },
+      {
+        "sql": "SELECT c.customer_id, c.email, COUNT(DISTINCT oi.category_id) AS category_count FROM customers c JOIN orders o ON c.customer_id = o.customer_id JOIN order_items oi ON o.order_id = oi.order_id GROUP BY c.customer_id, c.email HAVING COUNT(DISTINCT oi.category_id) >= 2 ORDER BY category_count DESC NULLS LAST",
+        "valid": false,
+        "execution_match": false,
+        "error": "no such column: oi.category_id"
+      }
+    ]
+  },
+  {
+    "question": "for each brand, compute average of discount_amount by joining products and order_items where AVG(discount_amount) is greater than (SELECT AVG(discount_amount) FROM order_items AS oi2)",
+    "sql_gt": "SELECT p.brand, AVG(oi.discount_amount) AS avg_discount_amount FROM products AS p JOIN order_items AS oi ON oi.product_id = p.product_id GROUP BY p.brand HAVING AVG(oi.discount_amount) > (SELECT AVG(oi2.discount_amount) FROM order_items AS oi2);",
+    "sql_pred": "SELECT p.brand, AVG(oi.discount_amount) AS average_discount FROM products p JOIN order_items oi ON p.product_id = oi.product_id WHERE AVG(oi.discount_amount) > (SELECT AVG(discount_amount) FROM order_items) GROUP BY p.brand ORDER BY average_discount DESC NULLS LAST",
+    "valid": false,
+    "execution_match": false,
+    "difficulty": "hard",
+    "inference_error": null,
+    "prediction_error": "misuse of aggregate: AVG()",
+    "ground_truth_error": null,
+    "sql_candidates": [
+      "SELECT p.brand, AVG(oi.discount_amount) AS average_discount FROM products p JOIN order_items oi ON p.product_id = oi.product_id WHERE AVG(oi.discount_amount) > (SELECT AVG(discount_amount) FROM order_items) GROUP BY p.brand ORDER BY average_discount DESC NULLS LAST",
+      "WITH brand_discounts AS (SELECT p.brand, AVG(oi.discount_amount) AS average_discount FROM products p JOIN order_items oi ON p.product_id = oi.product_id GROUP BY p.brand), overall_average AS (SELECT AVG(discount_amount) AS overall_avg FROM order_items) SELECT bd.brand, bd.average_discount FROM brand_discounts bd WHERE bd.average_discount > (SELECT overall_avg FROM overall_average) ORDER BY bd.average_discount DESC",
+      "WITH brand_discounts AS (SELECT p.brand, AVG(oi.discount_amount) AS avg_discount FROM products p JOIN order_items oi ON p.product_id = oi.product_id GROUP BY p.brand), total_avg AS (SELECT AVG(discount_amount) AS overall_avg FROM order_items) SELECT bd.brand, bd.avg_discount, ta.overall_avg FROM brand_discounts bd CROSS JOIN total_avg ta WHERE bd.avg_discount > ta.overall_avg ORDER BY bd.brand",
+      "SELECT p.brand, AVG(oi.discount_amount) AS average_discount FROM products p JOIN order_items oi ON p.product_id = oi.product_id GROUP BY p.brand HAVING AVG(oi.discount_amount) > (SELECT AVG(discount_amount) FROM order_items)",
+      "SELECT p.brand, AVG(oi.discount_amount) AS avg_discount FROM products p JOIN order_items oi ON p.product_id = oi.product_id WHERE AVG(oi.discount_amount) > (SELECT AVG(discount_amount) FROM order_items AS oi2) GROUP BY p.brand ORDER BY avg_discount DESC NULLS LAST"
+    ],
+    "candidate_results": [
+      {
+        "sql": "SELECT p.brand, AVG(oi.discount_amount) AS average_discount FROM products p JOIN order_items oi ON p.product_id = oi.product_id WHERE AVG(oi.discount_amount) > (SELECT AVG(discount_amount) FROM order_items) GROUP BY p.brand ORDER BY average_discount DESC NULLS LAST",
+        "valid": false,
+        "execution_match": false,
+        "error": "misuse of aggregate: AVG()"
+      },
+      {
+        "sql": "WITH brand_discounts AS (SELECT p.brand, AVG(oi.discount_amount) AS average_discount FROM products p JOIN order_items oi ON p.product_id = oi.product_id GROUP BY p.brand), overall_average AS (SELECT AVG(discount_amount) AS overall_avg FROM order_items) SELECT bd.brand, bd.average_discount FROM brand_discounts bd WHERE bd.average_discount > (SELECT overall_avg FROM overall_average) ORDER BY bd.average_discount DESC",
+        "valid": true,
+        "execution_match": true,
+        "error": null
+      },
+      {
+        "sql": "WITH brand_discounts AS (SELECT p.brand, AVG(oi.discount_amount) AS avg_discount FROM products p JOIN order_items oi ON p.product_id = oi.product_id GROUP BY p.brand), total_avg AS (SELECT AVG(discount_amount) AS overall_avg FROM order_items) SELECT bd.brand, bd.avg_discount, ta.overall_avg FROM brand_discounts bd CROSS JOIN total_avg ta WHERE bd.avg_discount > ta.overall_avg ORDER BY bd.brand",
+        "valid": true,
+        "execution_match": false,
+        "error": null
+      },
+      {
+        "sql": "SELECT p.brand, AVG(oi.discount_amount) AS average_discount FROM products p JOIN order_items oi ON p.product_id = oi.product_id GROUP BY p.brand HAVING AVG(oi.discount_amount) > (SELECT AVG(discount_amount) FROM order_items)",
+        "valid": true,
+        "execution_match": true,
+        "error": null
+      },
+      {
+        "sql": "SELECT p.brand, AVG(oi.discount_amount) AS avg_discount FROM products p JOIN order_items oi ON p.product_id = oi.product_id WHERE AVG(oi.discount_amount) > (SELECT AVG(discount_amount) FROM order_items AS oi2) GROUP BY p.brand ORDER BY avg_discount DESC NULLS LAST",
+        "valid": false,
+        "execution_match": false,
+        "error": "misuse of aggregate: AVG()"
+      }
+    ]
+  },
+  {
+    "question": "for each order_id and total_amount, compute sum of quantity times unit_price - discount_amount by joining orders and order_items where SUM(quantity * unit_price - discount_amount) is not equal to total_amount",
+    "sql_gt": "SELECT o.order_id, o.total_amount, SUM(oi.quantity * oi.unit_price - oi.discount_amount) AS computed_line_total FROM orders AS o JOIN order_items AS oi ON oi.order_id = o.order_id GROUP BY o.order_id, o.total_amount HAVING SUM(oi.quantity * oi.unit_price - oi.discount_amount) <> o.total_amount;",
+    "sql_pred": "SELECT o.order_id, SUM(oi.quantity * oi.unit_price - oi.discount_amount) AS total_quantity_price_discount FROM orders o JOIN order_items oi ON o.order_id = oi.order_id WHERE (SUM(oi.quantity * oi.unit_price - oi.discount_amount)) != o.total_amount GROUP BY o.order_id ORDER BY total_quantity_price_discount NULLS LAST",
+    "valid": false,
+    "execution_match": false,
+    "difficulty": "hard",
+    "inference_error": null,
+    "prediction_error": "misuse of aggregate: SUM()",
+    "ground_truth_error": null,
+    "sql_candidates": [
+      "SELECT o.order_id, SUM(oi.quantity * oi.unit_price - oi.discount_amount) AS total_quantity_price_discount FROM orders o JOIN order_items oi ON o.order_id = oi.order_id WHERE (SUM(oi.quantity * oi.unit_price - oi.discount_amount)) != o.total_amount GROUP BY o.order_id ORDER BY total_quantity_price_discount NULLS LAST",
+      "SELECT o.order_id, SUM(oi.quantity * oi.unit_price - oi.discount_amount) AS total_cost FROM orders o JOIN order_items oi ON o.order_id = oi.order_id WHERE SUM(oi.quantity * oi.unit_price - oi.discount_amount) <> o.total_amount GROUP BY o.order_id",
+      "SELECT o.order_id, SUM(oi.quantity * oi.unit_price - oi.discount_amount) AS total_order_value FROM orders o JOIN order_items oi ON o.order_id = oi.order_id GROUP BY o.order_id HAVING SUM(oi.quantity * oi.unit_price - oi.discount_amount) != o.total_amount",
+      "SELECT o.order_id, SUM(oi.quantity * oi.unit_price - oi.discount_amount) AS total_spend FROM orders o JOIN order_items oi ON o.order_id = oi.order_id GROUP BY o.order_id HAVING SUM(oi.quantity * oi.unit_price - oi.discount_amount) != o.total_amount ORDER BY total_spend DESC NULLS LAST",
+      "SELECT o.order_id, SUM(oi.quantity * p.unit_price - oi.discount_amount) AS total_order_cost FROM orders o JOIN order_items oi ON o.order_id = oi.order_id JOIN products p ON oi.product_id = p.product_id WHERE (SUM(oi.quantity * p.unit_price - oi.discount_amount)) != o.total_amount GROUP BY o.order_id ORDER BY total_order_cost DESC NULLS LAST"
+    ],
+    "candidate_results": [
+      {
+        "sql": "SELECT o.order_id, SUM(oi.quantity * oi.unit_price - oi.discount_amount) AS total_quantity_price_discount FROM orders o JOIN order_items oi ON o.order_id = oi.order_id WHERE (SUM(oi.quantity * oi.unit_price - oi.discount_amount)) != o.total_amount GROUP BY o.order_id ORDER BY total_quantity_price_discount NULLS LAST",
+        "valid": false,
+        "execution_match": false,
+        "error": "misuse of aggregate: SUM()"
+      },
+      {
+        "sql": "SELECT o.order_id, SUM(oi.quantity * oi.unit_price - oi.discount_amount) AS total_cost FROM orders o JOIN order_items oi ON o.order_id = oi.order_id WHERE SUM(oi.quantity * oi.unit_price - oi.discount_amount) <> o.total_amount GROUP BY o.order_id",
+        "valid": false,
+        "execution_match": false,
+        "error": "misuse of aggregate: SUM()"
+      },
+      {
+        "sql": "SELECT o.order_id, SUM(oi.quantity * oi.unit_price - oi.discount_amount) AS total_order_value FROM orders o JOIN order_items oi ON o.order_id = oi.order_id GROUP BY o.order_id HAVING SUM(oi.quantity * oi.unit_price - oi.discount_amount) != o.total_amount",
+        "valid": true,
+        "execution_match": false,
+        "error": null
+      },
+      {
+        "sql": "SELECT o.order_id, SUM(oi.quantity * oi.unit_price - oi.discount_amount) AS total_spend FROM orders o JOIN order_items oi ON o.order_id = oi.order_id GROUP BY o.order_id HAVING SUM(oi.quantity * oi.unit_price - oi.discount_amount) != o.total_amount ORDER BY total_spend DESC NULLS LAST",
+        "valid": true,
+        "execution_match": false,
+        "error": null
+      },
+      {
+        "sql": "SELECT o.order_id, SUM(oi.quantity * p.unit_price - oi.discount_amount) AS total_order_cost FROM orders o JOIN order_items oi ON o.order_id = oi.order_id JOIN products p ON oi.product_id = p.product_id WHERE (SUM(oi.quantity * p.unit_price - oi.discount_amount)) != o.total_amount GROUP BY o.order_id ORDER BY total_order_cost DESC NULLS LAST",
+        "valid": false,
+        "execution_match": false,
+        "error": "misuse of aggregate: SUM()"
+      }
+    ]
+  },
+  {
+    "question": "for each customer_segment, compute sum of CASE WHEN return_id IS NOT NULL THEN 1 ELSE 0 END by joining customers, orders, order_items, and returns where SUM(CASE WHEN return_id IS NOT NULL THEN 1 ELSE 0 END) * 1.0 / COUNT(order_item_id) is greater than 0.10",
+    "sql_gt": "SELECT c.customer_segment, SUM(CASE WHEN r.return_id IS NOT NULL THEN 1 ELSE 0 END) * 1.0 / COUNT(oi.order_item_id) AS return_rate, SUM(CASE WHEN r.return_status = 'approved' THEN r.refund_amount ELSE 0 END) AS approved_refund_amount FROM customers AS c JOIN orders AS o ON o.customer_id = c.customer_id JOIN order_items AS oi ON oi.order_id = o.order_id LEFT JOIN returns AS r ON r.order_item_id = oi.order_item_id GROUP BY c.customer_segment HAVING SUM(CASE WHEN r.return_id IS NOT NULL THEN 1 ELSE 0 END) * 1.0 / COUNT(oi.order_item_id) > 0.10;",
+    "sql_pred": "SELECT c.customer_segment, SUM(CASE WHEN r.return_id IS NOT NULL THEN 1 ELSE 0 END) AS total_returns FROM customers c LEFT JOIN orders o ON c.customer_id = o.customer_id LEFT JOIN order_items oi ON oi.order_item_id IN (SELECT order_item_id FROM returns r WHERE r.return_date BETWEEN '2022-01-01' AND '2022-12-31') GROUP BY c.customer_segment HAVING SUM(CASE WHEN r.return_id IS NOT NULL THEN 1 ELSE 0 END) * 1.0 / COUNT(oi.order_item_id) > 0.10",
+    "valid": false,
+    "execution_match": false,
+    "difficulty": "hard",
+    "inference_error": null,
+    "prediction_error": "no such column: r.return_id",
+    "ground_truth_error": null,
+    "sql_candidates": [
+      "SELECT c.customer_segment, SUM(CASE WHEN r.return_id IS NOT NULL THEN 1 ELSE 0 END) AS total_returns FROM customers c LEFT JOIN orders o ON c.customer_id = o.customer_id LEFT JOIN order_items oi ON oi.order_item_id IN (SELECT order_item_id FROM returns r WHERE r.return_date BETWEEN '2022-01-01' AND '2022-12-31') GROUP BY c.customer_segment HAVING SUM(CASE WHEN r.return_id IS NOT NULL THEN 1 ELSE 0 END) * 1.0 / COUNT(oi.order_item_id) > 0.10",
+      "SELECT c.customer_segment, SUM(CASE WHEN r.return_id IS NOT NULL THEN 1 ELSE 0 END) * 1.0 / COUNT(oi.order_item_id) AS return_rate FROM customers c JOIN orders o ON c.customer_id = o.customer_id JOIN order_items oi ON o.order_id = oi.order_id LEFT JOIN returns r ON oi.order_item_id = r.order_item_id GROUP BY c.customer_segment HAVING SUM(CASE WHEN r.return_id IS NOT NULL THEN 1 ELSE 0 END) * 1.0 / COUNT(oi.order_item_id) > 0.10 ORDER BY return_rate DESC",
+      "SELECT c.customer_segment, SUM(CASE WHEN r.return_id IS NOT NULL THEN 1 ELSE 0 END) / COUNT(oi.order_item_id) AS return_rate FROM customers c JOIN orders o ON c.customer_id = o.customer_id JOIN order_items oi ON o.order_id = oi.order_id LEFT JOIN returns r ON oi.order_item_id = r.order_item_id GROUP BY c.customer_segment HAVING SUM(CASE WHEN r.return_id IS NOT NULL THEN 1 ELSE 0 END) * 1.0 / COUNT(oi.order_item_id) > 0.10 ORDER BY return_rate DESC NULLS LAST",
+      "SELECT c.customer_segment, SUM(CASE WHEN r.return_id IS NOT NULL THEN 1 ELSE 0 END) * 1.0 / COUNT(oi.order_item_id) AS return_rate FROM customers c JOIN orders o ON c.customer_id = o.customer_id JOIN order_items oi ON o.order_id = oi.order_id LEFT JOIN returns r ON oi.order_item_id = r.order_item_id WHERE SUM(CASE WHEN r.return_id IS NOT NULL THEN 1 ELSE 0 END) * 1.0 / COUNT(oi.order_item_id) > 0.10 GROUP BY c.customer_segment",
+      "SELECT c.customer_segment, SUM(CASE WHEN r.return_id IS NOT NULL THEN 1 ELSE 0 END) * 1.0 / COUNT(oi.order_item_id) AS return_rate FROM customers c JOIN orders o ON c.customer_id = o.customer_id JOIN order_items oi ON o.order_id = oi.order_id LEFT JOIN returns r ON oi.order_item_id = r.order_item_id GROUP BY c.customer_segment HAVING SUM(CASE WHEN r.return_id IS NOT NULL THEN 1 ELSE 0 END) * 1.0 / COUNT(oi.order_item_id) > 0.10 ORDER BY return_rate DESC"
+    ],
+    "candidate_results": [
+      {
+        "sql": "SELECT c.customer_segment, SUM(CASE WHEN r.return_id IS NOT NULL THEN 1 ELSE 0 END) AS total_returns FROM customers c LEFT JOIN orders o ON c.customer_id = o.customer_id LEFT JOIN order_items oi ON oi.order_item_id IN (SELECT order_item_id FROM returns r WHERE r.return_date BETWEEN '2022-01-01' AND '2022-12-31') GROUP BY c.customer_segment HAVING SUM(CASE WHEN r.return_id IS NOT NULL THEN 1 ELSE 0 END) * 1.0 / COUNT(oi.order_item_id) > 0.10",
+        "valid": false,
+        "execution_match": false,
+        "error": "no such column: r.return_id"
+      },
+      {
+        "sql": "SELECT c.customer_segment, SUM(CASE WHEN r.return_id IS NOT NULL THEN 1 ELSE 0 END) * 1.0 / COUNT(oi.order_item_id) AS return_rate FROM customers c JOIN orders o ON c.customer_id = o.customer_id JOIN order_items oi ON o.order_id = oi.order_id LEFT JOIN returns r ON oi.order_item_id = r.order_item_id GROUP BY c.customer_segment HAVING SUM(CASE WHEN r.return_id IS NOT NULL THEN 1 ELSE 0 END) * 1.0 / COUNT(oi.order_item_id) > 0.10 ORDER BY return_rate DESC",
+        "valid": true,
+        "execution_match": false,
+        "error": null
+      },
+      {
+        "sql": "SELECT c.customer_segment, SUM(CASE WHEN r.return_id IS NOT NULL THEN 1 ELSE 0 END) / COUNT(oi.order_item_id) AS return_rate FROM customers c JOIN orders o ON c.customer_id = o.customer_id JOIN order_items oi ON o.order_id = oi.order_id LEFT JOIN returns r ON oi.order_item_id = r.order_item_id GROUP BY c.customer_segment HAVING SUM(CASE WHEN r.return_id IS NOT NULL THEN 1 ELSE 0 END) * 1.0 / COUNT(oi.order_item_id) > 0.10 ORDER BY return_rate DESC NULLS LAST",
+        "valid": true,
+        "execution_match": false,
+        "error": null
+      },
+      {
+        "sql": "SELECT c.customer_segment, SUM(CASE WHEN r.return_id IS NOT NULL THEN 1 ELSE 0 END) * 1.0 / COUNT(oi.order_item_id) AS return_rate FROM customers c JOIN orders o ON c.customer_id = o.customer_id JOIN order_items oi ON o.order_id = oi.order_id LEFT JOIN returns r ON oi.order_item_id = r.order_item_id WHERE SUM(CASE WHEN r.return_id IS NOT NULL THEN 1 ELSE 0 END) * 1.0 / COUNT(oi.order_item_id) > 0.10 GROUP BY c.customer_segment",
+        "valid": false,
+        "execution_match": false,
+        "error": "misuse of aggregate: COUNT()"
+      },
+      {
+        "sql": "SELECT c.customer_segment, SUM(CASE WHEN r.return_id IS NOT NULL THEN 1 ELSE 0 END) * 1.0 / COUNT(oi.order_item_id) AS return_rate FROM customers c JOIN orders o ON c.customer_id = o.customer_id JOIN order_items oi ON o.order_id = oi.order_id LEFT JOIN returns r ON oi.order_item_id = r.order_item_id GROUP BY c.customer_segment HAVING SUM(CASE WHEN r.return_id IS NOT NULL THEN 1 ELSE 0 END) * 1.0 / COUNT(oi.order_item_id) > 0.10 ORDER BY return_rate DESC",
+        "valid": true,
+        "execution_match": false,
+        "error": null
+      }
+    ]
+  },
+  {
+    "question": "find product_id, product_name, and unit_price by joining products and order_items where unit_price is greater than (SELECT AVG(unit_price) FROM products AS p2 WHERE category_id is category_id)",
+    "sql_gt": "SELECT DISTINCT p.product_id, p.product_name, p.unit_price FROM products AS p JOIN order_items AS oi ON oi.product_id = p.product_id WHERE p.unit_price > (SELECT AVG(p2.unit_price) FROM products AS p2 WHERE p2.category_id = p.category_id);",
+    "sql_pred": "SELECT p.product_id, p.product_name, p.unit_price FROM products AS p JOIN (SELECT category_id, AVG(p2.unit_price) AS average_unit_price FROM products AS p2 GROUP BY category_id) AS c ON p.category_id = c.category_id WHERE p.unit_price > c.average_unit_price",
+    "valid": true,
+    "execution_match": false,
+    "difficulty": "hard",
+    "inference_error": null,
+    "prediction_error": null,
+    "ground_truth_error": null,
+    "sql_candidates": [
+      "SELECT p.product_id, p.product_name, p.unit_price FROM products AS p JOIN (SELECT category_id, AVG(p2.unit_price) AS average_unit_price FROM products AS p2 GROUP BY category_id) AS c ON p.category_id = c.category_id WHERE p.unit_price > c.average_unit_price",
+      "SELECT p.product_id, p.product_name, p.unit_price FROM products AS p JOIN (SELECT product_id, category_id FROM products) AS c ON p.category_id = c.category_id WHERE p.unit_price > (SELECT AVG(unit_price) FROM products AS p2 WHERE p2.category_id = c.category_id)",
+      "WITH avg_unit_price AS (SELECT product_id, product_name, unit_price, AVG(unit_price) OVER (PARTITION BY category_id) AS avg_category_price FROM products p1 WHERE unit_price > (SELECT AVG(unit_price) FROM products p2 WHERE category_id = p1.category_id)) SELECT product_id, product_name, unit_price FROM avg_unit_price ORDER BY category_id NULLS LAST",
+      "SELECT p.product_id, p.product_name, p.unit_price FROM products AS p JOIN (SELECT category_id FROM products GROUP BY category_id HAVING AVG(unit_price) > ALL (SELECT AVG(p2.unit_price) FROM products AS p2 WHERE p2.category_id = p.category_id)) AS c ON p.category_id = c.category_id ORDER BY p.unit_price DESC",
+      "SELECT p.product_id, p.product_name, p.unit_price FROM products AS p JOIN (SELECT product_id, category_id FROM products WHERE unit_price > (SELECT AVG(unit_price) FROM products AS p2 WHERE category_id = p.category_id)) AS o ON p.product_id = o.product_id"
+    ],
+    "candidate_results": [
+      {
+        "sql": "SELECT p.product_id, p.product_name, p.unit_price FROM products AS p JOIN (SELECT category_id, AVG(p2.unit_price) AS average_unit_price FROM products AS p2 GROUP BY category_id) AS c ON p.category_id = c.category_id WHERE p.unit_price > c.average_unit_price",
+        "valid": true,
+        "execution_match": false,
+        "error": null
+      },
+      {
+        "sql": "SELECT p.product_id, p.product_name, p.unit_price FROM products AS p JOIN (SELECT product_id, category_id FROM products) AS c ON p.category_id = c.category_id WHERE p.unit_price > (SELECT AVG(unit_price) FROM products AS p2 WHERE p2.category_id = c.category_id)",
+        "valid": true,
+        "execution_match": false,
+        "error": null
+      },
+      {
+        "sql": "WITH avg_unit_price AS (SELECT product_id, product_name, unit_price, AVG(unit_price) OVER (PARTITION BY category_id) AS avg_category_price FROM products p1 WHERE unit_price > (SELECT AVG(unit_price) FROM products p2 WHERE category_id = p1.category_id)) SELECT product_id, product_name, unit_price FROM avg_unit_price ORDER BY category_id NULLS LAST",
+        "valid": false,
+        "execution_match": false,
+        "error": "no such column: category_id"
+      },
+      {
+        "sql": "SELECT p.product_id, p.product_name, p.unit_price FROM products AS p JOIN (SELECT category_id FROM products GROUP BY category_id HAVING AVG(unit_price) > ALL (SELECT AVG(p2.unit_price) FROM products AS p2 WHERE p2.category_id = p.category_id)) AS c ON p.category_id = c.category_id ORDER BY p.unit_price DESC",
+        "valid": false,
+        "execution_match": false,
+        "error": "near \"ALL\": syntax error"
+      },
+      {
+        "sql": "SELECT p.product_id, p.product_name, p.unit_price FROM products AS p JOIN (SELECT product_id, category_id FROM products WHERE unit_price > (SELECT AVG(unit_price) FROM products AS p2 WHERE category_id = p.category_id)) AS o ON p.product_id = o.product_id",
+        "valid": false,
+        "execution_match": false,
+        "error": "no such column: p.category_id"
+      }
+    ]
+  },
+  {
+    "question": "find customer_id, first_name, and last_name from the customers table that have orders and do not have returned order items",
+    "sql_gt": "SELECT c.customer_id, c.first_name, c.last_name FROM customers AS c WHERE EXISTS (SELECT 1 FROM orders AS o WHERE o.customer_id = c.customer_id) AND NOT EXISTS (SELECT 1 FROM orders AS o JOIN order_items AS oi ON oi.order_id = o.order_id JOIN returns AS r ON r.order_item_id = oi.order_item_id WHERE o.customer_id = c.customer_id);",
+    "sql_pred": "SELECT c.customer_id, c.first_name, c.last_name FROM customers c JOIN orders o ON c.customer_id = o.customer_id WHERE NOT EXISTS (SELECT 1 FROM returns r WHERE r.order_item_id = oi.order_item_id) GROUP BY c.customer_id",
+    "valid": false,
+    "execution_match": false,
+    "difficulty": "hard",
+    "inference_error": null,
+    "prediction_error": "no such column: oi.order_item_id",
+    "ground_truth_error": null,
+    "sql_candidates": [
+      "SELECT c.customer_id, c.first_name, c.last_name FROM customers c JOIN orders o ON c.customer_id = o.customer_id WHERE NOT EXISTS (SELECT 1 FROM returns r WHERE r.order_item_id = oi.order_item_id) GROUP BY c.customer_id",
+      "SELECT c.customer_id, c.first_name, c.last_name FROM customers c JOIN orders o ON c.customer_id = o.customer_id WHERE NOT EXISTS (SELECT 1 FROM returns r WHERE r.order_item_id = o.order_id)",
+      "SELECT c.customer_id, c.first_name, c.last_name FROM customers c LEFT JOIN orders o ON c.customer_id = o.customer_id WHERE o.order_status NOT LIKE '%returned%' ORDER BY c.customer_id NULLS LAST",
+      "SELECT c.customer_id, c.first_name, c.last_name FROM customers AS c LEFT JOIN orders AS o ON c.customer_id = o.customer_id WHERE o.customer_id IS NOT NULL AND c.customer_id NOT IN (SELECT return_order_item_id FROM returns)",
+      "SELECT c.customer_id, c.first_name, c.last_name FROM customers c LEFT JOIN orders o ON c.customer_id = o.customer_id WHERE o.order_status IS NULL AND NOT EXISTS (SELECT 1 FROM returns r WHERE r.order_item_id IN (SELECT oi.order_item_id FROM order_items oi INNER JOIN orders oo ON oi.order_id = oo.order_id))"
+    ],
+    "candidate_results": [
+      {
+        "sql": "SELECT c.customer_id, c.first_name, c.last_name FROM customers c JOIN orders o ON c.customer_id = o.customer_id WHERE NOT EXISTS (SELECT 1 FROM returns r WHERE r.order_item_id = oi.order_item_id) GROUP BY c.customer_id",
+        "valid": false,
+        "execution_match": false,
+        "error": "no such column: oi.order_item_id"
+      },
+      {
+        "sql": "SELECT c.customer_id, c.first_name, c.last_name FROM customers c JOIN orders o ON c.customer_id = o.customer_id WHERE NOT EXISTS (SELECT 1 FROM returns r WHERE r.order_item_id = o.order_id)",
+        "valid": true,
+        "execution_match": false,
+        "error": null
+      },
+      {
+        "sql": "SELECT c.customer_id, c.first_name, c.last_name FROM customers c LEFT JOIN orders o ON c.customer_id = o.customer_id WHERE o.order_status NOT LIKE '%returned%' ORDER BY c.customer_id NULLS LAST",
+        "valid": true,
+        "execution_match": false,
+        "error": null
+      },
+      {
+        "sql": "SELECT c.customer_id, c.first_name, c.last_name FROM customers AS c LEFT JOIN orders AS o ON c.customer_id = o.customer_id WHERE o.customer_id IS NOT NULL AND c.customer_id NOT IN (SELECT return_order_item_id FROM returns)",
+        "valid": false,
+        "execution_match": false,
+        "error": "no such column: return_order_item_id"
+      },
+      {
+        "sql": "SELECT c.customer_id, c.first_name, c.last_name FROM customers c LEFT JOIN orders o ON c.customer_id = o.customer_id WHERE o.order_status IS NULL AND NOT EXISTS (SELECT 1 FROM returns r WHERE r.order_item_id IN (SELECT oi.order_item_id FROM order_items oi INNER JOIN orders oo ON oi.order_id = oo.order_id))",
+        "valid": true,
+        "execution_match": false,
+        "error": null
+      }
+    ]
+  },
+  {
+    "question": "for each payment_method and category_name, compute average of quantity times unit_price - discount_amount by joining orders, order_items, products, and categories where AVG(quantity * unit_price - discount_amount) is greater than 50",
+    "sql_gt": "SELECT o.payment_method, c.category_name, AVG(oi.quantity * oi.unit_price - oi.discount_amount) AS avg_line_revenue FROM orders AS o JOIN order_items AS oi ON oi.order_id = o.order_id JOIN products AS p ON p.product_id = oi.product_id JOIN categories AS c ON c.category_id = p.category_id GROUP BY o.payment_method, c.category_name HAVING AVG(oi.quantity * oi.unit_price - oi.discount_amount) > 50;",
+    "sql_pred": "WITH total_amounts AS (SELECT o.order_method, c.category_name, AVG(oi.quantity * p.unit_price - oi.discount_amount) AS average_total FROM orders o JOIN order_items oi ON o.order_id = oi.order_id JOIN products p ON oi.product_id = p.product_id JOIN categories c ON p.category_id = c.category_id GROUP BY 1, 2 HAVING AVG(oi.quantity * p.unit_price - oi.discount_amount) > 50), grouped AS (SELECT payment_method, category_name, average_total FROM total_amounts) SELECT * FROM grouped",
+    "valid": false,
+    "execution_match": false,
+    "difficulty": "hard",
+    "inference_error": null,
+    "prediction_error": "no such column: o.order_method",
+    "ground_truth_error": null,
+    "sql_candidates": [
+      "WITH total_amounts AS (SELECT o.order_method, c.category_name, AVG(oi.quantity * p.unit_price - oi.discount_amount) AS average_total FROM orders o JOIN order_items oi ON o.order_id = oi.order_id JOIN products p ON oi.product_id = p.product_id JOIN categories c ON p.category_id = c.category_id GROUP BY 1, 2 HAVING AVG(oi.quantity * p.unit_price - oi.discount_amount) > 50), grouped AS (SELECT payment_method, category_name, average_total FROM total_amounts) SELECT * FROM grouped",
+      "SELECT o.payment_method, c.category_name, AVG(oi.quantity * p.unit_price - oi.discount_amount) AS average_amount FROM orders o JOIN order_items oi ON o.order_id = oi.order_id JOIN products p ON oi.product_id = p.product_id JOIN categories c ON p.category_id = c.category_id WHERE AVG(oi.quantity * p.unit_price - oi.discount_amount) > 50 GROUP BY o.payment_method, c.category_name ORDER BY average_amount DESC NULLS LAST",
+      "SELECT o.payment_method, c.category_name, AVG(oi.quantity * p.unit_price - oi.discount_amount) AS avg_value FROM orders o JOIN order_items oi ON o.order_id = oi.order_id JOIN products p ON oi.product_id = p.product_id JOIN categories c ON p.category_id = c.category_id WHERE AVG(oi.quantity * p.unit_price - oi.discount_amount) > 50 GROUP BY o.payment_method, c.category_name ORDER BY avg_value DESC NULLS LAST",
+      "SELECT DISTINCT payment_method, category_name, ROUND(AVG(quantity * unit_price - discount_amount), 2) AS average_value FROM orders o JOIN order_items oi ON o.order_id = oi.order_id JOIN products p ON oi.product_id = p.product_id JOIN categories c ON p.category_id = c.category_id WHERE quantity > 1 AND AVG(quantity * unit_price - discount_amount) > 50 GROUP BY payment_method, category_name ORDER BY average_value DESC NULLS LAST",
+      "SELECT pm.payment_method, c.category_name, AVG(oi.quantity * p.unit_price - oi.discount_amount) AS avg_order_value FROM orders o JOIN order_items oi ON o.order_id = oi.order_id JOIN products p ON oi.product_id = p.product_id JOIN categories c ON p.category_id = c.category_id WHERE AVG(oi.quantity * p.unit_price - oi.discount_amount) > 50 GROUP BY pm.payment_method, c.category_name"
+    ],
+    "candidate_results": [
+      {
+        "sql": "WITH total_amounts AS (SELECT o.order_method, c.category_name, AVG(oi.quantity * p.unit_price - oi.discount_amount) AS average_total FROM orders o JOIN order_items oi ON o.order_id = oi.order_id JOIN products p ON oi.product_id = p.product_id JOIN categories c ON p.category_id = c.category_id GROUP BY 1, 2 HAVING AVG(oi.quantity * p.unit_price - oi.discount_amount) > 50), grouped AS (SELECT payment_method, category_name, average_total FROM total_amounts) SELECT * FROM grouped",
+        "valid": false,
+        "execution_match": false,
+        "error": "no such column: o.order_method"
+      },
+      {
+        "sql": "SELECT o.payment_method, c.category_name, AVG(oi.quantity * p.unit_price - oi.discount_amount) AS average_amount FROM orders o JOIN order_items oi ON o.order_id = oi.order_id JOIN products p ON oi.product_id = p.product_id JOIN categories c ON p.category_id = c.category_id WHERE AVG(oi.quantity * p.unit_price - oi.discount_amount) > 50 GROUP BY o.payment_method, c.category_name ORDER BY average_amount DESC NULLS LAST",
+        "valid": false,
+        "execution_match": false,
+        "error": "misuse of aggregate: AVG()"
+      },
+      {
+        "sql": "SELECT o.payment_method, c.category_name, AVG(oi.quantity * p.unit_price - oi.discount_amount) AS avg_value FROM orders o JOIN order_items oi ON o.order_id = oi.order_id JOIN products p ON oi.product_id = p.product_id JOIN categories c ON p.category_id = c.category_id WHERE AVG(oi.quantity * p.unit_price - oi.discount_amount) > 50 GROUP BY o.payment_method, c.category_name ORDER BY avg_value DESC NULLS LAST",
+        "valid": false,
+        "execution_match": false,
+        "error": "misuse of aggregate: AVG()"
+      },
+      {
+        "sql": "SELECT DISTINCT payment_method, category_name, ROUND(AVG(quantity * unit_price - discount_amount), 2) AS average_value FROM orders o JOIN order_items oi ON o.order_id = oi.order_id JOIN products p ON oi.product_id = p.product_id JOIN categories c ON p.category_id = c.category_id WHERE quantity > 1 AND AVG(quantity * unit_price - discount_amount) > 50 GROUP BY payment_method, category_name ORDER BY average_value DESC NULLS LAST",
+        "valid": false,
+        "execution_match": false,
+        "error": "ambiguous column name: unit_price"
+      },
+      {
+        "sql": "SELECT pm.payment_method, c.category_name, AVG(oi.quantity * p.unit_price - oi.discount_amount) AS avg_order_value FROM orders o JOIN order_items oi ON o.order_id = oi.order_id JOIN products p ON oi.product_id = p.product_id JOIN categories c ON p.category_id = c.category_id WHERE AVG(oi.quantity * p.unit_price - oi.discount_amount) > 50 GROUP BY pm.payment_method, c.category_name",
+        "valid": false,
+        "execution_match": false,
+        "error": "no such column: pm.payment_method"
+      }
+    ]
+  }
+]

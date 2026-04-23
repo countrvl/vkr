@@ -178,11 +178,6 @@ def get_metrics_dir(run_label: str | None = None) -> Path:
     return metrics_dir
 
 
-def get_mini_bench_dir() -> Path:
-    """Return the mini-benchmark results directory."""
-    return get_results_dir() / "mini_bench"
-
-
 def get_sample_metrics_path(run_label: str | None = None) -> Path:
     """Return the sample metrics path for the active results directory."""
     if SAMPLE_METRICS_PATH is not None:
@@ -329,56 +324,6 @@ def _iter_raw_records(results_dir: Path, run_label: str | None = None) -> list[d
                     continue
                 records.append(record)
     return records
-
-
-def load_mini_bench_artifacts(
-    *,
-    results_dir: Path | None = None,
-    model_keys: list[str] | tuple[str, ...] | None = None,
-) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
-    """Load mini-benchmark summary, category, difficulty and failure tables."""
-    base_dir = (results_dir or get_results_dir()) / "mini_bench"
-    if not base_dir.exists():
-        empty = pd.DataFrame()
-        return empty, empty, empty, empty
-
-    selected_keys = set(model_keys or [])
-    summary_rows: list[dict[str, Any]] = []
-    category_rows: list[dict[str, Any]] = []
-    difficulty_rows: list[dict[str, Any]] = []
-    failure_rows: list[dict[str, Any]] = []
-
-    for model_dir in sorted(path for path in base_dir.iterdir() if path.is_dir()):
-        model_key = model_dir.name
-        if selected_keys and model_key not in selected_keys:
-            continue
-        summary_path = model_dir / "summary_metrics.json"
-        if not summary_path.exists():
-            continue
-        payload = json.loads(summary_path.read_text(encoding="utf-8"))
-        summary = dict(payload.get("summary", {}))
-        if not summary:
-            continue
-        base_row = {
-            "model_key": payload.get("model_key", model_key),
-            "model_display_name": payload.get("model_display_name"),
-            "model_family": payload.get("model_family"),
-            "prompt_profile": payload.get("prompt_profile"),
-        }
-        summary_rows.append({**base_row, **summary})
-        for row in payload.get("by_category", []):
-            category_rows.append({**base_row, **row})
-        for row in payload.get("by_difficulty", []):
-            difficulty_rows.append({**base_row, **row})
-        for row in payload.get("failure_examples", []):
-            failure_rows.append({**base_row, **row})
-
-    return (
-        _with_model_metadata(pd.DataFrame(summary_rows)),
-        _with_model_metadata(pd.DataFrame(category_rows)),
-        _with_model_metadata(pd.DataFrame(difficulty_rows)),
-        _with_model_metadata(pd.DataFrame(failure_rows)),
-    )
 
 
 @lru_cache(maxsize=8)

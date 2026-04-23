@@ -5,10 +5,9 @@
 - [`nl2sql/`](nl2sql/) — генерация SQL на `Spider` и `BIRD`
 - [`code/`](code/) — генерация Python-кода на `HumanEval+` и `MBPP+`
 
-Для `nl2sql` теперь есть три независимых контура:
+Для `nl2sql` теперь есть два независимых контура:
 
 - benchmark-style evaluation на `Spider`/`BIRD`
-- local mini-benchmark на фиксированной business-like SQLite БД для дополнительного контрольного эксперимента
 - strategy bench для production-like NL2SQL на реальной БД с маршрутами `generate_only`, `generate_validate_retry`, `routing`
 
 ## Назначение
@@ -88,18 +87,6 @@ uv run python -m nl2sql.src.strategy_bench.cli \
 
 `strategy_bench` рассчитан на read-only доступ к production PostgreSQL и отдельный dataset в JSON/JSONL/YAML.
 
-### NL2SQL Mini Benchmark
-
-```bash
-uv run python nl2sql/scripts/05_prepare_mini_bench.py --force
-uv run python nl2sql/scripts/06_run_mini_bench.py --model m1_chatgpt
-uv run python nl2sql/scripts/06_run_mini_bench.py --model m2_arctic
-```
-
-Mini-benchmark использует локальную фиксированную SQLite БД и отдельный dataset из 50 business-like задач.
-Он не заменяет `Spider/BIRD`, а служит дополнительным контрольным экспериментом в основной главе NL2SQL.
-Mini-benchmark использует те же model profiles и prompt templates, что и основной `ea`-контур.
-
 ### Code
 
 ```bash
@@ -114,7 +101,6 @@ jupyter lab code/notebooks/01_report_fc_passk.ipynb
 - raw-результаты сохраняются в `results/<domain>/raw/`
 - агрегированные метрики сохраняются в `results/<domain>/metrics/`
 - графики и изображения для отчётов сохраняются в `results/<domain>/figures/`
-- mini-benchmark summary сохраняется в `results/nl2sql/mini_bench/`
 - strategy-bench логи и summary сохраняются в `results/nl2sql/strategy_bench/`
 
 ## Доменные README

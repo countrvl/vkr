@@ -1,9 +1,0 @@
-case_id,question,category,difficulty,expected_sql,generated_sql,execution_success,accuracy,comparison_mode,error_type,error_message,model_latency_ms,model_key,model_display_name,model_family,prompt_profile,benchmark
-filtering_01,List the active customers in the North region ordered by customer name.,filtering,simple,"SELECT customer_name
-FROM customers
-WHERE status = 'active' AND region = 'North'
-ORDER BY customer_name;","SELECT customer_id, customer_name, segment, region, signup_date, status, sales_rep_id FROM customers WHERE status = 'Active' AND region = 'North' ORDER BY customer_name",True,False,expected_sql_result,,,5305.051271001503,m1_chatgpt,ChatGPT 5.2,m1,nl2sql_json,mini_bench
-filtering_02,"Which active products have a list price above 1000, ordered by product name?",filtering,simple,"SELECT product_name
-FROM products
-WHERE is_active = 1 AND list_price > 1000
-ORDER BY product_name;","SELECT product_id, product_name, list_price FROM products WHERE is_active = 1 AND list_price > 1000 ORDER BY product_name",True,False,expected_sql_result,,,2031.9427680005901,m1_chatgpt,ChatGPT 5.2,m1,nl2sql_json,mini_bench

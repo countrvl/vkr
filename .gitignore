@@ -10,7 +10,11 @@ __pycache__/
 htmlcov/
 *.egg-info/
 .ipynb_checkpoints/
-data/
+data/*
+!data/nl2sql/
+data/nl2sql/*
+!data/nl2sql/synthetic_ecommerce/
+!data/nl2sql/synthetic_ecommerce/**
 
 plan.md
 AGENTS.md
