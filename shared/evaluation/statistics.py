@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import math
 import random
-from typing import Callable, Iterable, Sequence, TypeVar
+from typing import Callable, Sequence, TypeVar
 
 
 T = TypeVar("T")
