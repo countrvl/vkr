@@ -1,6 +1,5 @@
 import json
 import pandas as pd
-import sys
 
 # Load coverage
 with open('data/nl2sql/synthetic_ecommerce/coverage_summary.json', 'r') as f:

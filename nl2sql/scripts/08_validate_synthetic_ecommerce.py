@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import sys
-
 from nl2sql.src.synthetic_bench.prepare import (
     COVERAGE_PATH,
     DB_PATH,

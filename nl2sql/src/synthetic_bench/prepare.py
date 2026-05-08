@@ -11,7 +11,6 @@ import re
 from typing import Any
 
 from nl2sql.src.strategy_bench.executor import SQLiteExecutor
-from nl2sql.src.strategy_bench.validation import ValidationModule
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
@@ -286,7 +285,6 @@ def validate_queries(
     table_columns = _table_columns(dataset)
     queries = load_core_queries(dataset_path) + load_edge_queries(edge_cases_path)
     executor = SQLiteExecutor(db_path)
-    validator = ValidationModule()
 
     issues: list[SyntheticValidationIssue] = []
     table_usage = Counter()
