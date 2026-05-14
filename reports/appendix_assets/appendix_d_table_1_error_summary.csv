@@ -1,0 +1,44 @@
+Модель,Бенчмарк,Исход,Количество,Доля
+ChatGPT 5.2,BIRD,корректный результат,561,0.3657
+ChatGPT 5.2,BIRD,некорректный результат,965,0.6291
+ChatGPT 5.2,BIRD,ошибка выполнения,2,0.0013
+ChatGPT 5.2,BIRD,синтаксическая ошибка,2,0.0013
+ChatGPT 5.2,BIRD,тайм-аут,4,0.0026
+DeepSeek V3.2,BIRD,корректный результат,495,0.3227
+DeepSeek V3.2,BIRD,некорректный результат,972,0.6336
+DeepSeek V3.2,BIRD,ошибка выполнения,48,0.0313
+DeepSeek V3.2,BIRD,синтаксическая ошибка,14,0.0091
+DeepSeek V3.2,BIRD,тайм-аут,5,0.0033
+Defog-Llama3-SQLCoder-8B q4_0,BIRD,корректный результат,404,0.2634
+Defog-Llama3-SQLCoder-8B q4_0,BIRD,некорректный результат,659,0.4296
+Defog-Llama3-SQLCoder-8B q4_0,BIRD,ошибка выполнения,370,0.2412
+Defog-Llama3-SQLCoder-8B q4_0,BIRD,синтаксическая ошибка,99,0.0645
+Defog-Llama3-SQLCoder-8B q4_0,BIRD,тайм-аут,2,0.0013
+Hrida-T2SQL q8_0,BIRD,корректный результат,238,0.1551
+Hrida-T2SQL q8_0,BIRD,некорректный результат,477,0.311
+Hrida-T2SQL q8_0,BIRD,ошибка выполнения,662,0.4316
+Hrida-T2SQL q8_0,BIRD,синтаксическая ошибка,149,0.0971
+Hrida-T2SQL q8_0,BIRD,тайм-аут,8,0.0052
+Arctic-Text2SQL-R1-7B,BIRD,корректный результат,826,0.5385
+Arctic-Text2SQL-R1-7B,BIRD,некорректный результат,688,0.4485
+Arctic-Text2SQL-R1-7B,BIRD,ошибка выполнения,16,0.0104
+Arctic-Text2SQL-R1-7B,BIRD,тайм-аут,4,0.0026
+ChatGPT 5.2,Spider,корректный результат,768,0.7427
+ChatGPT 5.2,Spider,некорректный результат,258,0.2495
+ChatGPT 5.2,Spider,ошибка выполнения,3,0.0029
+ChatGPT 5.2,Spider,синтаксическая ошибка,5,0.0048
+DeepSeek V3.2,Spider,корректный результат,762,0.7369
+DeepSeek V3.2,Spider,некорректный результат,268,0.2592
+DeepSeek V3.2,Spider,ошибка выполнения,3,0.0029
+DeepSeek V3.2,Spider,синтаксическая ошибка,1,0.001
+Defog-Llama3-SQLCoder-8B q4_0,Spider,корректный результат,582,0.5629
+Defog-Llama3-SQLCoder-8B q4_0,Spider,некорректный результат,379,0.3665
+Defog-Llama3-SQLCoder-8B q4_0,Spider,ошибка выполнения,72,0.0696
+Defog-Llama3-SQLCoder-8B q4_0,Spider,синтаксическая ошибка,1,0.001
+Hrida-T2SQL q8_0,Spider,корректный результат,508,0.4913
+Hrida-T2SQL q8_0,Spider,некорректный результат,304,0.294
+Hrida-T2SQL q8_0,Spider,ошибка выполнения,220,0.2128
+Hrida-T2SQL q8_0,Spider,синтаксическая ошибка,2,0.0019
+Arctic-Text2SQL-R1-7B,Spider,корректный результат,798,0.7718
+Arctic-Text2SQL-R1-7B,Spider,некорректный результат,231,0.2234
+Arctic-Text2SQL-R1-7B,Spider,ошибка выполнения,5,0.0048

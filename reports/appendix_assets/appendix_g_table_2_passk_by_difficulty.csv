@@ -1,0 +1,46 @@
+Модель,Бенчмарк,Сложность,K,Pass@K
+Arctic-Text2SQL-R1-7B,BIRD,простые,1,0.2995
+Arctic-Text2SQL-R1-7B,BIRD,простые,3,0.3254
+Arctic-Text2SQL-R1-7B,BIRD,простые,5,0.3254
+ChatGPT 5.2,BIRD,простые,1,0.3611
+ChatGPT 5.2,BIRD,простые,3,0.4281
+ChatGPT 5.2,BIRD,простые,5,0.4508
+DeepSeek V3.2,BIRD,простые,1,0.3946
+DeepSeek V3.2,BIRD,простые,3,0.4205
+DeepSeek V3.2,BIRD,простые,5,0.44
+Defog-Llama3-SQLCoder-8B q4_0,BIRD,простые,1,0.187
+Defog-Llama3-SQLCoder-8B q4_0,BIRD,простые,3,0.2238
+Defog-Llama3-SQLCoder-8B q4_0,BIRD,простые,5,0.2238
+Hrida-T2SQL q8_0,BIRD,простые,1,0.0616
+Hrida-T2SQL q8_0,BIRD,простые,3,0.0659
+Hrida-T2SQL q8_0,BIRD,простые,5,0.0659
+Arctic-Text2SQL-R1-7B,BIRD,сложные,1,0.0552
+Arctic-Text2SQL-R1-7B,BIRD,сложные,3,0.0552
+Arctic-Text2SQL-R1-7B,BIRD,сложные,5,0.0552
+ChatGPT 5.2,BIRD,сложные,1,0.2276
+ChatGPT 5.2,BIRD,сложные,3,0.269
+ChatGPT 5.2,BIRD,сложные,5,0.2759
+DeepSeek V3.2,BIRD,сложные,1,0.1724
+DeepSeek V3.2,BIRD,сложные,3,0.1931
+DeepSeek V3.2,BIRD,сложные,5,0.2069
+Defog-Llama3-SQLCoder-8B q4_0,BIRD,сложные,1,0.0621
+Defog-Llama3-SQLCoder-8B q4_0,BIRD,сложные,3,0.0828
+Defog-Llama3-SQLCoder-8B q4_0,BIRD,сложные,5,0.0828
+Hrida-T2SQL q8_0,BIRD,сложные,1,0.0069
+Hrida-T2SQL q8_0,BIRD,сложные,3,0.0069
+Hrida-T2SQL q8_0,BIRD,сложные,5,0.0069
+Arctic-Text2SQL-R1-7B,BIRD,средние,1,0.0905
+Arctic-Text2SQL-R1-7B,BIRD,средние,3,0.1099
+Arctic-Text2SQL-R1-7B,BIRD,средние,5,0.1099
+ChatGPT 5.2,BIRD,средние,1,0.1573
+ChatGPT 5.2,BIRD,средние,3,0.2349
+ChatGPT 5.2,BIRD,средние,5,0.25
+DeepSeek V3.2,BIRD,средние,1,0.2091
+DeepSeek V3.2,BIRD,средние,3,0.2371
+DeepSeek V3.2,BIRD,средние,5,0.2522
+Defog-Llama3-SQLCoder-8B q4_0,BIRD,средние,1,0.0237
+Defog-Llama3-SQLCoder-8B q4_0,BIRD,средние,3,0.0474
+Defog-Llama3-SQLCoder-8B q4_0,BIRD,средние,5,0.0474
+Hrida-T2SQL q8_0,BIRD,средние,1,0.0
+Hrida-T2SQL q8_0,BIRD,средние,3,0.0
+Hrida-T2SQL q8_0,BIRD,средние,5,0.0

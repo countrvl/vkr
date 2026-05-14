@@ -1,80 +1,104 @@
 # NL2SQL-домен
 
-`nl2sql/` - основной экспериментальный домен ВКР. Он содержит пайплайн
-генерации, execution-based оценки и анализа SQL-запросов для benchmark-ов
-`Spider`, `BIRD` и локального synthetic e-commerce benchmark (`SEB`).
+`nl2sql/` содержит пайплайн для оценки моделей в задаче text-to-SQL:
+генерации SQL-запроса по вопросу на естественном языке и схеме базы данных.
+Домен объединяет загрузку benchmark-ов, построение prompt-ов, инференс,
+execution-based оценку, расчет эффективности и подготовку отчетных
+артефактов.
 
-## Назначение
+## Benchmark-и и режимы
 
-Домен сравнивает два класса моделей:
+| Benchmark | Назначение | Данные |
+| --- | --- | --- |
+| `Spider` | Кросс-доменная text-to-SQL выборка | `data/nl2sql/spider/` |
+| `BIRD` | Прикладные SQL-задачи повышенной сложности | `data/nl2sql/bird/` |
+| `SEB` | Synthetic e-commerce benchmark на SQLite | `data/nl2sql/synthetic_ecommerce/` |
 
-- `M1` - крупные general-purpose LLM через API;
-- `M2` - компактные специализированные text-to-SQL модели через Ollama.
+Основные режимы:
 
-Основные метрики:
+- `ea` - single-shot генерация и оценка Execution Accuracy.
+- `pass_k` - многократная генерация и расчет Pass@K для `K = 1, 3, 5`.
 
-- `Execution Accuracy (EA)` - корректность результата выполнения SQL;
-- `Pass@K` - вероятность получить хотя бы один корректный SQL среди K
-  генераций;
-- `Efficiency (Eff)` - интегральная метрика вычислительного профиля;
-- latency, tokens, cost - компоненты эффективности.
+## Метрики
 
-`Expert Score` в текущем состоянии представлен только шаблоном
-`expert_scores_template.csv`. Это не отдельный количественный результат без
-протокола экспертной разметки.
+| Метрика | Содержание |
+| --- | --- |
+| `Execution Accuracy` | Совпадение результата выполнения предсказанного SQL с результатом gold SQL |
+| `Pass@K` | Доля задач, где хотя бы одна из K генераций проходит execution-based проверку |
+| `Efficiency` | Интегральный показатель на основе latency, token usage и cost |
+| `latency`, `tokens`, `cost` | Компоненты вычислительного профиля модели |
 
-## Актуальные модели
+Настройки метрик находятся в [`configs/metrics.yaml`](configs/metrics.yaml).
+Статистические интервалы рассчитываются с параметрами из этого же файла.
 
-Модели задаются в [`../shared/configs/models.yaml`](../shared/configs/models.yaml)
+## Модели
+
+Модели берутся из [`../shared/configs/models.yaml`](../shared/configs/models.yaml)
 и фильтруются по `supports_sql: true`.
 
-| Ключ | Отображаемое имя | Класс | Backend | Роль в текущем анализе |
-| --- | --- | --- | --- | --- |
-| `m1_deepseek` | `DeepSeek V3.2` | `M1` | API | основной |
-| `m1_chatgpt` | `ChatGPT 5.2` | `M1` | API | основной |
-| `m1_claude` | `Claude Sonnet 4.5` | `M1` | Anthropic | дополнительный EA |
-| `m2_arctic` | `Arctic-Text2SQL-R1-7B` | `M2` | Ollama | основной |
-| `m2_defog` | `Defog-Llama3-SQLCoder-8B q4_0` | `M2` | Ollama | основной |
-| `m2_hrida` | `Hrida-T2SQL q8_0` | `M2` | Ollama | основной |
+### Основной набор для `ea` и `pass_k`
 
-Неактивные или экспериментальные модели, например `Qwen`, `XiYanSQL` и старый
-`SQLCoder-7B`, не используются в основном сравнении без отдельного решения.
+| Класс | Ключ | Отображаемое имя | Backend |
+| --- | --- | --- | --- |
+| `M1` | `m1_deepseek` | `DeepSeek V3.2` | API |
+| `M1` | `m1_chatgpt` | `ChatGPT 5.2` | API |
+| `M2` | `m2_arctic` | `Arctic-Text2SQL-R1-7B` | Ollama |
+| `M2` | `m2_defog` | `Defog-Llama3-SQLCoder-8B q4_0` | Ollama |
+| `M2` | `m2_hrida` | `Hrida-T2SQL q8_0` | Ollama |
 
-## Benchmark-и
+### Дополнительная API-модель
 
-- `Spider` - кросс-доменный text-to-SQL benchmark.
-- `BIRD` - более сложный и реалистичный benchmark с большим числом прикладных
-  SQL-задач.
-- `SEB` - локальный synthetic e-commerce benchmark на SQLite. Он нужен для
-  контролируемой проверки поведения моделей и не заменяет Spider/BIRD.
+| Ключ | Отображаемое имя | Backend | Представление в артефактах |
+| --- | --- | --- | --- |
+| `m1_claude` | `Claude Sonnet 4.5` | Anthropic | Дополнительные EA-результаты |
+
+`Claude Sonnet 4.5` не включается в основной `pass_k` набор. Поэтому
+`results/nl2sql/metrics/pass_k/summary_metrics.csv` соответствует 5 основным
+SQL-моделям на 2 benchmark-ах, а
+`results/nl2sql/metrics/ea/summary_metrics.csv` дополнительно содержит строки
+для `Claude Sonnet 4.5`.
 
 ## Структура домена
 
 ```text
 nl2sql/
 ├── configs/       # experiment.yaml, metrics.yaml
-├── scripts/       # download, inference, evaluation, archive, SEB helpers
-├── src/           # data loaders, inference, prompts, evaluation
-├── notebooks/     # аналитические ноутбуки и материалы для приложений
-└── tests/         # тесты доменного кода
+├── notebooks/     # Отчеты, графики, материалы для приложений
+├── scripts/       # Download, inference, evaluation, archive, SEB helpers
+├── src/           # Loaders, prompts, inference, evaluation, strategy bench
+└── tests/         # Тесты доменного кода
 ```
 
-Входные данные находятся в `../data/nl2sql/`, результаты - в
-`../results/nl2sql/`.
+Ключевые файлы:
+
+- [`configs/experiment.yaml`](configs/experiment.yaml) - seed, sampling,
+  `k_values`, каталоги данных и raw-результатов.
+- [`configs/metrics.yaml`](configs/metrics.yaml) - веса эффективности,
+  bootstrap и параметры экспертной разметки.
+- [`src/prompt/template.py`](src/prompt/template.py) - сборка prompt-ов.
+- [`src/inference/runner.py`](src/inference/runner.py) - запуск инференса и
+  resume по raw JSONL.
+- [`src/evaluation/`](src/evaluation/) - EA, Pass@K, SQL executor,
+  efficiency.
 
 ## Подготовка окружения
+
+Из корня репозитория:
 
 ```bash
 uv sync
 cp .env.example .env
 ```
 
-Для API-моделей в `.env` должны быть заданы соответствующие ключи. Для
-локальных `M2` нужен запущенный Ollama:
+Для API-моделей в `.env` задаются ключи соответствующих провайдеров. Для
+локальных `M2` нужен Ollama:
 
 ```bash
 ollama serve
 ```
+
+Модели Ollama должны быть доступны по `model_id` из
+`../shared/configs/models.yaml`.
 
 ## Подготовка данных
 
@@ -82,20 +106,16 @@ ollama serve
 uv run python nl2sql/scripts/01_download_data.py --benchmark all
 ```
 
-Локальный SEB уже хранится в `data/nl2sql/synthetic_ecommerce/`. При
-необходимости его можно пересобрать и проверить:
+Подготовка и проверка synthetic e-commerce benchmark:
 
 ```bash
 uv run python nl2sql/scripts/07_prepare_synthetic_ecommerce.py
 uv run python nl2sql/scripts/08_validate_synthetic_ecommerce.py
 ```
 
-## Запуск inference
+## Запуск инференса
 
-Полный запуск может занимать много времени, особенно для `BIRD` и `pass_k`.
-Для длинных прогонов рекомендуется запускать модели отдельно.
-
-### EA
+### Execution Accuracy
 
 ```bash
 uv run python nl2sql/scripts/02_run_inference.py --model m1_deepseek --benchmark all --mode ea
@@ -103,6 +123,12 @@ uv run python nl2sql/scripts/02_run_inference.py --model m1_chatgpt --benchmark 
 uv run python nl2sql/scripts/02_run_inference.py --model m2_arctic --benchmark all --mode ea
 uv run python nl2sql/scripts/02_run_inference.py --model m2_defog --benchmark all --mode ea
 uv run python nl2sql/scripts/02_run_inference.py --model m2_hrida --benchmark all --mode ea
+```
+
+Дополнительная EA-модель:
+
+```bash
+uv run python nl2sql/scripts/02_run_inference.py --model m1_claude --benchmark all --mode ea
 ```
 
 ### Pass@K
@@ -115,7 +141,7 @@ uv run python nl2sql/scripts/02_run_inference.py --model m2_defog --benchmark al
 uv run python nl2sql/scripts/02_run_inference.py --model m2_hrida --benchmark all --mode pass_k
 ```
 
-Быстрый smoke-run:
+Smoke-run:
 
 ```bash
 uv run python nl2sql/scripts/02_run_inference.py --model m2_defog --benchmark spider --mode ea --limit 10
@@ -123,26 +149,58 @@ uv run python nl2sql/scripts/02_run_inference.py --model m2_defog --benchmark sp
 
 ## Оценка метрик
 
-Если raw JSONL уже лежат в `results/nl2sql/raw/`, метрики пересчитываются так:
-
 ```bash
 .venv/bin/python nl2sql/scripts/03_evaluate.py --run-label ea
 .venv/bin/python nl2sql/scripts/03_evaluate.py --run-label pass_k
 ```
 
-Результаты сохраняются в:
+Можно пересчитать оба режима одной командой:
 
-- `results/nl2sql/metrics/ea/summary_metrics.csv`;
-- `results/nl2sql/metrics/ea/sample_metrics.csv`;
-- `results/nl2sql/metrics/pass_k/summary_metrics.csv`;
-- `results/nl2sql/metrics/pass_k/sample_metrics.csv`.
+```bash
+.venv/bin/python nl2sql/scripts/03_evaluate.py --run-label all
+```
 
-Текущий `pass_k` собран как полный активный набор для 5 основных SQL-моделей:
-`5 моделей x 2 benchmark-а = 10 строк` в `summary_metrics.csv`.
+Выходные файлы:
+
+| Путь | Содержимое |
+| --- | --- |
+| `results/nl2sql/metrics/ea/summary_metrics.csv` | Агрегированные EA-метрики |
+| `results/nl2sql/metrics/ea/sample_metrics.csv` | EA на уровне отдельных примеров |
+| `results/nl2sql/metrics/pass_k/summary_metrics.csv` | Агрегированные Pass@K-метрики |
+| `results/nl2sql/metrics/pass_k/sample_metrics.csv` | Pass@K на уровне отдельных примеров |
+| `results/nl2sql/metrics/*/expert_scores_template.csv` | Шаблон для экспертной разметки |
+
+## Артефакты
+
+| Путь | Назначение |
+| --- | --- |
+| `results/nl2sql/raw/*.jsonl` | Raw-ответы моделей, один sample на строку |
+| `results/nl2sql/batches/` | Metadata batch-запусков |
+| `results/nl2sql/figures/ea/` | Графики для EA-отчета |
+| `results/nl2sql/figures/pass_k/` | Графики для Pass@K-отчета |
+| `results/nl2sql/figures/final/` | Итоговые графики |
+| `results/nl2sql/synthetic_benchmark/` | Результаты SEB |
+| `results/nl2sql/archive/` | Архивные артефакты, отделенные от основных таблиц |
+
+Для `ea` одна строка JSONL соответствует одному sample. Для `pass_k` одна
+строка также соответствует одному sample, а список генераций хранится внутри
+записи.
+
+Проверка размера raw-файлов:
+
+```bash
+ls -lh results/nl2sql/raw
+wc -l results/nl2sql/raw/*.jsonl
+```
+
+Размеры полных dev-наборов:
+
+- `Spider`: 1034 sample.
+- `BIRD`: 1534 sample.
 
 ## Ноутбуки
 
-Основные:
+Основные аналитические ноутбуки:
 
 ```bash
 jupyter lab nl2sql/notebooks/01_report_ea.ipynb
@@ -150,7 +208,7 @@ jupyter lab nl2sql/notebooks/02_report_pass_k.ipynb
 jupyter lab final_nl2sql_analysis.ipynb
 ```
 
-Материалы для приложений ВКР:
+Материалы для приложений:
 
 ```bash
 jupyter lab nl2sql/notebooks/06_appendix_materials.ipynb
@@ -164,7 +222,7 @@ jupyter lab nl2sql/notebooks/04_synthetic_ecommerce_dataset_description.ipynb
 jupyter lab nl2sql/notebooks/05_synthetic_ecommerce_benchmark_analysis.ipynb
 ```
 
-Пересборка ноутбуков без ручного открытия:
+Пересборка без открытия Jupyter:
 
 ```bash
 .venv/bin/python -m jupyter nbconvert --to notebook --execute --inplace nl2sql/notebooks/01_report_ea.ipynb
@@ -173,41 +231,21 @@ jupyter lab nl2sql/notebooks/05_synthetic_ecommerce_benchmark_analysis.ipynb
 .venv/bin/python -m jupyter nbconvert --to notebook --execute --inplace nl2sql/notebooks/06_appendix_materials.ipynb
 ```
 
-## Артефакты
-
-Активные:
-
-- `results/nl2sql/raw/*.jsonl` - raw inference;
-- `results/nl2sql/metrics/ea/*.csv` - EA-метрики;
-- `results/nl2sql/metrics/pass_k/*.csv` - Pass@K-метрики;
-- `results/nl2sql/figures/ea/*.png` - графики EA;
-- `results/nl2sql/figures/pass_k/*.png` - графики Pass@K;
-- `results/nl2sql/figures/final/*.png` - итоговые графики;
-- `results/nl2sql/synthetic_benchmark/` - результаты SEB.
-
-Архивные и неполные результаты находятся в `results/nl2sql/archive/`. Их не
-следует смешивать с активными таблицами без явного указания.
-
-## Проверка статуса raw-прогонов
+## Архивация
 
 ```bash
-ls -lh results/nl2sql/raw
-wc -l results/nl2sql/raw/*.jsonl
+.venv/bin/python nl2sql/scripts/04_archive_results.py --dry-run
+.venv/bin/python nl2sql/scripts/04_archive_results.py --label before_new_run
+.venv/bin/python nl2sql/scripts/04_archive_results.py --scope ea --label before_pass_k
 ```
 
-Для `ea` одна строка JSONL соответствует одному sample. Для `pass_k` одна строка
-также соответствует одному sample, но внутри записи хранится список из K
-генераций.
-
-Ожидаемые размеры активных полных прогонов:
-
-- `Spider`: 1034 sample;
-- `BIRD`: 1534 sample.
+Архивация переносит выбранные артефакты в `results/nl2sql/archive/` и
+позволяет отделять новые прогоны от предыдущих наборов raw/metrics/figures.
 
 ## Strategy Bench
 
-`nl2sql/src/strategy_bench/` - отдельный экспериментальный модуль для
-production-like сценариев на read-only PostgreSQL. Он сравнивает стратегии:
+`nl2sql/src/strategy_bench/` содержит отдельный контур для production-like
+сценариев на read-only PostgreSQL. Поддерживаются стратегии:
 
 - `generate_only`;
 - `generate_validate_retry`;
@@ -224,15 +262,4 @@ uv run python -m nl2sql.src.strategy_bench.cli \
   --catalog-path path/to/catalog.yaml
 ```
 
-Этот контур отделен от Spider/BIRD и не участвует в основных таблицах NL2SQL,
-если не указано отдельно.
-
-## Важные ограничения интерпретации
-
-- Сравнивать модели корректно только при одинаковом benchmark-е и полном
-  покрытии выборки.
-- Smoke-run и неполные raw-файлы не используются для итоговых выводов.
-- Старый `SQLCoder-7B` не является активным baseline.
-- `expert_scores_template.csv` - только заготовка для экспертной разметки.
-- Архивные результаты могут быть полезны для истории экспериментов, но не
-  являются источником текущих таблиц ВКР.
+Этот контур отделен от Spider/BIRD/SEB и имеет собственные входные данные.
