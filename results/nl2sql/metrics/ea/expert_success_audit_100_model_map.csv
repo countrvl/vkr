@@ -1,0 +1,101 @@
+audit_id,blind_model_id,model_name,model_display_name,benchmark,sample_id,source_path
+EA-001,M01,DeepSeek,DeepSeek V3.2,bird,bird_769,/home/count/code/vkr/results/nl2sql/raw/DeepSeek_bird_ea_20260327_192459.jsonl
+EA-002,M01,DeepSeek,DeepSeek V3.2,bird,bird_990,/home/count/code/vkr/results/nl2sql/raw/DeepSeek_bird_ea_20260327_192459.jsonl
+EA-003,M01,DeepSeek,DeepSeek V3.2,bird,bird_615,/home/count/code/vkr/results/nl2sql/raw/DeepSeek_bird_ea_20260327_192459.jsonl
+EA-004,M01,DeepSeek,DeepSeek V3.2,bird,bird_794,/home/count/code/vkr/results/nl2sql/raw/DeepSeek_bird_ea_20260327_192459.jsonl
+EA-005,M01,DeepSeek,DeepSeek V3.2,bird,bird_1038,/home/count/code/vkr/results/nl2sql/raw/DeepSeek_bird_ea_20260327_192459.jsonl
+EA-006,M01,DeepSeek,DeepSeek V3.2,bird,bird_840,/home/count/code/vkr/results/nl2sql/raw/DeepSeek_bird_ea_20260327_192459.jsonl
+EA-007,M01,DeepSeek,DeepSeek V3.2,bird,bird_1184,/home/count/code/vkr/results/nl2sql/raw/DeepSeek_bird_ea_20260327_192459.jsonl
+EA-008,M01,DeepSeek,DeepSeek V3.2,bird,bird_299,/home/count/code/vkr/results/nl2sql/raw/DeepSeek_bird_ea_20260327_192459.jsonl
+EA-009,M01,DeepSeek,DeepSeek V3.2,bird,bird_147,/home/count/code/vkr/results/nl2sql/raw/DeepSeek_bird_ea_20260327_192459.jsonl
+EA-010,M01,DeepSeek,DeepSeek V3.2,bird,bird_549,/home/count/code/vkr/results/nl2sql/raw/DeepSeek_bird_ea_20260327_192459.jsonl
+EA-011,M02,ChatGPT,ChatGPT 5.2,bird,bird_1076,/home/count/code/vkr/results/nl2sql/raw/ChatGPT_bird_ea_20260327_212818.jsonl
+EA-012,M02,ChatGPT,ChatGPT 5.2,bird,bird_206,/home/count/code/vkr/results/nl2sql/raw/ChatGPT_bird_ea_20260327_212818.jsonl
+EA-013,M02,ChatGPT,ChatGPT 5.2,bird,bird_397,/home/count/code/vkr/results/nl2sql/raw/ChatGPT_bird_ea_20260327_212818.jsonl
+EA-014,M02,ChatGPT,ChatGPT 5.2,bird,bird_942,/home/count/code/vkr/results/nl2sql/raw/ChatGPT_bird_ea_20260327_212818.jsonl
+EA-015,M02,ChatGPT,ChatGPT 5.2,bird,bird_1311,/home/count/code/vkr/results/nl2sql/raw/ChatGPT_bird_ea_20260327_212818.jsonl
+EA-016,M02,ChatGPT,ChatGPT 5.2,bird,bird_1374,/home/count/code/vkr/results/nl2sql/raw/ChatGPT_bird_ea_20260327_212818.jsonl
+EA-017,M02,ChatGPT,ChatGPT 5.2,bird,bird_885,/home/count/code/vkr/results/nl2sql/raw/ChatGPT_bird_ea_20260327_212818.jsonl
+EA-018,M02,ChatGPT,ChatGPT 5.2,bird,bird_795,/home/count/code/vkr/results/nl2sql/raw/ChatGPT_bird_ea_20260327_212818.jsonl
+EA-019,M02,ChatGPT,ChatGPT 5.2,bird,bird_545,/home/count/code/vkr/results/nl2sql/raw/ChatGPT_bird_ea_20260327_212818.jsonl
+EA-020,M02,ChatGPT,ChatGPT 5.2,bird,bird_1176,/home/count/code/vkr/results/nl2sql/raw/ChatGPT_bird_ea_20260327_212818.jsonl
+EA-021,M03,Defog-Llama3-SQLCoder-8B,Defog-Llama3-SQLCoder-8B q4_0,bird,bird_1429,/home/count/code/vkr/results/nl2sql/raw/Defog-Llama3-SQLCoder-8B_bird_ea_20260406_223239.jsonl
+EA-022,M03,Defog-Llama3-SQLCoder-8B,Defog-Llama3-SQLCoder-8B q4_0,bird,bird_322,/home/count/code/vkr/results/nl2sql/raw/Defog-Llama3-SQLCoder-8B_bird_ea_20260406_223239.jsonl
+EA-023,M03,Defog-Llama3-SQLCoder-8B,Defog-Llama3-SQLCoder-8B q4_0,bird,bird_1405,/home/count/code/vkr/results/nl2sql/raw/Defog-Llama3-SQLCoder-8B_bird_ea_20260406_223239.jsonl
+EA-024,M03,Defog-Llama3-SQLCoder-8B,Defog-Llama3-SQLCoder-8B q4_0,bird,bird_243,/home/count/code/vkr/results/nl2sql/raw/Defog-Llama3-SQLCoder-8B_bird_ea_20260406_223239.jsonl
+EA-025,M03,Defog-Llama3-SQLCoder-8B,Defog-Llama3-SQLCoder-8B q4_0,bird,bird_707,/home/count/code/vkr/results/nl2sql/raw/Defog-Llama3-SQLCoder-8B_bird_ea_20260406_223239.jsonl
+EA-026,M03,Defog-Llama3-SQLCoder-8B,Defog-Llama3-SQLCoder-8B q4_0,bird,bird_735,/home/count/code/vkr/results/nl2sql/raw/Defog-Llama3-SQLCoder-8B_bird_ea_20260406_223239.jsonl
+EA-027,M03,Defog-Llama3-SQLCoder-8B,Defog-Llama3-SQLCoder-8B q4_0,bird,bird_316,/home/count/code/vkr/results/nl2sql/raw/Defog-Llama3-SQLCoder-8B_bird_ea_20260406_223239.jsonl
+EA-028,M03,Defog-Llama3-SQLCoder-8B,Defog-Llama3-SQLCoder-8B q4_0,bird,bird_574,/home/count/code/vkr/results/nl2sql/raw/Defog-Llama3-SQLCoder-8B_bird_ea_20260406_223239.jsonl
+EA-029,M03,Defog-Llama3-SQLCoder-8B,Defog-Llama3-SQLCoder-8B q4_0,bird,bird_1355,/home/count/code/vkr/results/nl2sql/raw/Defog-Llama3-SQLCoder-8B_bird_ea_20260406_223239.jsonl
+EA-030,M03,Defog-Llama3-SQLCoder-8B,Defog-Llama3-SQLCoder-8B q4_0,bird,bird_404,/home/count/code/vkr/results/nl2sql/raw/Defog-Llama3-SQLCoder-8B_bird_ea_20260406_223239.jsonl
+EA-031,M04,Hrida-T2SQL,Hrida-T2SQL q8_0,bird,bird_212,/home/count/code/vkr/results/nl2sql/raw/Hrida-T2SQL_bird_ea_20260406_230024.jsonl
+EA-032,M04,Hrida-T2SQL,Hrida-T2SQL q8_0,bird,bird_1194,/home/count/code/vkr/results/nl2sql/raw/Hrida-T2SQL_bird_ea_20260406_230024.jsonl
+EA-033,M04,Hrida-T2SQL,Hrida-T2SQL q8_0,bird,bird_830,/home/count/code/vkr/results/nl2sql/raw/Hrida-T2SQL_bird_ea_20260406_230024.jsonl
+EA-034,M04,Hrida-T2SQL,Hrida-T2SQL q8_0,bird,bird_151,/home/count/code/vkr/results/nl2sql/raw/Hrida-T2SQL_bird_ea_20260406_230024.jsonl
+EA-035,M04,Hrida-T2SQL,Hrida-T2SQL q8_0,bird,bird_657,/home/count/code/vkr/results/nl2sql/raw/Hrida-T2SQL_bird_ea_20260406_230024.jsonl
+EA-036,M04,Hrida-T2SQL,Hrida-T2SQL q8_0,bird,bird_605,/home/count/code/vkr/results/nl2sql/raw/Hrida-T2SQL_bird_ea_20260406_230024.jsonl
+EA-037,M04,Hrida-T2SQL,Hrida-T2SQL q8_0,bird,bird_121,/home/count/code/vkr/results/nl2sql/raw/Hrida-T2SQL_bird_ea_20260406_230024.jsonl
+EA-038,M04,Hrida-T2SQL,Hrida-T2SQL q8_0,bird,bird_1343,/home/count/code/vkr/results/nl2sql/raw/Hrida-T2SQL_bird_ea_20260406_230024.jsonl
+EA-039,M04,Hrida-T2SQL,Hrida-T2SQL q8_0,bird,bird_1495,/home/count/code/vkr/results/nl2sql/raw/Hrida-T2SQL_bird_ea_20260406_230024.jsonl
+EA-040,M04,Hrida-T2SQL,Hrida-T2SQL q8_0,bird,bird_946,/home/count/code/vkr/results/nl2sql/raw/Hrida-T2SQL_bird_ea_20260406_230024.jsonl
+EA-041,M05,Arctic-Text2SQL-R1-7B,Arctic-Text2SQL-R1-7B,bird,bird_760,/home/count/code/vkr/results/nl2sql/raw/Arctic-Text2SQL-R1-7B_bird_ea_20260407_005256.jsonl
+EA-042,M05,Arctic-Text2SQL-R1-7B,Arctic-Text2SQL-R1-7B,bird,bird_330,/home/count/code/vkr/results/nl2sql/raw/Arctic-Text2SQL-R1-7B_bird_ea_20260407_005256.jsonl
+EA-043,M05,Arctic-Text2SQL-R1-7B,Arctic-Text2SQL-R1-7B,bird,bird_782,/home/count/code/vkr/results/nl2sql/raw/Arctic-Text2SQL-R1-7B_bird_ea_20260407_005256.jsonl
+EA-044,M05,Arctic-Text2SQL-R1-7B,Arctic-Text2SQL-R1-7B,bird,bird_940,/home/count/code/vkr/results/nl2sql/raw/Arctic-Text2SQL-R1-7B_bird_ea_20260407_005256.jsonl
+EA-045,M05,Arctic-Text2SQL-R1-7B,Arctic-Text2SQL-R1-7B,bird,bird_100,/home/count/code/vkr/results/nl2sql/raw/Arctic-Text2SQL-R1-7B_bird_ea_20260407_005256.jsonl
+EA-046,M05,Arctic-Text2SQL-R1-7B,Arctic-Text2SQL-R1-7B,bird,bird_29,/home/count/code/vkr/results/nl2sql/raw/Arctic-Text2SQL-R1-7B_bird_ea_20260407_005256.jsonl
+EA-047,M05,Arctic-Text2SQL-R1-7B,Arctic-Text2SQL-R1-7B,bird,bird_669,/home/count/code/vkr/results/nl2sql/raw/Arctic-Text2SQL-R1-7B_bird_ea_20260407_005256.jsonl
+EA-048,M05,Arctic-Text2SQL-R1-7B,Arctic-Text2SQL-R1-7B,bird,bird_997,/home/count/code/vkr/results/nl2sql/raw/Arctic-Text2SQL-R1-7B_bird_ea_20260407_005256.jsonl
+EA-049,M05,Arctic-Text2SQL-R1-7B,Arctic-Text2SQL-R1-7B,bird,bird_1422,/home/count/code/vkr/results/nl2sql/raw/Arctic-Text2SQL-R1-7B_bird_ea_20260407_005256.jsonl
+EA-050,M05,Arctic-Text2SQL-R1-7B,Arctic-Text2SQL-R1-7B,bird,bird_526,/home/count/code/vkr/results/nl2sql/raw/Arctic-Text2SQL-R1-7B_bird_ea_20260407_005256.jsonl
+EA-051,M01,DeepSeek,DeepSeek V3.2,spider,spider_711,/home/count/code/vkr/results/nl2sql/raw/DeepSeek_spider_ea_20260327_183351.jsonl
+EA-052,M01,DeepSeek,DeepSeek V3.2,spider,spider_669,/home/count/code/vkr/results/nl2sql/raw/DeepSeek_spider_ea_20260327_183351.jsonl
+EA-053,M01,DeepSeek,DeepSeek V3.2,spider,spider_588,/home/count/code/vkr/results/nl2sql/raw/DeepSeek_spider_ea_20260327_183351.jsonl
+EA-054,M01,DeepSeek,DeepSeek V3.2,spider,spider_978,/home/count/code/vkr/results/nl2sql/raw/DeepSeek_spider_ea_20260327_183351.jsonl
+EA-055,M01,DeepSeek,DeepSeek V3.2,spider,spider_345,/home/count/code/vkr/results/nl2sql/raw/DeepSeek_spider_ea_20260327_183351.jsonl
+EA-056,M01,DeepSeek,DeepSeek V3.2,spider,spider_837,/home/count/code/vkr/results/nl2sql/raw/DeepSeek_spider_ea_20260327_183351.jsonl
+EA-057,M01,DeepSeek,DeepSeek V3.2,spider,spider_447,/home/count/code/vkr/results/nl2sql/raw/DeepSeek_spider_ea_20260327_183351.jsonl
+EA-058,M01,DeepSeek,DeepSeek V3.2,spider,spider_383,/home/count/code/vkr/results/nl2sql/raw/DeepSeek_spider_ea_20260327_183351.jsonl
+EA-059,M01,DeepSeek,DeepSeek V3.2,spider,spider_33,/home/count/code/vkr/results/nl2sql/raw/DeepSeek_spider_ea_20260327_183351.jsonl
+EA-060,M01,DeepSeek,DeepSeek V3.2,spider,spider_497,/home/count/code/vkr/results/nl2sql/raw/DeepSeek_spider_ea_20260327_183351.jsonl
+EA-061,M02,ChatGPT,ChatGPT 5.2,spider,spider_532,/home/count/code/vkr/results/nl2sql/raw/ChatGPT_spider_ea_20260327_205536.jsonl
+EA-062,M02,ChatGPT,ChatGPT 5.2,spider,spider_752,/home/count/code/vkr/results/nl2sql/raw/ChatGPT_spider_ea_20260327_205536.jsonl
+EA-063,M02,ChatGPT,ChatGPT 5.2,spider,spider_506,/home/count/code/vkr/results/nl2sql/raw/ChatGPT_spider_ea_20260327_205536.jsonl
+EA-064,M02,ChatGPT,ChatGPT 5.2,spider,spider_12,/home/count/code/vkr/results/nl2sql/raw/ChatGPT_spider_ea_20260327_205536.jsonl
+EA-065,M02,ChatGPT,ChatGPT 5.2,spider,spider_425,/home/count/code/vkr/results/nl2sql/raw/ChatGPT_spider_ea_20260327_205536.jsonl
+EA-066,M02,ChatGPT,ChatGPT 5.2,spider,spider_1013,/home/count/code/vkr/results/nl2sql/raw/ChatGPT_spider_ea_20260327_205536.jsonl
+EA-067,M02,ChatGPT,ChatGPT 5.2,spider,spider_314,/home/count/code/vkr/results/nl2sql/raw/ChatGPT_spider_ea_20260327_205536.jsonl
+EA-068,M02,ChatGPT,ChatGPT 5.2,spider,spider_864,/home/count/code/vkr/results/nl2sql/raw/ChatGPT_spider_ea_20260327_205536.jsonl
+EA-069,M02,ChatGPT,ChatGPT 5.2,spider,spider_668,/home/count/code/vkr/results/nl2sql/raw/ChatGPT_spider_ea_20260327_205536.jsonl
+EA-070,M02,ChatGPT,ChatGPT 5.2,spider,spider_483,/home/count/code/vkr/results/nl2sql/raw/ChatGPT_spider_ea_20260327_205536.jsonl
+EA-071,M03,Defog-Llama3-SQLCoder-8B,Defog-Llama3-SQLCoder-8B q4_0,spider,spider_290,/home/count/code/vkr/results/nl2sql/raw/Defog-Llama3-SQLCoder-8B_spider_ea_20260406_222315.jsonl
+EA-072,M03,Defog-Llama3-SQLCoder-8B,Defog-Llama3-SQLCoder-8B q4_0,spider,spider_299,/home/count/code/vkr/results/nl2sql/raw/Defog-Llama3-SQLCoder-8B_spider_ea_20260406_222315.jsonl
+EA-073,M03,Defog-Llama3-SQLCoder-8B,Defog-Llama3-SQLCoder-8B q4_0,spider,spider_222,/home/count/code/vkr/results/nl2sql/raw/Defog-Llama3-SQLCoder-8B_spider_ea_20260406_222315.jsonl
+EA-074,M03,Defog-Llama3-SQLCoder-8B,Defog-Llama3-SQLCoder-8B q4_0,spider,spider_136,/home/count/code/vkr/results/nl2sql/raw/Defog-Llama3-SQLCoder-8B_spider_ea_20260406_222315.jsonl
+EA-075,M03,Defog-Llama3-SQLCoder-8B,Defog-Llama3-SQLCoder-8B q4_0,spider,spider_692,/home/count/code/vkr/results/nl2sql/raw/Defog-Llama3-SQLCoder-8B_spider_ea_20260406_222315.jsonl
+EA-076,M03,Defog-Llama3-SQLCoder-8B,Defog-Llama3-SQLCoder-8B q4_0,spider,spider_893,/home/count/code/vkr/results/nl2sql/raw/Defog-Llama3-SQLCoder-8B_spider_ea_20260406_222315.jsonl
+EA-077,M03,Defog-Llama3-SQLCoder-8B,Defog-Llama3-SQLCoder-8B q4_0,spider,spider_770,/home/count/code/vkr/results/nl2sql/raw/Defog-Llama3-SQLCoder-8B_spider_ea_20260406_222315.jsonl
+EA-078,M03,Defog-Llama3-SQLCoder-8B,Defog-Llama3-SQLCoder-8B q4_0,spider,spider_1006,/home/count/code/vkr/results/nl2sql/raw/Defog-Llama3-SQLCoder-8B_spider_ea_20260406_222315.jsonl
+EA-079,M03,Defog-Llama3-SQLCoder-8B,Defog-Llama3-SQLCoder-8B q4_0,spider,spider_674,/home/count/code/vkr/results/nl2sql/raw/Defog-Llama3-SQLCoder-8B_spider_ea_20260406_222315.jsonl
+EA-080,M03,Defog-Llama3-SQLCoder-8B,Defog-Llama3-SQLCoder-8B q4_0,spider,spider_29,/home/count/code/vkr/results/nl2sql/raw/Defog-Llama3-SQLCoder-8B_spider_ea_20260406_222315.jsonl
+EA-081,M04,Hrida-T2SQL,Hrida-T2SQL q8_0,spider,spider_403,/home/count/code/vkr/results/nl2sql/raw/Hrida-T2SQL_spider_ea_20260406_225146.jsonl
+EA-082,M04,Hrida-T2SQL,Hrida-T2SQL q8_0,spider,spider_319,/home/count/code/vkr/results/nl2sql/raw/Hrida-T2SQL_spider_ea_20260406_225146.jsonl
+EA-083,M04,Hrida-T2SQL,Hrida-T2SQL q8_0,spider,spider_703,/home/count/code/vkr/results/nl2sql/raw/Hrida-T2SQL_spider_ea_20260406_225146.jsonl
+EA-084,M04,Hrida-T2SQL,Hrida-T2SQL q8_0,spider,spider_145,/home/count/code/vkr/results/nl2sql/raw/Hrida-T2SQL_spider_ea_20260406_225146.jsonl
+EA-085,M04,Hrida-T2SQL,Hrida-T2SQL q8_0,spider,spider_953,/home/count/code/vkr/results/nl2sql/raw/Hrida-T2SQL_spider_ea_20260406_225146.jsonl
+EA-086,M04,Hrida-T2SQL,Hrida-T2SQL q8_0,spider,spider_700,/home/count/code/vkr/results/nl2sql/raw/Hrida-T2SQL_spider_ea_20260406_225146.jsonl
+EA-087,M04,Hrida-T2SQL,Hrida-T2SQL q8_0,spider,spider_659,/home/count/code/vkr/results/nl2sql/raw/Hrida-T2SQL_spider_ea_20260406_225146.jsonl
+EA-088,M04,Hrida-T2SQL,Hrida-T2SQL q8_0,spider,spider_623,/home/count/code/vkr/results/nl2sql/raw/Hrida-T2SQL_spider_ea_20260406_225146.jsonl
+EA-089,M04,Hrida-T2SQL,Hrida-T2SQL q8_0,spider,spider_1003,/home/count/code/vkr/results/nl2sql/raw/Hrida-T2SQL_spider_ea_20260406_225146.jsonl
+EA-090,M04,Hrida-T2SQL,Hrida-T2SQL q8_0,spider,spider_187,/home/count/code/vkr/results/nl2sql/raw/Hrida-T2SQL_spider_ea_20260406_225146.jsonl
+EA-091,M05,Arctic-Text2SQL-R1-7B,Arctic-Text2SQL-R1-7B,spider,spider_185,/home/count/code/vkr/results/nl2sql/raw/Arctic-Text2SQL-R1-7B_spider_ea_20260406_232900.jsonl
+EA-092,M05,Arctic-Text2SQL-R1-7B,Arctic-Text2SQL-R1-7B,spider,spider_373,/home/count/code/vkr/results/nl2sql/raw/Arctic-Text2SQL-R1-7B_spider_ea_20260406_232900.jsonl
+EA-093,M05,Arctic-Text2SQL-R1-7B,Arctic-Text2SQL-R1-7B,spider,spider_393,/home/count/code/vkr/results/nl2sql/raw/Arctic-Text2SQL-R1-7B_spider_ea_20260406_232900.jsonl
+EA-094,M05,Arctic-Text2SQL-R1-7B,Arctic-Text2SQL-R1-7B,spider,spider_153,/home/count/code/vkr/results/nl2sql/raw/Arctic-Text2SQL-R1-7B_spider_ea_20260406_232900.jsonl
+EA-095,M05,Arctic-Text2SQL-R1-7B,Arctic-Text2SQL-R1-7B,spider,spider_729,/home/count/code/vkr/results/nl2sql/raw/Arctic-Text2SQL-R1-7B_spider_ea_20260406_232900.jsonl
+EA-096,M05,Arctic-Text2SQL-R1-7B,Arctic-Text2SQL-R1-7B,spider,spider_284,/home/count/code/vkr/results/nl2sql/raw/Arctic-Text2SQL-R1-7B_spider_ea_20260406_232900.jsonl
+EA-097,M05,Arctic-Text2SQL-R1-7B,Arctic-Text2SQL-R1-7B,spider,spider_501,/home/count/code/vkr/results/nl2sql/raw/Arctic-Text2SQL-R1-7B_spider_ea_20260406_232900.jsonl
+EA-098,M05,Arctic-Text2SQL-R1-7B,Arctic-Text2SQL-R1-7B,spider,spider_863,/home/count/code/vkr/results/nl2sql/raw/Arctic-Text2SQL-R1-7B_spider_ea_20260406_232900.jsonl
+EA-099,M05,Arctic-Text2SQL-R1-7B,Arctic-Text2SQL-R1-7B,spider,spider_22,/home/count/code/vkr/results/nl2sql/raw/Arctic-Text2SQL-R1-7B_spider_ea_20260406_232900.jsonl
+EA-100,M05,Arctic-Text2SQL-R1-7B,Arctic-Text2SQL-R1-7B,spider,spider_619,/home/count/code/vkr/results/nl2sql/raw/Arctic-Text2SQL-R1-7B_spider_ea_20260406_232900.jsonl

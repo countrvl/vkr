@@ -1,0 +1,175 @@
+Модель,Бенчмарк,ID примера,Сложность,Вопрос,Сгенерированный SQL,Эталонный SQL,Исход,Текст ошибки,Краткий комментарий
+Arctic-Text2SQL-R1-7B,BIRD,bird_1,средние,Please list the lowest three eligible free rates for students aged 5-17 in continuation schools.,"SELECT 
+    `County Name`, 
+    `District Name`, 
+    `School Name`, 
+    (`Free Meal Count (Ages 5-17)` / `Enrollment (Ages 5-17)`) * 100 AS EligibleFreeRate
+FROM frpm
+WHERE `School Type` = 'Continuation School'
+ORDER BY EligibleFreeRate ASC
+LIMIT 3",SELECT `Free Meal Count (Ages 5-17)` / `Enrollment (Ages 5-17)` FROM frpm WHERE `Educational Option Type` = 'Continuation School' AND `Free Meal Count (Ages 5-17)` / `Enrollment (Ages 5-17)` IS NOT NULL ORDER BY `Free Meal Count (Ages 5-17)` / `Enrollment (Ages 5-17)` ASC LIMIT 3,некорректный результат,,"SQL выполнился, но результат не совпал с эталоном."
+Arctic-Text2SQL-R1-7B,BIRD,bird_2,простые,Please list the zip code of all the charter schools in Fresno County Office of Education.,"SELECT DISTINCT s.Zip
+FROM schools AS s
+INNER JOIN frpm AS f ON s.CDSCode = f.CDSCode
+WHERE s.Charter = 1 AND f.`District Type` = 'Fresno County Office of Education'",SELECT T2.Zip FROM frpm AS T1 INNER JOIN schools AS T2 ON T1.CDSCode = T2.CDSCode WHERE T1.`District Name` = 'Fresno County Office of Education' AND T1.`Charter School (Y/N)` = 1,некорректный результат,,"SQL выполнился, но результат не совпал с эталоном."
+Arctic-Text2SQL-R1-7B,BIRD,bird_4,средние,Please list the phone numbers of the direct charter-funded schools that are opened after 2000/1/1.,"SELECT DISTINCT s.Phone
+FROM schools AS s
+INNER JOIN frpm AS f ON s.CDSCode = f.CDSCode
+WHERE f.`Charter School (Y/N)` = 1 AND s.OpenDate > '2000-01-01'",SELECT T2.Phone FROM frpm AS T1 INNER JOIN schools AS T2 ON T1.CDSCode = T2.CDSCode WHERE T1.`Charter Funding Type` = 'Directly funded' AND T1.`Charter School (Y/N)` = 1 AND T2.OpenDate > '2000-01-01',некорректный результат,,"SQL выполнился, но результат не совпал с эталоном."
+Arctic-Text2SQL-R1-7B,BIRD,bird_6,простые,"Among the schools with the SAT test takers of over 500, please list the schools that are magnet schools or offer a magnet program.","SELECT DISTINCT s.School
+FROM schools AS s
+INNER JOIN satscores AS ss ON s.CDSCode = ss.cds
+WHERE (s.Magnet = 1 OR ss.NumTstTakr > 500)",SELECT T2.School FROM satscores AS T1 INNER JOIN schools AS T2 ON T1.cds = T2.CDSCode WHERE T2.Magnet = 1 AND T1.NumTstTakr > 500,некорректный результат,,"SQL выполнился, но результат не совпал с эталоном."
+Arctic-Text2SQL-R1-7B,BIRD,bird_9,простые,"Among the schools with the average score in Math over 560 in the SAT test, how many schools are directly charter-funded?","SELECT COUNT(*) AS DirectlyCharterFundedCount
+FROM schools s
+INNER JOIN satscores ss ON s.CDSCode = ss.cds
+WHERE ss.AvgScrMath > 560 AND s.FundingType = 'Direct'",SELECT COUNT(T2.`School Code`) FROM satscores AS T1 INNER JOIN frpm AS T2 ON T1.cds = T2.CDSCode WHERE T1.AvgScrMath > 560 AND T2.`Charter Funding Type` = 'Directly funded',некорректный результат,,"SQL выполнился, но результат не совпал с эталоном."
+Arctic-Text2SQL-R1-7B,BIRD,bird_10,простые,"For the school with the highest average score in Reading in the SAT test, what is its FRPM count for students aged 5-17?","SELECT 
+    f.`FRPM Count (Ages 5-17)`
+FROM 
+    satscores s
+INNER JOIN 
+    frpm f ON s.cds = f.CDSCode
+WHERE 
+    s.rtype = 'Total'
+ORDER BY 
+    s.AvgScrRead DESC
+LIMIT 1",SELECT T2.`FRPM Count (Ages 5-17)` FROM satscores AS T1 INNER JOIN frpm AS T2 ON T1.cds = T2.CDSCode ORDER BY T1.AvgScrRead DESC LIMIT 1,некорректный результат,,"SQL выполнился, но результат не совпал с эталоном."
+Arctic-Text2SQL-R1-7B,BIRD,bird_15,простые,Which active district has the highest average score in Reading?,"SELECT 
+    T2.dname AS DistrictName,
+    AVG(T2.AvgScrRead) AS AverageReadingScore
+FROM 
+    schools AS T1
+INNER JOIN 
+    satscores AS T2 ON T1.CDSCode = T2.cds
+WHERE 
+    T1.StatusType = 'Active'
+GROUP BY 
+    T2.dname
+ORDER BY 
+    AVG(T2.AvgScrRead) DESC
+LIMIT 1",SELECT T1.District FROM schools AS T1 INNER JOIN satscores AS T2 ON T1.CDSCode = T2.cds WHERE T1.StatusType = 'Active' ORDER BY T2.AvgScrRead DESC LIMIT 1,некорректный результат,,"SQL выполнился, но результат не совпал с эталоном."
+Arctic-Text2SQL-R1-7B,BIRD,bird_16,простые,How many schools in merged Alameda have number of test takers less than 100?,"SELECT 
+    COUNT(*) AS TotalSchools
+FROM 
+    satscores ss
+JOIN 
+    schools s ON ss.cds = s.CDSCode
+WHERE 
+    s.County = 'Alameda' AND 
+    s.District = 'Merged' AND 
+    ss.NumTstTakr < 100",SELECT COUNT(T1.CDSCode) FROM schools AS T1 INNER JOIN satscores AS T2 ON T1.CDSCode = T2.cds WHERE T1.StatusType = 'Merged' AND T2.NumTstTakr < 100 AND T1.County = 'Lake',некорректный результат,,"SQL выполнился, но результат не совпал с эталоном."
+Arctic-Text2SQL-R1-7B,BIRD,bird_17,простые,"Rank schools by their average score in Writing where the score is greater than 499, showing their charter numbers.","SELECT 
+    s.CharterNum,
+    ss.AvgScrWrite AS AvgWritingScore
+FROM 
+    schools s
+INNER JOIN 
+    satscores ss ON s.CDSCode = ss.cds
+WHERE 
+    ss.AvgScrWrite > 499
+ORDER BY 
+    ss.AvgScrWrite DESC","SELECT CharterNum, AvgScrWrite, RANK() OVER (ORDER BY AvgScrWrite DESC) AS WritingScoreRank FROM schools AS T1  INNER JOIN satscores AS T2 ON T1.CDSCode = T2.cds WHERE T2.AvgScrWrite > 499 AND CharterNum is not null",некорректный результат,,"SQL выполнился, но результат не совпал с эталоном."
+Arctic-Text2SQL-R1-7B,BIRD,bird_18,простые,How many schools in Fresno (directly funded) have number of test takers not more than 250?,"SELECT 
+    COUNT(*) AS Total_Schools
+FROM 
+    satscores ss
+INNER JOIN 
+    schools s ON ss.cds = s.CDSCode
+WHERE 
+    s.County = 'Fresno' AND 
+    s.FundingType = 'Direct' AND 
+    ss.NumTstTakr <= 250",SELECT COUNT(T1.CDSCode) FROM frpm AS T1 INNER JOIN satscores AS T2 ON T1.CDSCode = T2.cds WHERE T1.`Charter Funding Type` = 'Directly funded' AND T1.`County Name` = 'Fresno' AND T2.NumTstTakr <= 250,некорректный результат,,"SQL выполнился, но результат не совпал с эталоном."
+Arctic-Text2SQL-R1-7B,BIRD,bird_19,простые,What is the phone number of the school that has the highest average score in Math?,"SELECT s.Phone 
+FROM schools AS s
+JOIN (
+  SELECT cds, MAX(AvgScrMath) as max_math_score
+  FROM satscores
+  GROUP BY cds
+  ORDER BY max_math_score DESC
+  LIMIT 1
+) AS ss ON s.CDSCode = ss.cds",SELECT T1.Phone FROM schools AS T1 INNER JOIN satscores AS T2 ON T1.CDSCode = T2.cds ORDER BY T2.AvgScrMath DESC LIMIT 1,некорректный результат,,"SQL выполнился, но результат не совпал с эталоном."
+Arctic-Text2SQL-R1-7B,BIRD,bird_22,простые,Which school in Contra Costa has the highest number of test takers?,"SELECT T2.School 
+FROM satscores AS T1 
+INNER JOIN schools AS T2 ON T1.cds = T2.CDSCode 
+WHERE T2.County = 'Contra Costa' 
+ORDER BY T1.NumTstTakr DESC 
+LIMIT 1",SELECT sname FROM satscores WHERE cname = 'Contra Costa' AND sname IS NOT NULL ORDER BY NumTstTakr DESC LIMIT 1,некорректный результат,,"SQL выполнился, но результат не совпал с эталоном."
+Arctic-Text2SQL-R1-7B,BIRD,bird_23,средние,List the names of schools with more than 30 difference in enrollements between K-12 and ages 5-17? Please also give the full street adress of the schools.,"SELECT 
+    s.School, 
+    s.Street || ', ' || s.City || ', ' || s.State AS FullAddress
+FROM 
+    frpm f
+INNER JOIN 
+    schools s ON f.CDSCode = s.CDSCode
+WHERE 
+    (f.`Enrollment (K-12)` - f.`Enrollment (Ages 5-17)`) > 30","SELECT T1.School, T1.Street FROM schools AS T1 INNER JOIN frpm AS T2 ON T1.CDSCode = T2.CDSCode WHERE T2.`Enrollment (K-12)` - T2.`Enrollment (Ages 5-17)` > 30",некорректный результат,,"SQL выполнился, но результат не совпал с эталоном."
+Arctic-Text2SQL-R1-7B,BIRD,bird_24,средние,Give the names of the schools with the percent eligible for free meals in K-12 is more than 0.1 and test takers whose test score is greater than or equal to 1500?,"SELECT DISTINCT T2.School 
+FROM frpm AS T1 
+INNER JOIN schools AS T2 ON T1.CDSCode = T2.CDSCode 
+INNER JOIN satscores AS T3 ON T2.CDSCode = T3.cds 
+WHERE (T1.`Free Meal Count (K-12)` / T1.`Enrollment (K-12)`) > 0.1 AND T3.NumGE1500 > 0",SELECT T2.`School Name` FROM satscores AS T1 INNER JOIN frpm AS T2 ON T1.cds = T2.CDSCode WHERE CAST(T2.`Free Meal Count (K-12)` AS REAL) / T2.`Enrollment (K-12)` > 0.1 AND T1.NumGE1500 > 0,некорректный результат,,"SQL выполнился, но результат не совпал с эталоном."
+Arctic-Text2SQL-R1-7B,BIRD,bird_25,средние,"Name schools in Riverside which the average of average math score for SAT is grater than 400, what is the funding type of these schools?","SELECT 
+    s.School, 
+    s.FundingType
+FROM 
+    schools s
+INNER JOIN 
+    satscores ss ON s.CDSCode = ss.cds
+WHERE 
+    s.County = 'Riverside'
+GROUP BY 
+    s.School, s.FundingType
+HAVING 
+    AVG(ss.AvgScrMath) > 400","SELECT T1.sname, T2.`Charter Funding Type` FROM satscores AS T1 INNER JOIN frpm AS T2 ON T1.cds = T2.CDSCode WHERE T2.`District Name` LIKE 'Riverside%' GROUP BY T1.sname, T2.`Charter Funding Type` HAVING CAST(SUM(T1.AvgScrMath) AS REAL) / COUNT(T1.cds) > 400",некорректный результат,,"SQL выполнился, но результат не совпал с эталоном."
+Arctic-Text2SQL-R1-7B,BIRD,bird_26,средние,State the names and full communication address of high schools in Monterey which has more than 800 free or reduced price meals for ages 15-17?,"SELECT 
+    s.School, 
+    s.Street, 
+    s.City, 
+    s.State, 
+    s.Zip
+FROM 
+    schools s
+INNER JOIN 
+    frpm f ON s.CDSCode = f.CDSCode
+WHERE 
+    f.`FRPM Count (Ages 5-17)` > 800 AND 
+    s.County = 'Monterey' AND 
+    s.StatusType = 'High School'","SELECT T1.`School Name`, T2.Street, T2.City, T2.State, T2.Zip FROM frpm AS T1 INNER JOIN schools AS T2 ON T1.CDSCode = T2.CDSCode WHERE T2.County = 'Monterey' AND T1.`Free Meal Count (Ages 5-17)` > 800 AND T1.`School Type` = 'High Schools (Public)'",некорректный результат,,"SQL выполнился, но результат не совпал с эталоном."
+Arctic-Text2SQL-R1-7B,BIRD,bird_27,средние,"What is the average score in writing for the schools that were opened after 1991 or closed before 2000? List the school names along with the score. Also, list the communication number of the schools if there is any.","SELECT 
+    s.School AS SchoolName,
+    ss.AvgScrWrite AS AverageWritingScore,
+    s.Phone AS CommunicationNumber
+FROM schools s
+JOIN satscores ss ON s.CDSCode = ss.cds
+WHERE (strftime('%Y', s.OpenDate) > '1991' OR strftime('%Y', s.ClosedDate) < '2000')
+ORDER BY AverageWritingScore DESC","SELECT T2.School, T1.AvgScrWrite, T2.Phone FROM schools AS T2 LEFT JOIN satscores AS T1 ON T2.CDSCode = T1.cds WHERE strftime('%Y', T2.OpenDate) > '1991' OR strftime('%Y', T2.ClosedDate) < '2000'",некорректный результат,,"SQL выполнился, но результат не совпал с эталоном."
+Arctic-Text2SQL-R1-7B,BIRD,bird_28,сложные,"Consider the average difference between K-12 enrollment and 15-17 enrollment of schools that are locally funded, list the names and DOC type of schools which has a difference above this average.","SELECT 
+  T1.`School Name`, 
+  T1.DOCType
+FROM 
+  frpm AS T1
+INNER JOIN 
+  schools AS T2 ON T1.CDSCode = T2.CDSCode
+WHERE 
+  T2.FundingType = 'Local' AND 
+  (T1.`Enrollment (K-12)` - T1.`Enrollment (Ages 5-17)`) > (
+    SELECT AVG(T3.`Enrollment (K-12)` - T3.`Enrollment (Ages 5-17)`)
+    FROM frpm AS T3
+    INNER JOIN schools AS T4 ON T3.CDSCode = T4.CDSCode
+    WHERE T4.FundingType = 'Local'
+  )","SELECT T2.School, T2.DOC FROM frpm AS T1 INNER JOIN schools AS T2 ON T1.CDSCode = T2.CDSCode WHERE T2.FundingType = 'Locally funded' AND (T1.`Enrollment (K-12)` - T1.`Enrollment (Ages 5-17)`) > (SELECT AVG(T3.`Enrollment (K-12)` - T3.`Enrollment (Ages 5-17)`) FROM frpm AS T3 INNER JOIN schools AS T4 ON T3.CDSCode = T4.CDSCode WHERE T4.FundingType = 'Locally funded')",ошибка выполнения,no such column: T1.DOCType,SQL не выполнился на целевой базе.
+Arctic-Text2SQL-R1-7B,BIRD,bird_30,простые,Which cities have the top 5 lowest enrollment number for students in grades 1 through 12?,"SELECT s.City
+FROM schools AS s
+JOIN frpm AS f ON s.CDSCode = f.CDSCode
+WHERE f.`Enrollment (K-12)` IS NOT NULL
+ORDER BY f.`Enrollment (K-12)` ASC
+LIMIT 5",SELECT T2.City FROM frpm AS T1 INNER JOIN schools AS T2 ON T1.CDSCode = T2.CDSCode GROUP BY T2.City ORDER BY SUM(T1.`Enrollment (K-12)`) ASC LIMIT 5,некорректный результат,,"SQL выполнился, но результат не совпал с эталоном."
+Arctic-Text2SQL-R1-7B,BIRD,bird_31,средние,What is the eligible free rate of the 10th and 11th schools with the highest enrolment for students in grades 1 through 12?,"SELECT 
+    (SUM(`Free Meal Count (K-12)`) * 100.0 / SUM(`Enrollment (K-12)`)) AS EligibleFreeRate
+FROM (
+    SELECT *
+    FROM frpm
+    ORDER BY `Enrollment (K-12)` DESC
+    LIMIT 2
+)","SELECT CAST(`Free Meal Count (K-12)` AS REAL) / `Enrollment (K-12)` FROM frpm ORDER BY `Enrollment (K-12)` DESC LIMIT 9, 2",некорректный результат,,"SQL выполнился, но результат не совпал с эталоном."
