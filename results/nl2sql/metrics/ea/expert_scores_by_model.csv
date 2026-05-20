@@ -1,0 +1,11 @@
+benchmark,model_name,model_display_name,n,completeness,efficiency,readability,expert_score,expert_1_score,expert_2_score
+bird,Arctic-Text2SQL-R1-7B,Arctic-Text2SQL-R1-7B,10,4.85,4.85,4.9,4.8667,4.9,4.8333
+bird,ChatGPT,ChatGPT 5.2,10,4.45,4.45,4.5,4.4666,4.4,4.5333
+bird,DeepSeek,DeepSeek V3.2,10,4.7,4.65,4.75,4.7,4.7333,4.6667
+bird,Defog-Llama3-SQLCoder-8B,Defog-Llama3-SQLCoder-8B q4_0,10,4.9,4.4,4.4,4.5666,4.5333,4.6
+bird,Hrida-T2SQL,Hrida-T2SQL q8_0,10,4.3,4.65,4.45,4.4666,4.4333,4.5
+spider,Arctic-Text2SQL-R1-7B,Arctic-Text2SQL-R1-7B,10,4.8,5.0,4.8,4.8667,4.8667,4.8667
+spider,ChatGPT,ChatGPT 5.2,10,4.7,4.8,4.7,4.7333,4.7667,4.7
+spider,DeepSeek,DeepSeek V3.2,10,4.8,4.75,4.8,4.7833,4.8,4.7667
+spider,Defog-Llama3-SQLCoder-8B,Defog-Llama3-SQLCoder-8B q4_0,10,4.8,4.5,4.4,4.5666,4.6333,4.5
+spider,Hrida-T2SQL,Hrida-T2SQL q8_0,10,5.0,4.85,4.8,4.8833,4.9,4.8667

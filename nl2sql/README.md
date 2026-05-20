@@ -166,6 +166,8 @@ uv run python nl2sql/scripts/02_run_inference.py --model m2_defog --benchmark sp
 | --- | --- |
 | `results/nl2sql/metrics/ea/summary_metrics.csv` | Агрегированные EA-метрики |
 | `results/nl2sql/metrics/ea/sample_metrics.csv` | EA на уровне отдельных примеров |
+| `results/nl2sql/metrics/ea/expert_scores.csv` | Усредненная экспертная оценка 100 успешных EA-запросов |
+| `results/nl2sql/metrics/ea/expert_interrater_agreement.csv` | Согласие двух экспертов по критериям Expert Score |
 | `results/nl2sql/metrics/pass_k/summary_metrics.csv` | Агрегированные Pass@K-метрики |
 | `results/nl2sql/metrics/pass_k/sample_metrics.csv` | Pass@K на уровне отдельных примеров |
 | `results/nl2sql/metrics/*/expert_scores_template.csv` | Шаблон для экспертной разметки |

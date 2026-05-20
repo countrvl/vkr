@@ -54,6 +54,12 @@
 - Таблица Д.3 — Статус экспертного слоя
 Источник файла: `reports/appendix_assets/appendix_d_table_3_expert_layer_status.csv`
 
+- Таблица Д.3а — Expert Score на 100 успешных EA-запросах
+Источник файла: `reports/appendix_assets/appendix_d_table_3a_expert_score_by_model.csv`
+
+- Таблица Д.3б — Согласие экспертов по Expert Score
+Источник файла: `reports/appendix_assets/appendix_d_table_3b_expert_agreement.csv`
+
 - Таблица Д.4 — Сводка вычислительных характеристик моделей
 Источник файла: `reports/appendix_assets/appendix_d_table_4_compute_summary.csv`
 
