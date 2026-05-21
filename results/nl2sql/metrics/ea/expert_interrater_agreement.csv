@@ -1,0 +1,5 @@
+criterion,n,exact_agreement,mean_abs_diff,cohens_kappa
+completeness,100,0.94,0.06,0.8121
+efficiency,100,0.88,0.12,0.7137
+readability,100,0.9,0.1,0.7795
+expert_score_rounded,100,0.91,0.08,0.7951

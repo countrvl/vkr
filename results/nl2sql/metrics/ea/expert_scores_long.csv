@@ -1,0 +1,201 @@
+expert,audit_id,sample_id,model_name,model_display_name,benchmark,completeness,efficiency,readability,expert_score
+expert_1,EA-001,bird_769,DeepSeek,DeepSeek V3.2,bird,5,5,5,5.0
+expert_1,EA-002,bird_990,DeepSeek,DeepSeek V3.2,bird,5,5,5,5.0
+expert_1,EA-003,bird_615,DeepSeek,DeepSeek V3.2,bird,4,5,4,4.3333
+expert_1,EA-004,bird_794,DeepSeek,DeepSeek V3.2,bird,5,5,5,5.0
+expert_1,EA-005,bird_1038,DeepSeek,DeepSeek V3.2,bird,5,5,5,5.0
+expert_1,EA-006,bird_840,DeepSeek,DeepSeek V3.2,bird,5,4,5,4.6667
+expert_1,EA-007,bird_1184,DeepSeek,DeepSeek V3.2,bird,5,5,4,4.6667
+expert_1,EA-008,bird_299,DeepSeek,DeepSeek V3.2,bird,5,5,5,5.0
+expert_1,EA-009,bird_147,DeepSeek,DeepSeek V3.2,bird,4,3,4,3.6667
+expert_1,EA-010,bird_549,DeepSeek,DeepSeek V3.2,bird,5,5,5,5.0
+expert_1,EA-011,bird_1076,ChatGPT,ChatGPT 5.2,bird,5,4,5,4.6667
+expert_1,EA-012,bird_206,ChatGPT,ChatGPT 5.2,bird,3,2,2,2.3333
+expert_1,EA-013,bird_397,ChatGPT,ChatGPT 5.2,bird,4,5,4,4.3333
+expert_1,EA-014,bird_942,ChatGPT,ChatGPT 5.2,bird,5,4,4,4.3333
+expert_1,EA-015,bird_1311,ChatGPT,ChatGPT 5.2,bird,2,4,4,3.3333
+expert_1,EA-016,bird_1374,ChatGPT,ChatGPT 5.2,bird,5,5,5,5.0
+expert_1,EA-017,bird_885,ChatGPT,ChatGPT 5.2,bird,5,5,5,5.0
+expert_1,EA-018,bird_795,ChatGPT,ChatGPT 5.2,bird,5,5,5,5.0
+expert_1,EA-019,bird_545,ChatGPT,ChatGPT 5.2,bird,5,5,5,5.0
+expert_1,EA-020,bird_1176,ChatGPT,ChatGPT 5.2,bird,5,5,5,5.0
+expert_1,EA-021,bird_1429,Defog-Llama3-SQLCoder-8B,Defog-Llama3-SQLCoder-8B q4_0,bird,5,4,4,4.3333
+expert_1,EA-022,bird_322,Defog-Llama3-SQLCoder-8B,Defog-Llama3-SQLCoder-8B q4_0,bird,5,5,5,5.0
+expert_1,EA-023,bird_1405,Defog-Llama3-SQLCoder-8B,Defog-Llama3-SQLCoder-8B q4_0,bird,5,4,4,4.3333
+expert_1,EA-024,bird_243,Defog-Llama3-SQLCoder-8B,Defog-Llama3-SQLCoder-8B q4_0,bird,5,4,4,4.3333
+expert_1,EA-025,bird_707,Defog-Llama3-SQLCoder-8B,Defog-Llama3-SQLCoder-8B q4_0,bird,5,5,5,5.0
+expert_1,EA-026,bird_735,Defog-Llama3-SQLCoder-8B,Defog-Llama3-SQLCoder-8B q4_0,bird,5,5,4,4.6667
+expert_1,EA-027,bird_316,Defog-Llama3-SQLCoder-8B,Defog-Llama3-SQLCoder-8B q4_0,bird,5,4,4,4.3333
+expert_1,EA-028,bird_574,Defog-Llama3-SQLCoder-8B,Defog-Llama3-SQLCoder-8B q4_0,bird,4,4,4,4.0
+expert_1,EA-029,bird_1355,Defog-Llama3-SQLCoder-8B,Defog-Llama3-SQLCoder-8B q4_0,bird,5,4,4,4.3333
+expert_1,EA-030,bird_404,Defog-Llama3-SQLCoder-8B,Defog-Llama3-SQLCoder-8B q4_0,bird,5,5,5,5.0
+expert_1,EA-031,bird_212,Hrida-T2SQL,Hrida-T2SQL q8_0,bird,3,5,4,4.0
+expert_1,EA-032,bird_1194,Hrida-T2SQL,Hrida-T2SQL q8_0,bird,2,4,4,3.3333
+expert_1,EA-033,bird_830,Hrida-T2SQL,Hrida-T2SQL q8_0,bird,5,5,4,4.6667
+expert_1,EA-034,bird_151,Hrida-T2SQL,Hrida-T2SQL q8_0,bird,5,5,4,4.6667
+expert_1,EA-035,bird_657,Hrida-T2SQL,Hrida-T2SQL q8_0,bird,4,4,4,4.0
+expert_1,EA-036,bird_605,Hrida-T2SQL,Hrida-T2SQL q8_0,bird,4,4,4,4.0
+expert_1,EA-037,bird_121,Hrida-T2SQL,Hrida-T2SQL q8_0,bird,5,5,4,4.6667
+expert_1,EA-038,bird_1343,Hrida-T2SQL,Hrida-T2SQL q8_0,bird,5,5,5,5.0
+expert_1,EA-039,bird_1495,Hrida-T2SQL,Hrida-T2SQL q8_0,bird,5,5,5,5.0
+expert_1,EA-040,bird_946,Hrida-T2SQL,Hrida-T2SQL q8_0,bird,5,5,5,5.0
+expert_1,EA-041,bird_760,Arctic-Text2SQL-R1-7B,Arctic-Text2SQL-R1-7B,bird,5,5,5,5.0
+expert_1,EA-042,bird_330,Arctic-Text2SQL-R1-7B,Arctic-Text2SQL-R1-7B,bird,4,4,4,4.0
+expert_1,EA-043,bird_782,Arctic-Text2SQL-R1-7B,Arctic-Text2SQL-R1-7B,bird,5,5,5,5.0
+expert_1,EA-044,bird_940,Arctic-Text2SQL-R1-7B,Arctic-Text2SQL-R1-7B,bird,5,5,5,5.0
+expert_1,EA-045,bird_100,Arctic-Text2SQL-R1-7B,Arctic-Text2SQL-R1-7B,bird,5,5,5,5.0
+expert_1,EA-046,bird_29,Arctic-Text2SQL-R1-7B,Arctic-Text2SQL-R1-7B,bird,5,5,5,5.0
+expert_1,EA-047,bird_669,Arctic-Text2SQL-R1-7B,Arctic-Text2SQL-R1-7B,bird,5,5,5,5.0
+expert_1,EA-048,bird_997,Arctic-Text2SQL-R1-7B,Arctic-Text2SQL-R1-7B,bird,5,5,5,5.0
+expert_1,EA-049,bird_1422,Arctic-Text2SQL-R1-7B,Arctic-Text2SQL-R1-7B,bird,5,5,5,5.0
+expert_1,EA-050,bird_526,Arctic-Text2SQL-R1-7B,Arctic-Text2SQL-R1-7B,bird,5,5,5,5.0
+expert_1,EA-051,spider_711,DeepSeek,DeepSeek V3.2,spider,5,5,5,5.0
+expert_1,EA-052,spider_669,DeepSeek,DeepSeek V3.2,spider,5,5,5,5.0
+expert_1,EA-053,spider_588,DeepSeek,DeepSeek V3.2,spider,5,5,5,5.0
+expert_1,EA-054,spider_978,DeepSeek,DeepSeek V3.2,spider,5,5,5,5.0
+expert_1,EA-055,spider_345,DeepSeek,DeepSeek V3.2,spider,3,4,3,3.3333
+expert_1,EA-056,spider_837,DeepSeek,DeepSeek V3.2,spider,5,5,5,5.0
+expert_1,EA-057,spider_447,DeepSeek,DeepSeek V3.2,spider,5,5,5,5.0
+expert_1,EA-058,spider_383,DeepSeek,DeepSeek V3.2,spider,5,5,5,5.0
+expert_1,EA-059,spider_33,DeepSeek,DeepSeek V3.2,spider,5,4,5,4.6667
+expert_1,EA-060,spider_497,DeepSeek,DeepSeek V3.2,spider,5,5,5,5.0
+expert_1,EA-061,spider_532,ChatGPT,ChatGPT 5.2,spider,3,5,4,4.0
+expert_1,EA-062,spider_752,ChatGPT,ChatGPT 5.2,spider,5,4,4,4.3333
+expert_1,EA-063,spider_506,ChatGPT,ChatGPT 5.2,spider,5,5,5,5.0
+expert_1,EA-064,spider_12,ChatGPT,ChatGPT 5.2,spider,5,5,5,5.0
+expert_1,EA-065,spider_425,ChatGPT,ChatGPT 5.2,spider,5,5,5,5.0
+expert_1,EA-066,spider_1013,ChatGPT,ChatGPT 5.2,spider,5,5,5,5.0
+expert_1,EA-067,spider_314,ChatGPT,ChatGPT 5.2,spider,5,5,5,5.0
+expert_1,EA-068,spider_864,ChatGPT,ChatGPT 5.2,spider,5,5,5,5.0
+expert_1,EA-069,spider_668,ChatGPT,ChatGPT 5.2,spider,5,5,5,5.0
+expert_1,EA-070,spider_483,ChatGPT,ChatGPT 5.2,spider,4,5,4,4.3333
+expert_1,EA-071,spider_290,Defog-Llama3-SQLCoder-8B,Defog-Llama3-SQLCoder-8B q4_0,spider,5,5,5,5.0
+expert_1,EA-072,spider_299,Defog-Llama3-SQLCoder-8B,Defog-Llama3-SQLCoder-8B q4_0,spider,5,5,5,5.0
+expert_1,EA-073,spider_222,Defog-Llama3-SQLCoder-8B,Defog-Llama3-SQLCoder-8B q4_0,spider,4,5,5,4.6667
+expert_1,EA-074,spider_136,Defog-Llama3-SQLCoder-8B,Defog-Llama3-SQLCoder-8B q4_0,spider,5,5,4,4.6667
+expert_1,EA-075,spider_692,Defog-Llama3-SQLCoder-8B,Defog-Llama3-SQLCoder-8B q4_0,spider,5,4,4,4.3333
+expert_1,EA-076,spider_893,Defog-Llama3-SQLCoder-8B,Defog-Llama3-SQLCoder-8B q4_0,spider,5,5,4,4.6667
+expert_1,EA-077,spider_770,Defog-Llama3-SQLCoder-8B,Defog-Llama3-SQLCoder-8B q4_0,spider,5,5,5,5.0
+expert_1,EA-078,spider_1006,Defog-Llama3-SQLCoder-8B,Defog-Llama3-SQLCoder-8B q4_0,spider,5,4,4,4.3333
+expert_1,EA-079,spider_674,Defog-Llama3-SQLCoder-8B,Defog-Llama3-SQLCoder-8B q4_0,spider,5,4,4,4.3333
+expert_1,EA-080,spider_29,Defog-Llama3-SQLCoder-8B,Defog-Llama3-SQLCoder-8B q4_0,spider,5,4,4,4.3333
+expert_1,EA-081,spider_403,Hrida-T2SQL,Hrida-T2SQL q8_0,spider,5,5,4,4.6667
+expert_1,EA-082,spider_319,Hrida-T2SQL,Hrida-T2SQL q8_0,spider,5,4,4,4.3333
+expert_1,EA-083,spider_703,Hrida-T2SQL,Hrida-T2SQL q8_0,spider,5,5,5,5.0
+expert_1,EA-084,spider_145,Hrida-T2SQL,Hrida-T2SQL q8_0,spider,5,5,5,5.0
+expert_1,EA-085,spider_953,Hrida-T2SQL,Hrida-T2SQL q8_0,spider,5,5,5,5.0
+expert_1,EA-086,spider_700,Hrida-T2SQL,Hrida-T2SQL q8_0,spider,5,5,5,5.0
+expert_1,EA-087,spider_659,Hrida-T2SQL,Hrida-T2SQL q8_0,spider,5,5,5,5.0
+expert_1,EA-088,spider_623,Hrida-T2SQL,Hrida-T2SQL q8_0,spider,5,5,5,5.0
+expert_1,EA-089,spider_1003,Hrida-T2SQL,Hrida-T2SQL q8_0,spider,5,5,5,5.0
+expert_1,EA-090,spider_187,Hrida-T2SQL,Hrida-T2SQL q8_0,spider,5,5,5,5.0
+expert_1,EA-091,spider_185,Arctic-Text2SQL-R1-7B,Arctic-Text2SQL-R1-7B,spider,5,5,5,5.0
+expert_1,EA-092,spider_373,Arctic-Text2SQL-R1-7B,Arctic-Text2SQL-R1-7B,spider,5,5,5,5.0
+expert_1,EA-093,spider_393,Arctic-Text2SQL-R1-7B,Arctic-Text2SQL-R1-7B,spider,5,5,5,5.0
+expert_1,EA-094,spider_153,Arctic-Text2SQL-R1-7B,Arctic-Text2SQL-R1-7B,spider,5,5,5,5.0
+expert_1,EA-095,spider_729,Arctic-Text2SQL-R1-7B,Arctic-Text2SQL-R1-7B,spider,5,5,5,5.0
+expert_1,EA-096,spider_284,Arctic-Text2SQL-R1-7B,Arctic-Text2SQL-R1-7B,spider,4,5,4,4.3333
+expert_1,EA-097,spider_501,Arctic-Text2SQL-R1-7B,Arctic-Text2SQL-R1-7B,spider,5,5,5,5.0
+expert_1,EA-098,spider_863,Arctic-Text2SQL-R1-7B,Arctic-Text2SQL-R1-7B,spider,5,5,5,5.0
+expert_1,EA-099,spider_22,Arctic-Text2SQL-R1-7B,Arctic-Text2SQL-R1-7B,spider,4,5,4,4.3333
+expert_1,EA-100,spider_619,Arctic-Text2SQL-R1-7B,Arctic-Text2SQL-R1-7B,spider,5,5,5,5.0
+expert_2,EA-001,bird_769,DeepSeek,DeepSeek V3.2,bird,5,5,5,5.0
+expert_2,EA-002,bird_990,DeepSeek,DeepSeek V3.2,bird,5,5,5,5.0
+expert_2,EA-003,bird_615,DeepSeek,DeepSeek V3.2,bird,4,5,5,4.6667
+expert_2,EA-004,bird_794,DeepSeek,DeepSeek V3.2,bird,5,5,5,5.0
+expert_2,EA-005,bird_1038,DeepSeek,DeepSeek V3.2,bird,5,5,5,5.0
+expert_2,EA-006,bird_840,DeepSeek,DeepSeek V3.2,bird,5,4,4,4.3333
+expert_2,EA-007,bird_1184,DeepSeek,DeepSeek V3.2,bird,4,4,5,4.3333
+expert_2,EA-008,bird_299,DeepSeek,DeepSeek V3.2,bird,5,5,5,5.0
+expert_2,EA-009,bird_147,DeepSeek,DeepSeek V3.2,bird,3,3,4,3.3333
+expert_2,EA-010,bird_549,DeepSeek,DeepSeek V3.2,bird,5,5,5,5.0
+expert_2,EA-011,bird_1076,ChatGPT,ChatGPT 5.2,bird,5,5,5,5.0
+expert_2,EA-012,bird_206,ChatGPT,ChatGPT 5.2,bird,4,3,3,3.3333
+expert_2,EA-013,bird_397,ChatGPT,ChatGPT 5.2,bird,4,4,5,4.3333
+expert_2,EA-014,bird_942,ChatGPT,ChatGPT 5.2,bird,5,4,4,4.3333
+expert_2,EA-015,bird_1311,ChatGPT,ChatGPT 5.2,bird,2,4,4,3.3333
+expert_2,EA-016,bird_1374,ChatGPT,ChatGPT 5.2,bird,5,5,5,5.0
+expert_2,EA-017,bird_885,ChatGPT,ChatGPT 5.2,bird,5,5,5,5.0
+expert_2,EA-018,bird_795,ChatGPT,ChatGPT 5.2,bird,5,5,5,5.0
+expert_2,EA-019,bird_545,ChatGPT,ChatGPT 5.2,bird,5,5,5,5.0
+expert_2,EA-020,bird_1176,ChatGPT,ChatGPT 5.2,bird,5,5,5,5.0
+expert_2,EA-021,bird_1429,Defog-Llama3-SQLCoder-8B,Defog-Llama3-SQLCoder-8B q4_0,bird,5,4,4,4.3333
+expert_2,EA-022,bird_322,Defog-Llama3-SQLCoder-8B,Defog-Llama3-SQLCoder-8B q4_0,bird,5,5,5,5.0
+expert_2,EA-023,bird_1405,Defog-Llama3-SQLCoder-8B,Defog-Llama3-SQLCoder-8B q4_0,bird,5,4,5,4.6667
+expert_2,EA-024,bird_243,Defog-Llama3-SQLCoder-8B,Defog-Llama3-SQLCoder-8B q4_0,bird,5,4,4,4.3333
+expert_2,EA-025,bird_707,Defog-Llama3-SQLCoder-8B,Defog-Llama3-SQLCoder-8B q4_0,bird,5,5,5,5.0
+expert_2,EA-026,bird_735,Defog-Llama3-SQLCoder-8B,Defog-Llama3-SQLCoder-8B q4_0,bird,5,5,5,5.0
+expert_2,EA-027,bird_316,Defog-Llama3-SQLCoder-8B,Defog-Llama3-SQLCoder-8B q4_0,bird,5,4,4,4.3333
+expert_2,EA-028,bird_574,Defog-Llama3-SQLCoder-8B,Defog-Llama3-SQLCoder-8B q4_0,bird,4,4,4,4.0
+expert_2,EA-029,bird_1355,Defog-Llama3-SQLCoder-8B,Defog-Llama3-SQLCoder-8B q4_0,bird,5,4,4,4.3333
+expert_2,EA-030,bird_404,Defog-Llama3-SQLCoder-8B,Defog-Llama3-SQLCoder-8B q4_0,bird,5,5,5,5.0
+expert_2,EA-031,bird_212,Hrida-T2SQL,Hrida-T2SQL q8_0,bird,3,4,4,3.6667
+expert_2,EA-032,bird_1194,Hrida-T2SQL,Hrida-T2SQL q8_0,bird,2,4,4,3.3333
+expert_2,EA-033,bird_830,Hrida-T2SQL,Hrida-T2SQL q8_0,bird,5,5,5,5.0
+expert_2,EA-034,bird_151,Hrida-T2SQL,Hrida-T2SQL q8_0,bird,5,5,5,5.0
+expert_2,EA-035,bird_657,Hrida-T2SQL,Hrida-T2SQL q8_0,bird,4,4,4,4.0
+expert_2,EA-036,bird_605,Hrida-T2SQL,Hrida-T2SQL q8_0,bird,4,4,4,4.0
+expert_2,EA-037,bird_121,Hrida-T2SQL,Hrida-T2SQL q8_0,bird,5,5,5,5.0
+expert_2,EA-038,bird_1343,Hrida-T2SQL,Hrida-T2SQL q8_0,bird,5,5,5,5.0
+expert_2,EA-039,bird_1495,Hrida-T2SQL,Hrida-T2SQL q8_0,bird,5,5,5,5.0
+expert_2,EA-040,bird_946,Hrida-T2SQL,Hrida-T2SQL q8_0,bird,5,5,5,5.0
+expert_2,EA-041,bird_760,Arctic-Text2SQL-R1-7B,Arctic-Text2SQL-R1-7B,bird,5,5,5,5.0
+expert_2,EA-042,bird_330,Arctic-Text2SQL-R1-7B,Arctic-Text2SQL-R1-7B,bird,3,4,4,3.6667
+expert_2,EA-043,bird_782,Arctic-Text2SQL-R1-7B,Arctic-Text2SQL-R1-7B,bird,5,4,5,4.6667
+expert_2,EA-044,bird_940,Arctic-Text2SQL-R1-7B,Arctic-Text2SQL-R1-7B,bird,5,5,5,5.0
+expert_2,EA-045,bird_100,Arctic-Text2SQL-R1-7B,Arctic-Text2SQL-R1-7B,bird,5,5,5,5.0
+expert_2,EA-046,bird_29,Arctic-Text2SQL-R1-7B,Arctic-Text2SQL-R1-7B,bird,5,5,5,5.0
+expert_2,EA-047,bird_669,Arctic-Text2SQL-R1-7B,Arctic-Text2SQL-R1-7B,bird,5,5,5,5.0
+expert_2,EA-048,bird_997,Arctic-Text2SQL-R1-7B,Arctic-Text2SQL-R1-7B,bird,5,5,5,5.0
+expert_2,EA-049,bird_1422,Arctic-Text2SQL-R1-7B,Arctic-Text2SQL-R1-7B,bird,5,5,5,5.0
+expert_2,EA-050,bird_526,Arctic-Text2SQL-R1-7B,Arctic-Text2SQL-R1-7B,bird,5,5,5,5.0
+expert_2,EA-051,spider_711,DeepSeek,DeepSeek V3.2,spider,5,5,5,5.0
+expert_2,EA-052,spider_669,DeepSeek,DeepSeek V3.2,spider,5,5,5,5.0
+expert_2,EA-053,spider_588,DeepSeek,DeepSeek V3.2,spider,5,5,5,5.0
+expert_2,EA-054,spider_978,DeepSeek,DeepSeek V3.2,spider,5,5,5,5.0
+expert_2,EA-055,spider_345,DeepSeek,DeepSeek V3.2,spider,3,3,3,3.0
+expert_2,EA-056,spider_837,DeepSeek,DeepSeek V3.2,spider,5,5,5,5.0
+expert_2,EA-057,spider_447,DeepSeek,DeepSeek V3.2,spider,5,5,5,5.0
+expert_2,EA-058,spider_383,DeepSeek,DeepSeek V3.2,spider,5,5,5,5.0
+expert_2,EA-059,spider_33,DeepSeek,DeepSeek V3.2,spider,5,4,5,4.6667
+expert_2,EA-060,spider_497,DeepSeek,DeepSeek V3.2,spider,5,5,5,5.0
+expert_2,EA-061,spider_532,ChatGPT,ChatGPT 5.2,spider,3,4,4,3.6667
+expert_2,EA-062,spider_752,ChatGPT,ChatGPT 5.2,spider,5,4,4,4.3333
+expert_2,EA-063,spider_506,ChatGPT,ChatGPT 5.2,spider,5,5,5,5.0
+expert_2,EA-064,spider_12,ChatGPT,ChatGPT 5.2,spider,5,5,5,5.0
+expert_2,EA-065,spider_425,ChatGPT,ChatGPT 5.2,spider,5,5,5,5.0
+expert_2,EA-066,spider_1013,ChatGPT,ChatGPT 5.2,spider,5,5,5,5.0
+expert_2,EA-067,spider_314,ChatGPT,ChatGPT 5.2,spider,5,5,5,5.0
+expert_2,EA-068,spider_864,ChatGPT,ChatGPT 5.2,spider,5,5,5,5.0
+expert_2,EA-069,spider_668,ChatGPT,ChatGPT 5.2,spider,5,5,5,5.0
+expert_2,EA-070,spider_483,ChatGPT,ChatGPT 5.2,spider,4,4,4,4.0
+expert_2,EA-071,spider_290,Defog-Llama3-SQLCoder-8B,Defog-Llama3-SQLCoder-8B q4_0,spider,5,5,5,5.0
+expert_2,EA-072,spider_299,Defog-Llama3-SQLCoder-8B,Defog-Llama3-SQLCoder-8B q4_0,spider,5,5,5,5.0
+expert_2,EA-073,spider_222,Defog-Llama3-SQLCoder-8B,Defog-Llama3-SQLCoder-8B q4_0,spider,4,5,5,4.6667
+expert_2,EA-074,spider_136,Defog-Llama3-SQLCoder-8B,Defog-Llama3-SQLCoder-8B q4_0,spider,4,4,4,4.0
+expert_2,EA-075,spider_692,Defog-Llama3-SQLCoder-8B,Defog-Llama3-SQLCoder-8B q4_0,spider,5,4,4,4.3333
+expert_2,EA-076,spider_893,Defog-Llama3-SQLCoder-8B,Defog-Llama3-SQLCoder-8B q4_0,spider,4,4,4,4.0
+expert_2,EA-077,spider_770,Defog-Llama3-SQLCoder-8B,Defog-Llama3-SQLCoder-8B q4_0,spider,5,5,5,5.0
+expert_2,EA-078,spider_1006,Defog-Llama3-SQLCoder-8B,Defog-Llama3-SQLCoder-8B q4_0,spider,5,4,4,4.3333
+expert_2,EA-079,spider_674,Defog-Llama3-SQLCoder-8B,Defog-Llama3-SQLCoder-8B q4_0,spider,5,4,4,4.3333
+expert_2,EA-080,spider_29,Defog-Llama3-SQLCoder-8B,Defog-Llama3-SQLCoder-8B q4_0,spider,5,4,4,4.3333
+expert_2,EA-081,spider_403,Hrida-T2SQL,Hrida-T2SQL q8_0,spider,5,4,4,4.3333
+expert_2,EA-082,spider_319,Hrida-T2SQL,Hrida-T2SQL q8_0,spider,5,4,4,4.3333
+expert_2,EA-083,spider_703,Hrida-T2SQL,Hrida-T2SQL q8_0,spider,5,5,5,5.0
+expert_2,EA-084,spider_145,Hrida-T2SQL,Hrida-T2SQL q8_0,spider,5,5,5,5.0
+expert_2,EA-085,spider_953,Hrida-T2SQL,Hrida-T2SQL q8_0,spider,5,5,5,5.0
+expert_2,EA-086,spider_700,Hrida-T2SQL,Hrida-T2SQL q8_0,spider,5,5,5,5.0
+expert_2,EA-087,spider_659,Hrida-T2SQL,Hrida-T2SQL q8_0,spider,5,5,5,5.0
+expert_2,EA-088,spider_623,Hrida-T2SQL,Hrida-T2SQL q8_0,spider,5,5,5,5.0
+expert_2,EA-089,spider_1003,Hrida-T2SQL,Hrida-T2SQL q8_0,spider,5,5,5,5.0
+expert_2,EA-090,spider_187,Hrida-T2SQL,Hrida-T2SQL q8_0,spider,5,5,5,5.0
+expert_2,EA-091,spider_185,Arctic-Text2SQL-R1-7B,Arctic-Text2SQL-R1-7B,spider,5,5,5,5.0
+expert_2,EA-092,spider_373,Arctic-Text2SQL-R1-7B,Arctic-Text2SQL-R1-7B,spider,5,5,5,5.0
+expert_2,EA-093,spider_393,Arctic-Text2SQL-R1-7B,Arctic-Text2SQL-R1-7B,spider,5,5,5,5.0
+expert_2,EA-094,spider_153,Arctic-Text2SQL-R1-7B,Arctic-Text2SQL-R1-7B,spider,5,5,5,5.0
+expert_2,EA-095,spider_729,Arctic-Text2SQL-R1-7B,Arctic-Text2SQL-R1-7B,spider,5,5,5,5.0
+expert_2,EA-096,spider_284,Arctic-Text2SQL-R1-7B,Arctic-Text2SQL-R1-7B,spider,4,5,4,4.3333
+expert_2,EA-097,spider_501,Arctic-Text2SQL-R1-7B,Arctic-Text2SQL-R1-7B,spider,5,5,5,5.0
+expert_2,EA-098,spider_863,Arctic-Text2SQL-R1-7B,Arctic-Text2SQL-R1-7B,spider,5,5,5,5.0
+expert_2,EA-099,spider_22,Arctic-Text2SQL-R1-7B,Arctic-Text2SQL-R1-7B,spider,4,5,4,4.3333
+expert_2,EA-100,spider_619,Arctic-Text2SQL-R1-7B,Arctic-Text2SQL-R1-7B,spider,5,5,5,5.0
